@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Quotation;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
+class QuotationPDFService
+{
+    public function generate(Quotation $quotation): string
+    {
+        $quotation->loadMissing(['customer', 'template', 'items', 'approvedBy']);
+
+        $view = $this->resolveView($quotation);
+        $verifyUrl = route('verify.quotation', $quotation->qr_token);
+        $qrCode = base64_encode(QrCode::format('svg')->size(120)->margin(1)->generate($verifyUrl));
+
+        $pdf = Pdf::loadView($view, [
+            'quotation' => $quotation,
+            'qrCode' => "data:image/svg+xml;base64,{$qrCode}",
+            'verifyUrl' => $verifyUrl,
+        ])->setPaper('a4');
+
+        $path = 'quotations/'.$this->fileName($quotation);
+        Storage::disk('local')->put($path, $pdf->output());
+
+        return $path;
+    }
+
+    public function path(Quotation $quotation): string
+    {
+        return 'quotations/'.$this->fileName($quotation);
+    }
+
+    private function resolveView(Quotation $quotation): string
+    {
+        $bladeFile = $quotation->template?->blade_file;
+
+        if ($bladeFile) {
+            $view = str($bladeFile)
+                ->replace('/', '.')
+                ->replace('\\', '.')
+                ->replace('.blade.php', '')
+                ->replace('.php', '')
+                ->trim('.')
+                ->toString();
+
+            if (view()->exists($view)) {
+                return $view;
+            }
+        }
+
+        return 'pdf.quotation.default';
+    }
+
+    private function fileName(Quotation $quotation): string
+    {
+        $number = Str::of($quotation->no_quotation)->replace('/', '-')->slug('-');
+
+        return "{$quotation->id}-{$number}.pdf";
+    }
+}

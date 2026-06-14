@@ -8,6 +8,7 @@ use App\Http\Controllers\MasterData\KatalogController;
 use App\Http\Controllers\MasterData\SiteController;
 use App\Http\Controllers\MasterData\VendorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Transaction\QuotationController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,6 +33,17 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/quotations', [QuotationController::class, 'index'])->middleware('permission:Quotation lihat')->name('quotations.index');
+    Route::get('/quotations/create', [QuotationController::class, 'create'])->middleware('permission:Quotation buat')->name('quotations.create');
+    Route::post('/quotations', [QuotationController::class, 'store'])->middleware('permission:Quotation buat')->name('quotations.store');
+    Route::get('/quotations/{quotation}', [QuotationController::class, 'show'])->middleware('permission:Quotation lihat')->name('quotations.show');
+    Route::post('/quotations/{quotation}/submit', [QuotationController::class, 'submit'])->middleware('permission:Quotation buat')->name('quotations.submit');
+    Route::post('/quotations/{quotation}/approve', [QuotationController::class, 'approve'])->middleware('permission:Quotation approve')->name('quotations.approve');
+    Route::post('/quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('permission:Quotation approve')->name('quotations.reject');
+    Route::post('/quotations/{quotation}/void', [QuotationController::class, 'void'])->middleware('permission:Quotation void')->name('quotations.void');
+    Route::get('/quotations/{quotation}/download', [QuotationController::class, 'download'])->middleware('permission:Quotation download_pdf')->name('quotations.download');
+    Route::post('/quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->middleware('permission:Quotation buat')->name('quotations.duplicate');
+
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('permission:Customer lihat')->name('customers.index');
     Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:Customer tambah')->name('customers.create');
     Route::post('/customers', [CustomerController::class, 'store'])->middleware('permission:Customer tambah')->name('customers.store');
@@ -82,5 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->middleware('permission:User ubah')->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:User hapus')->name('users.destroy');
 });
+
+Route::get('/verify/{token}', [QuotationController::class, 'verify'])->name('verify.quotation');
 
 require __DIR__.'/auth.php';
