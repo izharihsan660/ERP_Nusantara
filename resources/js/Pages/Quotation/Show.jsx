@@ -1,10 +1,13 @@
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Ban, Check, Copy, Download, Send, X } from 'lucide-react';
+import { Ban, Check, Copy, Download, Plus, Send, X } from 'lucide-react';
 import { useState } from 'react';
 
 const statusStyles = {
@@ -12,6 +15,11 @@ const statusStyles = {
     PENDING_APPROVAL: 'bg-amber-50 text-amber-700 ring-amber-200',
     APPROVED: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
     REJECTED: 'bg-red-50 text-red-700 ring-red-200',
+    OPEN: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    COMPLETED: 'bg-blue-50 text-blue-700 ring-blue-200',
+    ACTIVE: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    BELUM_TERSUPPLY: 'bg-amber-50 text-amber-700 ring-amber-200',
+    TERSUPPLY: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
     VOID: 'bg-zinc-800 text-white ring-zinc-800',
 };
 
@@ -53,6 +61,111 @@ function ActionModal({ show, title, label, value, error, processing, onChange, o
     );
 }
 
+function FieldError({ message }) {
+    return message ? <div className="mt-1 text-sm text-red-600">{message}</div> : null;
+}
+
+function FormRow({ label, error, children }) {
+    return (
+        <div>
+            <Label>{label}</Label>
+            <div className="mt-1">{children}</div>
+            <FieldError message={error} />
+        </div>
+    );
+}
+
+function PurchaseOrderModal({ show, form, onClose, onSubmit }) {
+    const setMetode = (value) => {
+        form.setData({
+            ...form.data,
+            metode_pembayaran: value,
+            top_hari: value === 'TOP' ? form.data.top_hari : '',
+        });
+    };
+
+    return (
+        <Modal show={show} onClose={onClose} maxWidth="2xl">
+            <form onSubmit={onSubmit} className="p-6">
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input PO Customer</h2>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <FormRow label="No. PO Customer" error={form.errors.no_po_customer}>
+                        <Input value={form.data.no_po_customer} onChange={(e) => form.setData('no_po_customer', e.target.value)} />
+                    </FormRow>
+                    <FormRow label="No. PR Customer" error={form.errors.no_pr_customer}>
+                        <Input
+                            value={form.data.no_pr_customer}
+                            onChange={(e) => form.setData('no_pr_customer', e.target.value)}
+                            placeholder="Opsional - khusus jika customer belum keluarkan PO resmi"
+                        />
+                    </FormRow>
+                    <FormRow label="Tanggal PO" error={form.errors.tgl_po}>
+                        <Input type="date" value={form.data.tgl_po} onChange={(e) => form.setData('tgl_po', e.target.value)} />
+                    </FormRow>
+                    <FormRow label="Metode Pembayaran" error={form.errors.metode_pembayaran}>
+                        <Select value={form.data.metode_pembayaran} onChange={(e) => setMetode(e.target.value)}>
+                            <option value="COD">COD</option>
+                            <option value="CBD">CBD</option>
+                            <option value="TOP">TOP</option>
+                        </Select>
+                    </FormRow>
+                    {form.data.metode_pembayaran === 'TOP' && (
+                        <FormRow label="Jangka Waktu (hari)" error={form.errors.top_hari}>
+                            <Input type="number" min="1" value={form.data.top_hari} onChange={(e) => form.setData('top_hari', e.target.value)} />
+                        </FormRow>
+                    )}
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
+                    <Button type="submit" disabled={form.processing}>Simpan</Button>
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
+function WipOrderModal({ show, form, onClose, onSubmit }) {
+    const setTipeOrder = (value) => {
+        form.setData({
+            ...form.data,
+            tipe_order: value,
+            nama_ekspedisi: value === 'VOR' ? form.data.nama_ekspedisi : '',
+        });
+    };
+
+    return (
+        <Modal show={show} onClose={onClose} maxWidth="lg">
+            <form onSubmit={onSubmit} className="p-6">
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input WIP</h2>
+                <div className="mt-5 grid gap-4">
+                    <FormRow label="No. WIP" error={form.errors.no_wip}>
+                        <Input
+                            value={form.data.no_wip}
+                            onChange={(e) => form.setData('no_wip', e.target.value)}
+                            placeholder="Nomor dari portal RMA"
+                        />
+                    </FormRow>
+                    <FormRow label="Tipe Order" error={form.errors.tipe_order}>
+                        <Select value={form.data.tipe_order} onChange={(e) => setTipeOrder(e.target.value)}>
+                            <option value="VOR">VOR</option>
+                            <option value="STK">STK</option>
+                        </Select>
+                    </FormRow>
+                    {form.data.tipe_order === 'VOR' && (
+                        <FormRow label="Nama Ekspedisi" error={form.errors.nama_ekspedisi}>
+                            <Input value={form.data.nama_ekspedisi} onChange={(e) => form.setData('nama_ekspedisi', e.target.value)} />
+                        </FormRow>
+                    )}
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
+                    <Button type="submit" disabled={form.processing}>Simpan</Button>
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
 function ProcessSection({ title, children }) {
     return (
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
@@ -65,8 +178,23 @@ function ProcessSection({ title, children }) {
 export default function Show({ quotation }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
+    const [selectedWip, setSelectedWip] = useState(null);
     const rejectForm = useForm({ catatan_rejection: '' });
     const voidForm = useForm({ alasan_void: '' });
+    const purchaseOrderForm = useForm({
+        no_po_customer: '',
+        no_pr_customer: '',
+        tgl_po: '',
+        metode_pembayaran: 'COD',
+        top_hari: '',
+    });
+    const wipOrderForm = useForm({
+        no_wip: '',
+        tipe_order: 'VOR',
+        nama_ekspedisi: '',
+    });
+    const voidPurchaseOrderForm = useForm({ alasan_void: '' });
+    const voidWipOrderForm = useForm({ alasan_void: '' });
 
     const submitReject = (event) => {
         event.preventDefault();
@@ -78,10 +206,59 @@ export default function Show({ quotation }) {
         voidForm.post(route('quotations.void', quotation.id), { onSuccess: () => setModal(null) });
     };
 
+    const submitPurchaseOrder = (event) => {
+        event.preventDefault();
+        purchaseOrderForm.post(route('quotations.purchase-orders.store', quotation.id), {
+            onSuccess: () => {
+                purchaseOrderForm.reset();
+                setModal(null);
+            },
+        });
+    };
+
+    const submitWipOrder = (event) => {
+        event.preventDefault();
+        wipOrderForm.post(route('purchase-orders.wip-orders.store', quotation.purchase_order.id), {
+            onSuccess: () => {
+                wipOrderForm.reset();
+                setModal(null);
+            },
+        });
+    };
+
+    const submitVoidPurchaseOrder = (event) => {
+        event.preventDefault();
+        voidPurchaseOrderForm.post(route('purchase-orders.void', quotation.purchase_order.id), {
+            onSuccess: () => {
+                voidPurchaseOrderForm.reset();
+                setModal(null);
+            },
+        });
+    };
+
+    const submitVoidWipOrder = (event) => {
+        event.preventDefault();
+        if (!selectedWip) {
+            return;
+        }
+
+        voidWipOrderForm.post(route('wip-orders.void', selectedWip.id), {
+            onSuccess: () => {
+                voidWipOrderForm.reset();
+                setSelectedWip(null);
+                setModal(null);
+            },
+        });
+    };
+
     const canApprove = permissions.includes('Quotation approve');
     const canVoid = permissions.includes('Quotation void') && quotation.status !== 'VOID';
     const canCreate = permissions.includes('Quotation buat');
     const canDownload = permissions.includes('Quotation download_pdf');
+    const canInputPO = permissions.includes('PO Customer input');
+    const canVoidPO = permissions.includes('PO Customer void');
+    const canInputWIP = permissions.includes('WIP buat');
+    const canVoidWIP = permissions.includes('WIP void');
 
     return (
         <AppLayout title="Detail Quotation">
@@ -180,19 +357,103 @@ export default function Show({ quotation }) {
 
                 {quotation.status === 'APPROVED' && (
                     <ProcessSection title="PO Customer">
-                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-slate-50 p-4 dark:bg-slate-900">
-                            <div className="text-sm text-slate-600 dark:text-slate-300">Belum ada PO Customer untuk quotation ini.</div>
-                            <Button type="button" variant="secondary">Input PO Customer</Button>
-                        </div>
+                        {!quotation.purchase_order ? (
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-slate-50 p-4 dark:bg-slate-900">
+                                <div className="text-sm text-slate-600 dark:text-slate-300">Belum ada PO Customer untuk quotation ini.</div>
+                                {canInputPO && (
+                                    <Button type="button" variant="secondary" onClick={() => setModal('purchase-order')}>
+                                        <Plus className="h-4 w-4" />Input PO Customer
+                                    </Button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                    <div className="grid flex-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                        <Info label="No. PO Customer" value={quotation.purchase_order.no_po_customer} />
+                                        {quotation.purchase_order.no_pr_customer && (
+                                            <Info label="No. PR" value={quotation.purchase_order.no_pr_customer} />
+                                        )}
+                                        <Info label="Tanggal PO" value={quotation.purchase_order.tgl_po} />
+                                        <Info label="Metode Bayar" value={quotation.purchase_order.metode_pembayaran_label} />
+                                        {quotation.purchase_order.metode_pembayaran === 'TOP' && (
+                                            <>
+                                                <Info label="TOP Hari" value={quotation.purchase_order.top_hari} />
+                                                <Info label="Jatuh Tempo" value={quotation.purchase_order.tgl_jatuh_tempo} />
+                                            </>
+                                        )}
+                                        <div>
+                                            <div className="text-xs uppercase text-slate-500">Status</div>
+                                            <div className="mt-1"><StatusBadge status={quotation.purchase_order.status} label={quotation.purchase_order.status_label} /></div>
+                                        </div>
+                                    </div>
+                                    {canVoidPO && quotation.purchase_order.is_voidable && (
+                                        <Button type="button" variant="destructive" onClick={() => setModal('void-purchase-order')}>
+                                            <Ban className="h-4 w-4" />Void PO
+                                        </Button>
+                                    )}
+                                </div>
+                                {quotation.purchase_order.alasan_void && (
+                                    <div className="rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {quotation.purchase_order.alasan_void}</div>
+                                )}
+                            </div>
+                        )}
                     </ProcessSection>
                 )}
 
-                {quotation.status === 'APPROVED' && (
+                {quotation.status === 'APPROVED' && quotation.purchase_order && (
                     <>
                         <ProcessSection title="WIP">
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-slate-50 p-4 dark:bg-slate-900">
-                                <div className="text-sm text-slate-600 dark:text-slate-300">WIP akan tersedia setelah PO Customer diinput.</div>
-                                <Button type="button" variant="secondary">Input WIP</Button>
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                <div className="text-sm font-medium text-slate-700 dark:text-slate-200">WIP - Order ke RMA</div>
+                                {canInputWIP && quotation.purchase_order.status === 'OPEN' && (
+                                    <Button type="button" variant="secondary" onClick={() => setModal('wip-order')}>
+                                        <Plus className="h-4 w-4" />Input WIP
+                                    </Button>
+                                )}
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                                    <thead className="bg-slate-50 dark:bg-slate-900">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left">No. WIP</th>
+                                            <th className="px-4 py-3 text-left">Tipe</th>
+                                            <th className="px-4 py-3 text-left">Ekspedisi</th>
+                                            <th className="px-4 py-3 text-left">Status Supply</th>
+                                            <th className="px-4 py-3 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                                        {quotation.purchase_order.wip_orders.length === 0 && (
+                                            <tr>
+                                                <td className="px-4 py-6 text-center text-slate-500" colSpan="5">Belum ada WIP.</td>
+                                            </tr>
+                                        )}
+                                        {quotation.purchase_order.wip_orders.map((wip) => (
+                                            <tr key={wip.id}>
+                                                <td className="whitespace-nowrap px-4 py-3">{wip.no_wip}</td>
+                                                <td className="px-4 py-3">{wip.tipe_order_label}</td>
+                                                <td className="px-4 py-3">{wip.nama_ekspedisi ?? '-'}</td>
+                                                <td className="px-4 py-3"><StatusBadge status={wip.status_supply} label={wip.status_supply_label} /></td>
+                                                <td className="px-4 py-3 text-right">
+                                                    {canVoidWIP && wip.is_voidable && (
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            onClick={() => {
+                                                                setSelectedWip(wip);
+                                                                setModal('void-wip-order');
+                                                            }}
+                                                        >
+                                                            <Ban className="h-4 w-4" />Void
+                                                        </Button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </ProcessSection>
                         <ProcessSection title="SPB">
@@ -226,6 +487,43 @@ export default function Show({ quotation }) {
                 onChange={(value) => voidForm.setData('alasan_void', value)}
                 onClose={() => setModal(null)}
                 onSubmit={submitVoid}
+            />
+            <PurchaseOrderModal
+                show={modal === 'purchase-order'}
+                form={purchaseOrderForm}
+                onClose={() => setModal(null)}
+                onSubmit={submitPurchaseOrder}
+            />
+            <WipOrderModal
+                show={modal === 'wip-order'}
+                form={wipOrderForm}
+                onClose={() => setModal(null)}
+                onSubmit={submitWipOrder}
+            />
+            <ActionModal
+                show={modal === 'void-purchase-order'}
+                title="Void PO Customer"
+                label="Alasan void"
+                value={voidPurchaseOrderForm.data.alasan_void}
+                error={voidPurchaseOrderForm.errors.alasan_void}
+                processing={voidPurchaseOrderForm.processing}
+                onChange={(value) => voidPurchaseOrderForm.setData('alasan_void', value)}
+                onClose={() => setModal(null)}
+                onSubmit={submitVoidPurchaseOrder}
+            />
+            <ActionModal
+                show={modal === 'void-wip-order'}
+                title={`Void WIP ${selectedWip?.no_wip ?? ''}`}
+                label="Alasan void"
+                value={voidWipOrderForm.data.alasan_void}
+                error={voidWipOrderForm.errors.alasan_void}
+                processing={voidWipOrderForm.processing}
+                onChange={(value) => voidWipOrderForm.setData('alasan_void', value)}
+                onClose={() => {
+                    setSelectedWip(null);
+                    setModal(null);
+                }}
+                onSubmit={submitVoidWipOrder}
             />
         </AppLayout>
     );

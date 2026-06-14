@@ -8,7 +8,9 @@ use App\Http\Controllers\MasterData\KatalogController;
 use App\Http\Controllers\MasterData\SiteController;
 use App\Http\Controllers\MasterData\VendorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Transaction\PurchaseOrderController;
 use App\Http\Controllers\Transaction\QuotationController;
+use App\Http\Controllers\Transaction\WipOrderController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -43,6 +45,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/quotations/{quotation}/void', [QuotationController::class, 'void'])->middleware('permission:Quotation void')->name('quotations.void');
     Route::get('/quotations/{quotation}/download', [QuotationController::class, 'download'])->middleware('permission:Quotation download_pdf')->name('quotations.download');
     Route::post('/quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->middleware('permission:Quotation buat')->name('quotations.duplicate');
+    Route::post('/quotations/{quotation}/purchase-orders', [PurchaseOrderController::class, 'store'])->middleware('permission:PO Customer input')->name('quotations.purchase-orders.store');
+    Route::post('/purchase-orders/{purchaseOrder}/void', [PurchaseOrderController::class, 'void'])->middleware('permission:PO Customer void')->name('purchase-orders.void');
+    Route::post('/purchase-orders/{purchaseOrder}/wip-orders', [WipOrderController::class, 'store'])->middleware('permission:WIP buat')->name('purchase-orders.wip-orders.store');
+    Route::post('/wip-orders/{wipOrder}/void', [WipOrderController::class, 'void'])->middleware('permission:WIP void')->name('wip-orders.void');
 
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('permission:Customer lihat')->name('customers.index');
     Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:Customer tambah')->name('customers.create');
