@@ -13,6 +13,7 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'no_purchase_order',
         'tgl_po',
+        'customer_id',
         'vendor_id',
         'no_pr_customer',
         'no_po_customer',
@@ -40,6 +41,11 @@ class PurchaseOrder extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function items(): HasMany

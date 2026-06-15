@@ -50,6 +50,7 @@ class PurchaseOrderController extends Controller
     public function create(): Response
     {
         return Inertia::render('PurchaseOrder/Create', [
+            'customers' => $this->customers(),
             'vendors' => $this->vendors(),
             'katalog' => Katalog::query()
                 ->active()
@@ -80,6 +81,7 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder): Response
     {
         $purchaseOrder->load([
+            'customer:id,nama_customer',
             'vendor',
             'items.katalog',
             'createdBy:id,name',
@@ -103,6 +105,7 @@ class PurchaseOrderController extends Controller
                 'alasan_void' => $purchaseOrder->alasan_void,
                 'approved_at' => $purchaseOrder->approved_at?->format('Y-m-d H:i'),
                 'voided_at' => $purchaseOrder->voided_at?->format('Y-m-d H:i'),
+                'customer' => $purchaseOrder->customer?->only(['id', 'nama_customer']),
                 'vendor' => $purchaseOrder->vendor?->only(['id', 'nama_vendor', 'alamat']),
                 'created_by' => $purchaseOrder->createdBy?->only(['id', 'name']),
                 'approved_by' => $purchaseOrder->approvedBy?->only(['id', 'name']),
@@ -120,14 +123,6 @@ class PurchaseOrderController extends Controller
                 'total' => $purchaseOrder->total,
                 'spb' => $purchaseOrder->spb->map(fn (Spb $spb): array => $this->spbData($spb))->values(),
             ],
-            'customers' => Customer::query()
-                ->active()
-                ->orderBy('nama_customer')
-                ->get(['id', 'kode_customer', 'nama_customer'])
-                ->map(fn (Customer $customer): array => [
-                    'id' => $customer->id,
-                    'label' => "{$customer->kode_customer} - {$customer->nama_customer}",
-                ]),
             'sites' => Site::query()
                 ->with('customer:id,nama_customer')
                 ->orderBy('nama_site')
@@ -185,6 +180,22 @@ class PurchaseOrderController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$fileName.'"',
         ]);
+    }
+
+    /**
+     * @return array<int, array{id: int, label: string}>
+     */
+    private function customers(): array
+    {
+        return Customer::query()
+            ->active()
+            ->orderBy('nama_customer')
+            ->get(['id', 'kode_customer', 'nama_customer'])
+            ->map(fn (Customer $customer): array => [
+                'id' => $customer->id,
+                'label' => "{$customer->kode_customer} - {$customer->nama_customer}",
+            ])
+            ->all();
     }
 
     /**

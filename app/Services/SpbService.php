@@ -167,7 +167,17 @@ class SpbService
             return $customer;
         }
 
-        $customer = Customer::query()->find($data['customer_id']);
+        if ($spbAble instanceof PurchaseOrder) {
+            $customer = $spbAble->customer;
+
+            if (! $customer) {
+                throw ValidationException::withMessages(['customer_id' => 'Customer Purchase Order tidak ditemukan.']);
+            }
+
+            return $customer;
+        }
+
+        $customer = Customer::query()->find($data['customer_id'] ?? null);
 
         if (! $customer) {
             throw ValidationException::withMessages(['customer_id' => 'Customer SPB tidak valid.']);

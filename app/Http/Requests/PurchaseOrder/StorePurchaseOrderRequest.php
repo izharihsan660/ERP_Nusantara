@@ -18,6 +18,7 @@ class StorePurchaseOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'customer_id' => ['required', Rule::exists('customers', 'id')],
             'vendor_id' => ['required', Rule::exists('vendors', 'id')],
             'tgl_po' => ['required', 'date'],
             'no_pr_customer' => ['nullable', 'string', 'max:50'],

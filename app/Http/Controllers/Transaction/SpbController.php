@@ -41,6 +41,7 @@ class SpbController extends Controller
 
     public function storeFromPurchaseOrder(StoreSpbRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
+        $purchaseOrder->loadMissing('customer');
         $spb = $this->spbService->create($request->validated(), $purchaseOrder, $request->user());
 
         return $this->redirectToParent($spb)->with('success', 'SPB berhasil dibuat.');
@@ -75,7 +76,7 @@ class SpbController extends Controller
     {
         return match ($type) {
             'wip' => WipOrder::query()->with(['salesOrder.customer'])->findOrFail($id),
-            'purchase-order' => PurchaseOrder::query()->findOrFail($id),
+            'purchase-order' => PurchaseOrder::query()->with('customer')->findOrFail($id),
             default => abort(404),
         };
     }

@@ -64,7 +64,7 @@ function PlaceholderSection({ title, label }) {
     );
 }
 
-export default function Show({ purchaseOrder, customers, sites }) {
+export default function Show({ purchaseOrder, sites }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
     const rejectForm = useForm({ catatan: '' });
@@ -129,6 +129,7 @@ export default function Show({ purchaseOrder, customers, sites }) {
                         <StatusBadge status={purchaseOrder.status} label={purchaseOrder.status_label} />
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Info label="Customer" value={purchaseOrder.customer?.nama_customer} />
                         <Info label="Vendor" value={purchaseOrder.vendor?.nama_vendor} />
                         <Info label="Tanggal" value={purchaseOrder.tgl_po} />
                         <Info label="Dibuat oleh" value={purchaseOrder.created_by?.name} />
@@ -183,10 +184,9 @@ export default function Show({ purchaseOrder, customers, sites }) {
                 <SpbSection
                     spbList={purchaseOrder.spb}
                     sourceOptions={spbSourceOptions}
-                    customers={customers}
+                    customer={purchaseOrder.customer}
                     sites={sites}
                     defaultItems={spbDefaultItems}
-                    showCustomerField
                 />
                 <PlaceholderSection title="Invoice" label="Invoice akan tersedia setelah Phase 6" />
             </div>

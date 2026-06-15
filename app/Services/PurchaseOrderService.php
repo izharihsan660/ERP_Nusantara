@@ -52,6 +52,7 @@ class PurchaseOrderService
             $purchaseOrder = PurchaseOrder::create([
                 'no_purchase_order' => $this->documentNumberService->generatePurchaseOrderNumber($date),
                 'tgl_po' => $date,
+                'customer_id' => $data['customer_id'],
                 'vendor_id' => $data['vendor_id'],
                 'no_pr_customer' => $data['no_pr_customer'] ?? null,
                 'no_po_customer' => $data['no_po_customer'] ?? null,

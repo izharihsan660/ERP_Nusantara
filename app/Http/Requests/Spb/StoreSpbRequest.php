@@ -19,7 +19,7 @@ class StoreSpbRequest extends FormRequest
     {
         return [
             'tgl_spb' => ['required', 'date'],
-            'customer_id' => ['required', Rule::exists('customers', 'id')],
+            'customer_id' => [$this->routeIs('purchase-orders.spb.store') ? 'nullable' : 'required', Rule::exists('customers', 'id')],
             'site_id' => ['nullable', Rule::exists('sites', 'id')],
             'nama_ekspedisi' => ['required', 'string', 'max:100'],
             'etd' => ['nullable', 'date'],

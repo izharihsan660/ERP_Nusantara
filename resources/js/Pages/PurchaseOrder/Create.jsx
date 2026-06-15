@@ -20,10 +20,12 @@ function money(value) {
 
 const emptyItem = { katalog_id: '', deskripsi: '', satuan: '', qty: 1, harga_satuan: 0 };
 
-export default function Create({ vendors, katalog }) {
+export default function Create({ customers, vendors, katalog }) {
+    const [customerSearch, setCustomerSearch] = useState('');
     const [vendorSearch, setVendorSearch] = useState('');
     const [katalogSearch, setKatalogSearch] = useState('');
     const { data, setData, post, transform, processing, errors } = useForm({
+        customer_id: '',
         vendor_id: '',
         tgl_po: today(),
         no_pr_customer: '',
@@ -33,6 +35,7 @@ export default function Create({ vendors, katalog }) {
         submit: false,
     });
 
+    const filteredCustomers = useMemo(() => customers.filter((customer) => customer.label.toLowerCase().includes(customerSearch.toLowerCase())), [customers, customerSearch]);
     const filteredVendors = useMemo(() => vendors.filter((vendor) => vendor.label.toLowerCase().includes(vendorSearch.toLowerCase())), [vendors, vendorSearch]);
     const filteredKatalog = useMemo(() => katalog.filter((item) => item.label.toLowerCase().includes(katalogSearch.toLowerCase())), [katalog, katalogSearch]);
 
@@ -79,6 +82,15 @@ export default function Create({ vendors, katalog }) {
             <form onSubmit={(event) => submit(event, false)} className="space-y-6">
                 <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                     <div className="grid gap-4 lg:grid-cols-3">
+                        <div>
+                            <Label>Pilih Customer</Label>
+                            <Input className="mt-1" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Cari customer..." />
+                            <Select className="mt-2" value={data.customer_id} onChange={(e) => setData('customer_id', e.target.value)}>
+                                <option value="">Pilih customer...</option>
+                                {filteredCustomers.map((customer) => <option key={customer.id} value={customer.id}>{customer.label}</option>)}
+                            </Select>
+                            <InputError message={errors.customer_id} className="mt-2" />
+                        </div>
                         <div>
                             <Label>Pilih Vendor</Label>
                             <Input className="mt-1" value={vendorSearch} onChange={(e) => setVendorSearch(e.target.value)} placeholder="Cari vendor..." />
