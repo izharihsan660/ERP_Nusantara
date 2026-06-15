@@ -25,6 +25,7 @@ class SpbService
 {
     public function __construct(
         private readonly DocumentNumberService $documentNumberService,
+        private readonly SpbPDFService $spbPDFService,
         private readonly RecordActivity $recordActivity,
     ) {}
 
@@ -78,6 +79,7 @@ class SpbService
                 ]);
             }
 
+            $this->spbPDFService->generate($spb->refresh());
             $this->recordActivity->handle('created_spb', $spb, "{$user->name} membuat SPB {$spb->no_spb}");
 
             return $spb->load(['customer', 'site', 'template', 'items', 'spbAble']);
