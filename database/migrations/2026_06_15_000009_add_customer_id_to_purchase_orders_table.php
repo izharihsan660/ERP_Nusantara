@@ -29,7 +29,7 @@ return new class extends Migration
 
         Schema::table('purchase_orders', function (Blueprint $table) {
             $table->unsignedBigInteger('customer_id')->nullable(false)->change();
-            $table->foreign('customer_id')->references('id')->on('customers')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreign('customer_id', 'vendor_purchase_orders_customer_id_foreign')->references('id')->on('customers')->cascadeOnUpdate()->restrictOnDelete();
         });
     }
 
@@ -37,7 +37,8 @@ return new class extends Migration
     {
         if (Schema::hasColumn('purchase_orders', 'customer_id')) {
             Schema::table('purchase_orders', function (Blueprint $table) {
-                $table->dropConstrainedForeignId('customer_id');
+                $table->dropForeign('vendor_purchase_orders_customer_id_foreign');
+                $table->dropColumn('customer_id');
             });
         }
     }

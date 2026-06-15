@@ -13,28 +13,32 @@ return new class extends Migration
             $table->id();
             $table->string('no_purchase_order', 50)->unique();
             $table->date('tgl_po');
-            $table->foreignId('vendor_id')->constrained('vendors')->cascadeOnUpdate()->restrictOnDelete();
+            $table->unsignedBigInteger('vendor_id');
             $table->string('no_pr_customer', 50)->nullable();
             $table->string('no_po_customer', 50)->nullable();
             $table->enum('status', array_map(fn (PurchaseOrderStatus $status): string => $status->value, PurchaseOrderStatus::cases()))->default(PurchaseOrderStatus::Draft->value);
             $table->string('qr_token', 100)->unique()->nullable();
             $table->text('catatan')->nullable();
-            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('approved_by')->nullable();
             $table->timestamp('approved_at')->nullable();
-            $table->foreignId('voided_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('voided_by')->nullable();
             $table->timestamp('voided_at')->nullable();
             $table->text('alasan_void')->nullable();
-            $table->foreignId('created_by')->constrained('users')->cascadeOnUpdate()->restrictOnDelete();
+            $table->unsignedBigInteger('created_by');
             $table->timestamps();
 
             $table->index(['status', 'tgl_po']);
             $table->index('vendor_id');
+            $table->foreign('vendor_id', 'vendor_purchase_orders_vendor_id_foreign')->references('id')->on('vendors')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreign('approved_by', 'vendor_purchase_orders_approved_by_foreign')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('voided_by', 'vendor_purchase_orders_voided_by_foreign')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('created_by', 'vendor_purchase_orders_created_by_foreign')->references('id')->on('users')->cascadeOnUpdate()->restrictOnDelete();
         });
 
         Schema::create('purchase_order_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('purchase_order_id')->constrained('purchase_orders')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignId('katalog_id')->nullable()->constrained('katalog')->nullOnDelete();
+            $table->unsignedBigInteger('purchase_order_id');
+            $table->unsignedBigInteger('katalog_id')->nullable();
             $table->string('deskripsi', 200);
             $table->unsignedInteger('qty');
             $table->string('satuan', 20);
@@ -43,6 +47,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('katalog_id');
+            $table->foreign('purchase_order_id', 'vendor_po_items_purchase_order_id_foreign')->references('id')->on('purchase_orders')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreign('katalog_id', 'vendor_po_items_katalog_id_foreign')->references('id')->on('katalog')->nullOnDelete();
         });
     }
 

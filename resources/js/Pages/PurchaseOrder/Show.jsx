@@ -57,6 +57,7 @@ function ActionModal({ show, title, label, value, error, processing, variant = '
 export default function Show({ purchaseOrder, sites }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
+    const submitForm = useForm({});
     const rejectForm = useForm({ catatan: '' });
     const voidForm = useForm({ alasan_void: '' });
 
@@ -84,6 +85,12 @@ export default function Show({ purchaseOrder, sites }) {
         voidForm.post(route('purchase-orders.void', purchaseOrder.id), { onSuccess: () => setModal(null) });
     };
 
+    const submitToManager = () => {
+        submitForm.post(route('purchase-orders.submit', purchaseOrder.id), {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <AppLayout title="Detail Purchase Order">
             <Head title={purchaseOrder.no_purchase_order} />
@@ -94,7 +101,7 @@ export default function Show({ purchaseOrder, sites }) {
                     <>
                         <Button asChild variant="outline"><Link href={route('purchase-orders.index')}>Kembali</Link></Button>
                         {purchaseOrder.status === 'DRAFT' && canCreate && (
-                            <Button type="button" onClick={() => router.post(route('purchase-orders.submit', purchaseOrder.id))}><Send className="h-4 w-4" />Submit ke Manager</Button>
+                            <Button type="button" disabled={submitForm.processing} onClick={submitToManager}><Send className="h-4 w-4" />Submit ke Manager</Button>
                         )}
                         {purchaseOrder.status === 'PENDING_APPROVAL' && canApprove && (
                             <>
@@ -111,6 +118,11 @@ export default function Show({ purchaseOrder, sites }) {
                     </>
                 )}
             />
+            {(submitForm.errors.status || submitForm.errors.items) && (
+                <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {submitForm.errors.status ?? submitForm.errors.items}
+                </div>
+            )}
 
             <div className="space-y-6">
                 <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
