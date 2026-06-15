@@ -50,6 +50,16 @@ class RolePermissionSeeder extends Seeder
         'void_purchase_order',
     ];
 
+    /**
+     * @var array<int, string>
+     */
+    private array $spbPermissions = [
+        'lihat_spb',
+        'buat_spb',
+        'download_pdf_spb',
+        'void_spb',
+    ];
+
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -58,6 +68,7 @@ class RolePermissionSeeder extends Seeder
             ->flatMap(fn (array $actions, string $module) => collect($actions)->map(fn (string $action) => "{$module} {$action}"))
             ->merge($this->salesOrderPermissions)
             ->merge($this->purchaseOrderPermissions)
+            ->merge($this->spbPermissions)
             ->values();
 
         $permissionNames->each(fn (string $name) => Permission::findOrCreate($name, 'web'));
@@ -69,14 +80,23 @@ class RolePermissionSeeder extends Seeder
                 ...$this->salesOrderPermissions,
                 'lihat_purchase_order',
                 'buat_purchase_order',
+                'lihat_spb',
             ],
-            'Gudang' => $this->onlyModules(['SPB']),
+            'Gudang' => [
+                ...$this->onlyModules(['SPB']),
+                'lihat_spb',
+                'buat_spb',
+                'download_pdf_spb',
+                'void_spb',
+            ],
             'Finance' => $this->onlyModules(['Invoice/Nota']),
             'Procurement' => $this->onlyModules(['PD']),
             'Manager' => [
                 ...$this->onlyActions(['approve']),
                 'lihat_purchase_order',
                 'approve_purchase_order',
+                'lihat_spb',
+                'download_pdf_spb',
                 ...$this->onlyModules(['Laporan']),
             ],
         ];

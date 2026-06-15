@@ -7,6 +7,7 @@ use App\Enums\TipeOrder;
 use App\Enums\WIPStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WipOrder extends Model
 {
@@ -40,6 +41,12 @@ class WipOrder extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function spb(): HasMany
+    {
+        return $this->hasMany(Spb::class, 'spb_able_id')
+            ->where('spb_able_type', WipOrder::class);
     }
 
     public function isVoidable(): bool

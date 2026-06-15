@@ -6,6 +6,7 @@ import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import SpbSection from '@/Pages/Shared/SpbSection';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Copy, Download, Plus, Send, X } from 'lucide-react';
 import { useState } from 'react';
@@ -175,7 +176,7 @@ function ProcessSection({ title, children }) {
     );
 }
 
-export default function Show({ quotation }) {
+export default function Show({ quotation, sites }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
     const [selectedWip, setSelectedWip] = useState(null);
@@ -259,6 +260,20 @@ export default function Show({ quotation }) {
     const canVoidSalesOrder = permissions.includes('void_sales_order');
     const canInputWIP = permissions.includes('WIP buat');
     const canVoidWIP = permissions.includes('WIP void');
+    const spbList = quotation.sales_order?.wip_orders?.flatMap((wip) => wip.spb ?? []) ?? [];
+    const wipSourceOptions = quotation.sales_order?.wip_orders
+        ?.filter((wip) => wip.status === 'ACTIVE')
+        .map((wip) => ({
+            id: wip.id,
+            label: `${wip.no_wip} - ${wip.tipe_order_label}`,
+            route: 'wip-orders.spb.store',
+        })) ?? [];
+    const spbDefaultItems = quotation.items.map((item) => ({
+        part_no: item.part_no,
+        deskripsi: item.deskripsi,
+        qty: item.qty,
+        satuan: item.satuan,
+    }));
 
     return (
         <AppLayout title="Detail Quotation">
@@ -456,9 +471,13 @@ export default function Show({ quotation }) {
                                 </table>
                             </div>
                         </ProcessSection>
-                        <ProcessSection title="SPB">
-                            <div className="text-sm text-slate-600 dark:text-slate-300">SPB akan muncul setelah WIP dibuat.</div>
-                        </ProcessSection>
+                        <SpbSection
+                            spbList={spbList}
+                            sourceOptions={wipSourceOptions}
+                            customer={quotation.customer}
+                            sites={sites}
+                            defaultItems={spbDefaultItems}
+                        />
                         <ProcessSection title="Tagihan">
                             <div className="text-sm text-slate-600 dark:text-slate-300">Invoice/Nota akan dibuat setelah SPB tersedia.</div>
                         </ProcessSection>

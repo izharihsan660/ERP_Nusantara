@@ -47,6 +47,12 @@ class PurchaseOrder extends Model
         return $this->hasMany(PurchaseOrderItem::class);
     }
 
+    public function spb(): HasMany
+    {
+        return $this->hasMany(Spb::class, 'spb_able_id')
+            ->where('spb_able_type', PurchaseOrder::class);
+    }
+
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

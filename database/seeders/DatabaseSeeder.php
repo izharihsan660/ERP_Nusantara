@@ -40,9 +40,35 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
+        $defaultSpbTemplate = DocumentTemplate::updateOrCreate(
+            ['kode_template' => 'SPB-DEFAULT'],
+            [
+                'nama_template' => 'SPB Umum',
+                'tipe_dokumen' => DocumentType::Spb,
+                'blade_file' => 'pdf.spb.default',
+                'is_default' => true,
+                'keterangan' => 'Template standar SPB.',
+            ],
+        );
+
+        DocumentTemplate::updateOrCreate(
+            ['kode_template' => 'SPB-MIL'],
+            [
+                'nama_template' => 'SPB MIL',
+                'tipe_dokumen' => DocumentType::Spb,
+                'blade_file' => 'pdf.spb.mil',
+                'is_default' => false,
+                'keterangan' => 'Template SPB khusus MIL.',
+            ],
+        );
+
         Customer::query()
             ->whereNull('template_quotation_id')
             ->update(['template_quotation_id' => $defaultQuotationTemplate->id]);
+
+        Customer::query()
+            ->whereNull('template_spb_id')
+            ->update(['template_spb_id' => $defaultSpbTemplate->id]);
 
         $superadmin = User::updateOrCreate(
             ['email' => env('SUPERADMIN_EMAIL', 'superadmin@naj.local')],

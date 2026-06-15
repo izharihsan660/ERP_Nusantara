@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import SpbSection from '@/Pages/Shared/SpbSection';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Download, Send, X } from 'lucide-react';
 import { useState } from 'react';
@@ -63,7 +64,7 @@ function PlaceholderSection({ title, label }) {
     );
 }
 
-export default function Show({ purchaseOrder }) {
+export default function Show({ purchaseOrder, customers, sites }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
     const rejectForm = useForm({ catatan: '' });
@@ -73,6 +74,15 @@ export default function Show({ purchaseOrder }) {
     const canApprove = permissions.includes('approve_purchase_order');
     const canDownload = permissions.includes('download_pdf_purchase_order');
     const canVoid = permissions.includes('void_purchase_order') && purchaseOrder.status !== 'VOID';
+    const spbSourceOptions = purchaseOrder.status === 'APPROVED'
+        ? [{ id: purchaseOrder.id, label: purchaseOrder.no_purchase_order, route: 'purchase-orders.spb.store' }]
+        : [];
+    const spbDefaultItems = purchaseOrder.items.map((item) => ({
+        part_no: item.part_no ?? '',
+        deskripsi: item.deskripsi,
+        qty: item.qty,
+        satuan: item.satuan,
+    }));
 
     const submitReject = (event) => {
         event.preventDefault();
@@ -170,7 +180,14 @@ export default function Show({ purchaseOrder }) {
                     </div>
                 </section>
 
-                <PlaceholderSection title="SPB" label="SPB akan tersedia setelah Phase 5" />
+                <SpbSection
+                    spbList={purchaseOrder.spb}
+                    sourceOptions={spbSourceOptions}
+                    customers={customers}
+                    sites={sites}
+                    defaultItems={spbDefaultItems}
+                    showCustomerField
+                />
                 <PlaceholderSection title="Invoice" label="Invoice akan tersedia setelah Phase 6" />
             </div>
 

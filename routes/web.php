@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Transaction\PurchaseOrderController;
 use App\Http\Controllers\Transaction\QuotationController;
 use App\Http\Controllers\Transaction\SalesOrderController;
+use App\Http\Controllers\Transaction\SpbController;
 use App\Http\Controllers\Transaction\WipOrderController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/sales-orders/{salesOrder}/void', [SalesOrderController::class, 'void'])->middleware('permission:void_sales_order')->name('sales-orders.void');
     Route::post('/sales-orders/{salesOrder}/wip-orders', [WipOrderController::class, 'store'])->middleware('permission:WIP buat')->name('sales-orders.wip-orders.store');
     Route::post('/wip-orders/{wipOrder}/void', [WipOrderController::class, 'void'])->middleware('permission:WIP void')->name('wip-orders.void');
+    Route::post('/wip-orders/{wipOrder}/spb', [SpbController::class, 'storeFromWip'])->middleware('permission:buat_spb')->name('wip-orders.spb.store');
 
     Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->middleware('permission:lihat_purchase_order')->name('purchase-orders.index');
     Route::get('/purchase-orders/create', [PurchaseOrderController::class, 'create'])->middleware('permission:buat_purchase_order')->name('purchase-orders.create');
@@ -60,6 +62,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/purchase-orders/{purchaseOrder}/reject', [PurchaseOrderController::class, 'reject'])->middleware('permission:approve_purchase_order')->name('purchase-orders.reject');
     Route::post('/purchase-orders/{purchaseOrder}/void', [PurchaseOrderController::class, 'void'])->middleware('permission:void_purchase_order')->name('purchase-orders.void');
     Route::get('/purchase-orders/{purchaseOrder}/download', [PurchaseOrderController::class, 'download'])->middleware('permission:download_pdf_purchase_order')->name('purchase-orders.download');
+    Route::post('/purchase-orders/{purchaseOrder}/spb', [SpbController::class, 'storeFromPurchaseOrder'])->middleware('permission:buat_spb')->name('purchase-orders.spb.store');
+    Route::post('/spb/{spb}/void', [SpbController::class, 'void'])->middleware('permission:void_spb')->name('spb.void');
+    Route::get('/spb/{spb}/download', [SpbController::class, 'download'])->middleware('permission:download_pdf_spb')->name('spb.download');
 
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('permission:Customer lihat')->name('customers.index');
     Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:Customer tambah')->name('customers.create');

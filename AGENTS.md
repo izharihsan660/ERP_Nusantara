@@ -73,6 +73,8 @@ routes/
 | WipOrder | wip_orders | Work in progress order dari portal RMA |
 | PurchaseOrder | purchase_orders | Purchase order NAJ ke vendor eksternal |
 | PurchaseOrderItem | purchase_order_items | Item barang di purchase order NAJ |
+| Spb | spb | Surat Pengiriman Barang |
+| SpbItem | spb_items | Item barang di SPB |
 
 ---
 
@@ -90,6 +92,8 @@ routes/
 - WipOrderService
 - PurchaseOrderService
 - PurchaseOrderPDFService
+- SpbService
+- SpbPDFService
 
 ---
 
@@ -127,6 +131,12 @@ App\Enums\QuotationStatus:
 
 App\Enums\PurchaseOrderStatus:
   DRAFT, PENDING_APPROVAL, APPROVED, VOID
+
+App\Enums\SpbStatus:
+  DRAFT, SHIPPED, VOID
+
+App\Enums\ReferensiTipe:
+  PR, PO
 ```
 
 ---
@@ -378,9 +388,9 @@ Pastikan setiap modul baru punya:
 - ✅ Phase 2: Modul Quotation
 - ✅ Phase 3: Sales Order & WIP
 - ✅ Phase 4: PO NAJ
+- ✅ Phase 5: SPB
 
 ## 🚧 PHASE BERIKUTNYA
-- ⏳ Phase 5: SPB
 - ⏳ Phase 6: Invoice & Nota Penjualan
 - ⏳ Phase 7: Permintaan Dana (PD)
 - ⏳ Phase 8: Laporan & Dashboard

@@ -14,6 +14,7 @@ use App\Models\Katalog;
 use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Models\Spb;
 use App\Models\WipOrder;
 use App\Services\QuotationPDFService;
 use App\Services\QuotationService;
@@ -115,6 +116,9 @@ class QuotationController extends Controller
             'approvedBy:id,name',
             'voidedBy:id,name',
             'salesOrder.wipOrders.createdBy:id,name',
+            'salesOrder.wipOrders.spb.customer:id,nama_customer',
+            'salesOrder.wipOrders.spb.site:id,nama_site,alamat',
+            'salesOrder.wipOrders.spb.items:id,spb_id,qty',
         ]);
 
         return Inertia::render('Quotation/Show', [
@@ -150,6 +154,17 @@ class QuotationController extends Controller
                 'total_profit' => $quotation->total_profit,
                 'sales_order' => $quotation->salesOrder ? $this->salesOrderData($quotation->salesOrder) : null,
             ],
+            'sites' => $quotation->customer
+                ? $quotation->customer->sites()
+                    ->orderBy('nama_site')
+                    ->get(['id', 'customer_id', 'nama_site', 'alamat'])
+                    ->map(fn ($site): array => [
+                        'id' => $site->id,
+                        'customer_id' => $site->customer_id,
+                        'label' => $site->nama_site,
+                        'alamat' => $site->alamat,
+                    ])
+                : [],
         ]);
     }
 
@@ -301,7 +316,31 @@ class QuotationController extends Controller
                 'status_label' => $wip->status->label(),
                 'alasan_void' => $wip->alasan_void,
                 'is_voidable' => $wip->isVoidable(),
+                'spb' => $wip->spb->map(fn (Spb $spb): array => $this->spbData($spb))->values(),
             ])->values(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function spbData(Spb $spb): array
+    {
+        return [
+            'id' => $spb->id,
+            'no_spb' => $spb->no_spb,
+            'tgl_spb' => $spb->tgl_spb?->format('Y-m-d'),
+            'referensi_tipe' => $spb->referensi_tipe->value,
+            'no_referensi' => $spb->no_referensi,
+            'nama_ekspedisi' => $spb->nama_ekspedisi,
+            'status' => $spb->status->value,
+            'status_label' => $spb->status->label(),
+            'items_count' => $spb->items->count(),
+            'items_qty' => $spb->items->sum('qty'),
+            'is_voidable' => $spb->isVoidable(),
+            'is_parsial' => $spb->isParsial(),
+            'site' => $spb->site?->only(['id', 'nama_site', 'alamat']),
+            'customer' => $spb->customer?->only(['id', 'nama_customer']),
         ];
     }
 }

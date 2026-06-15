@@ -7,8 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PurchaseOrder\RejectPurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\StorePurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\VoidPurchaseOrderRequest;
+use App\Models\Customer;
 use App\Models\Katalog;
 use App\Models\PurchaseOrder;
+use App\Models\Site;
+use App\Models\Spb;
 use App\Models\Vendor;
 use App\Services\PurchaseOrderPDFService;
 use App\Services\PurchaseOrderService;
@@ -82,6 +85,9 @@ class PurchaseOrderController extends Controller
             'createdBy:id,name',
             'approvedBy:id,name',
             'voidedBy:id,name',
+            'spb.customer:id,nama_customer',
+            'spb.site:id,nama_site,alamat',
+            'spb.items:id,spb_id,qty',
         ]);
 
         return Inertia::render('PurchaseOrder/Show', [
@@ -112,7 +118,26 @@ class PurchaseOrderController extends Controller
                     'jumlah' => $item->jumlah,
                 ]),
                 'total' => $purchaseOrder->total,
+                'spb' => $purchaseOrder->spb->map(fn (Spb $spb): array => $this->spbData($spb))->values(),
             ],
+            'customers' => Customer::query()
+                ->active()
+                ->orderBy('nama_customer')
+                ->get(['id', 'kode_customer', 'nama_customer'])
+                ->map(fn (Customer $customer): array => [
+                    'id' => $customer->id,
+                    'label' => "{$customer->kode_customer} - {$customer->nama_customer}",
+                ]),
+            'sites' => Site::query()
+                ->with('customer:id,nama_customer')
+                ->orderBy('nama_site')
+                ->get(['id', 'customer_id', 'nama_site', 'alamat'])
+                ->map(fn (Site $site): array => [
+                    'id' => $site->id,
+                    'customer_id' => $site->customer_id,
+                    'label' => $site->nama_site,
+                    'alamat' => $site->alamat,
+                ]),
         ]);
     }
 
@@ -176,5 +201,28 @@ class PurchaseOrderController extends Controller
                 'label' => $vendor->nama_vendor,
             ])
             ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function spbData(Spb $spb): array
+    {
+        return [
+            'id' => $spb->id,
+            'no_spb' => $spb->no_spb,
+            'tgl_spb' => $spb->tgl_spb?->format('Y-m-d'),
+            'referensi_tipe' => $spb->referensi_tipe->value,
+            'no_referensi' => $spb->no_referensi,
+            'nama_ekspedisi' => $spb->nama_ekspedisi,
+            'status' => $spb->status->value,
+            'status_label' => $spb->status->label(),
+            'items_count' => $spb->items->count(),
+            'items_qty' => $spb->items->sum('qty'),
+            'is_voidable' => $spb->isVoidable(),
+            'is_parsial' => $spb->isParsial(),
+            'site' => $spb->site?->only(['id', 'nama_site', 'alamat']),
+            'customer' => $spb->customer?->only(['id', 'nama_customer']),
+        ];
     }
 }
