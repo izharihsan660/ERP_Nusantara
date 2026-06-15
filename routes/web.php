@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Access\RoleController;
 use App\Http\Controllers\Access\UserController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MasterData\CustomerController;
 use App\Http\Controllers\MasterData\DocumentTemplateController;
 use App\Http\Controllers\MasterData\KatalogController;
@@ -29,9 +31,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -40,6 +40,15 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/laporan/rekapan-po', [LaporanController::class, 'rekapanPo'])->middleware('permission:laporan_rekapan_po')->name('laporan.rekapan-po');
+    Route::get('/laporan/rekapan-wip', [LaporanController::class, 'rekapanWip'])->middleware('permission:laporan_rekapan_wip')->name('laporan.rekapan-wip');
+    Route::get('/laporan/rekapan-spb', [LaporanController::class, 'rekapanSpb'])->middleware('permission:laporan_rekapan_spb')->name('laporan.rekapan-spb');
+    Route::get('/laporan/rekapan-invoice', [LaporanController::class, 'rekapanInvoice'])->middleware('permission:laporan_rekapan_invoice')->name('laporan.rekapan-invoice');
+    Route::get('/laporan/rekapan-pd', [LaporanController::class, 'rekapanPd'])->middleware('permission:laporan_rekapan_pd')->name('laporan.rekapan-pd');
+    Route::get('/laporan/profit', [LaporanController::class, 'profit'])->middleware('permission:laporan_profit')->name('laporan.profit');
+    Route::get('/laporan/outstanding', [LaporanController::class, 'outstanding'])->middleware('permission:laporan_outstanding')->name('laporan.outstanding');
+    Route::get('/laporan/{tipe}/export', [LaporanController::class, 'export'])->middleware('permission:laporan_rekapan_po|laporan_rekapan_wip|laporan_rekapan_spb|laporan_rekapan_invoice|laporan_rekapan_pd|laporan_profit|laporan_outstanding')->name('laporan.export');
+
     Route::get('/quotations', [QuotationController::class, 'index'])->middleware('permission:Quotation lihat')->name('quotations.index');
     Route::get('/quotations/create', [QuotationController::class, 'create'])->middleware('permission:Quotation buat')->name('quotations.create');
     Route::post('/quotations', [QuotationController::class, 'store'])->middleware('permission:Quotation buat')->name('quotations.store');

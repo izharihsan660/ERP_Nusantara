@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
     Bell,
+    BarChart3,
     Building2,
     ClipboardList,
     FileText,
@@ -20,6 +21,7 @@ import { useState } from 'react';
 
 const icons = {
     Bell,
+    BarChart3,
     Building2,
     ClipboardList,
     FileText,
@@ -52,6 +54,14 @@ export default function AppLayout({ title, children }) {
                 </div>
                 <nav className="space-y-1 p-3">
                     {navigation.map((item) => {
+                        if (item.type === 'section') {
+                            return (
+                                <div key={`section-${item.label}`} className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-normal text-slate-400">
+                                    {item.label}
+                                </div>
+                            );
+                        }
+
                         const Icon = icons[item.icon] ?? LayoutDashboard;
                         const active = route().current(item.route);
 

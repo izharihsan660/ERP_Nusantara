@@ -26,7 +26,19 @@ class RolePermissionSeeder extends Seeder
         'Template Dokumen' => ['lihat', 'tambah', 'ubah', 'hapus'],
         'Jabatan' => ['lihat', 'tambah', 'ubah', 'hapus'],
         'User' => ['lihat', 'tambah', 'ubah', 'hapus'],
-        'Laporan' => ['rekapan_po', 'rekapan_wip', 'rekapan_spb', 'rekapan_invoice', 'rekapan_pd', 'profit', 'outstanding'],
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    private array $reportPermissions = [
+        'laporan_rekapan_po',
+        'laporan_rekapan_wip',
+        'laporan_rekapan_spb',
+        'laporan_rekapan_invoice',
+        'laporan_rekapan_pd',
+        'laporan_profit',
+        'laporan_outstanding',
     ];
 
     /**
@@ -92,6 +104,7 @@ class RolePermissionSeeder extends Seeder
             ->merge($this->spbPermissions)
             ->merge($this->invoicePermissions)
             ->merge($this->permintaanDanaPermissions)
+            ->merge($this->reportPermissions)
             ->values();
 
         $permissionNames->each(fn (string $name) => Permission::findOrCreate($name, 'web'));
@@ -105,6 +118,8 @@ class RolePermissionSeeder extends Seeder
                 'buat_purchase_order',
                 'lihat_spb',
                 'lihat_invoice',
+                'laporan_rekapan_po',
+                'laporan_profit',
             ],
             'Gudang' => [
                 ...$this->onlyModules(['SPB']),
@@ -112,15 +127,20 @@ class RolePermissionSeeder extends Seeder
                 'buat_spb',
                 'download_pdf_spb',
                 'void_spb',
+                'laporan_rekapan_wip',
+                'laporan_rekapan_spb',
             ],
             'Finance' => [
                 ...$this->onlyModules(['Invoice/Nota']),
                 ...$this->invoicePermissions,
+                'laporan_rekapan_invoice',
+                'laporan_outstanding',
             ],
             'Procurement' => [
                 'lihat_pd',
                 'buat_pd',
                 'upload_bukti_pd',
+                'laporan_rekapan_pd',
             ],
             'Manager' => [
                 ...$this->onlyActions(['approve']),
@@ -131,7 +151,7 @@ class RolePermissionSeeder extends Seeder
                 'lihat_spb',
                 'download_pdf_spb',
                 'lihat_invoice',
-                ...$this->onlyModules(['Laporan']),
+                ...$this->reportPermissions,
             ],
         ];
 

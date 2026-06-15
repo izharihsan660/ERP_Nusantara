@@ -75,6 +75,14 @@ class HandleInertiaRequests extends Middleware
             ['label' => 'Quotation', 'route' => 'quotations.index', 'permission' => 'Quotation lihat', 'icon' => 'FileText'],
             ['label' => 'Purchase Order NAJ', 'route' => 'purchase-orders.index', 'permission' => 'lihat_purchase_order', 'icon' => 'ClipboardList'],
             ['label' => 'Permintaan Dana', 'route' => 'permintaan-dana.index', 'permission' => 'lihat_pd', 'icon' => 'HandCoins'],
+            ['type' => 'section', 'label' => 'Laporan'],
+            ['label' => 'Rekapan PO', 'route' => 'laporan.rekapan-po', 'permission' => 'laporan_rekapan_po', 'icon' => 'BarChart3'],
+            ['label' => 'Rekapan WIP', 'route' => 'laporan.rekapan-wip', 'permission' => 'laporan_rekapan_wip', 'icon' => 'BarChart3'],
+            ['label' => 'Rekapan SPB', 'route' => 'laporan.rekapan-spb', 'permission' => 'laporan_rekapan_spb', 'icon' => 'BarChart3'],
+            ['label' => 'Rekapan Invoice', 'route' => 'laporan.rekapan-invoice', 'permission' => 'laporan_rekapan_invoice', 'icon' => 'BarChart3'],
+            ['label' => 'Rekapan PD', 'route' => 'laporan.rekapan-pd', 'permission' => 'laporan_rekapan_pd', 'icon' => 'BarChart3'],
+            ['label' => 'Laporan Profit', 'route' => 'laporan.profit', 'permission' => 'laporan_profit', 'icon' => 'BarChart3'],
+            ['label' => 'Outstanding', 'route' => 'laporan.outstanding', 'permission' => 'laporan_outstanding', 'icon' => 'BarChart3'],
             ['label' => 'Customer', 'route' => 'customers.index', 'permission' => 'Customer lihat', 'icon' => 'Building2'],
             ['label' => 'Katalog', 'route' => 'katalog.index', 'permission' => 'Katalog lihat', 'icon' => 'PackageSearch'],
             ['label' => 'Vendor', 'route' => 'vendors.index', 'permission' => 'Vendor lihat', 'icon' => 'Truck'],
@@ -86,7 +94,7 @@ class HandleInertiaRequests extends Middleware
 
         return array_values(array_filter(
             $items,
-            fn (array $item): bool => $item['permission'] === null || in_array($item['permission'], $permissions, true),
+            fn (array $item): bool => ($item['type'] ?? null) === 'section' || $item['permission'] === null || in_array($item['permission'], $permissions, true),
         ));
     }
 }

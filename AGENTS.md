@@ -70,6 +70,19 @@ routes/
 
 ---
 
+## 🧭 CONTROLLERS YANG SUDAH ADA
+- DashboardController
+- LaporanController
+- Transaction/QuotationController
+- Transaction/SalesOrderController
+- Transaction/WipOrderController
+- Transaction/PurchaseOrderController
+- Transaction/SpbController
+- Transaction/InvoiceController
+- Transaction/PermintaanDanaController
+
+---
+
 ## 🗄️ MODELS YANG SUDAH ADA
 | Model | Table | Keterangan |
 |-------|-------|------------|
@@ -145,8 +158,27 @@ Pages/
     Index.jsx
     Create.jsx
     Show.jsx
+  Laporan/
+    RekapanPo.jsx
+    RekapanWip.jsx
+    RekapanSpb.jsx
+    RekapanInvoice.jsx
+    RekapanPd.jsx
+    Profit.jsx
+    Outstanding.jsx
   Verify.jsx            ← halaman publik verifikasi QR (tanpa login)
 ```
+
+---
+
+## 📤 EXPORT EXCEL YANG SUDAH ADA
+- RekapanPoExport
+- RekapanWipExport
+- RekapanSpbExport
+- RekapanInvoiceExport
+- RekapanPdExport
+- ProfitExport
+- OutstandingExport
 
 ---
 
@@ -471,6 +503,7 @@ Sistem jabatan dinamis — Superadmin bisa buat jabatan baru.
 - ✅ Phase 5: SPB (polymorphic)
 - ✅ Phase 6: Invoice & Nota Penjualan
 - ✅ Phase 7: Permintaan Dana (PD)
+- ✅ Phase 8: Laporan & Dashboard
 
 ## 🚧 PHASE BERIKUTNYA
-- ⏳ Phase 8: Laporan & Dashboard
+- ⏳ UI polish
