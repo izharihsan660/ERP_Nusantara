@@ -1,6 +1,6 @@
 import Dropdown from '@/Components/Dropdown';
 import { Button } from '@/Components/ui/button';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Bell,
     Building2,
@@ -31,8 +31,11 @@ const icons = {
 };
 
 export default function AppLayout({ title, children }) {
-    const { auth, navigation = [], flash = {} } = usePage().props;
+    const { auth, navigation = [], flash = {}, notifications = { unread_count: 0, items: [] } } = usePage().props;
     const [open, setOpen] = useState(false);
+    const readNotification = (notification) => {
+        router.post(route('notifications.read', notification.id), {}, { preserveScroll: true });
+    };
 
     return (
         <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
@@ -78,9 +81,40 @@ export default function AppLayout({ title, children }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Button type="button" variant="ghost" size="icon" title="Notifikasi">
-                            <Bell className="h-5 w-5" />
-                        </Button>
+                        <Dropdown>
+                            <Dropdown.Trigger>
+                                <Button type="button" variant="ghost" size="icon" title="Notifikasi" className="relative">
+                                    <Bell className="h-5 w-5" />
+                                    {notifications.unread_count > 0 && (
+                                        <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white">
+                                            {notifications.unread_count}
+                                        </span>
+                                    )}
+                                </Button>
+                            </Dropdown.Trigger>
+                            <Dropdown.Content contentClasses="w-80 py-2 bg-white dark:bg-gray-800">
+                                <div className="border-b border-slate-200 px-4 pb-2 text-sm font-semibold text-slate-950 dark:border-slate-700 dark:text-white">
+                                    Notifikasi
+                                </div>
+                                <div className="max-h-96 overflow-y-auto py-1">
+                                    {notifications.items.length === 0 && (
+                                        <div className="px-4 py-3 text-sm text-slate-500">Belum ada notifikasi.</div>
+                                    )}
+                                    {notifications.items.map((notification) => (
+                                        <button
+                                            key={notification.id}
+                                            type="button"
+                                            className={`block w-full px-4 py-3 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-900 ${notification.read_at ? 'text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}
+                                            onClick={() => readNotification(notification)}
+                                        >
+                                            <div className="font-medium">{notification.title}</div>
+                                            <div className="mt-1 line-clamp-2 text-xs text-slate-500">{notification.message}</div>
+                                            <div className="mt-1 text-xs text-slate-400">{notification.created_at}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </Dropdown.Content>
+                        </Dropdown>
                         <Dropdown>
                             <Dropdown.Trigger>
                                 <button type="button" className="rounded-md px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-900">

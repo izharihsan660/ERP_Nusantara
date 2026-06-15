@@ -75,6 +75,7 @@ routes/
 | PurchaseOrderItem | purchase_order_items | Item barang di purchase order NAJ |
 | Spb | spb | Surat Pengiriman Barang |
 | SpbItem | spb_items | Item barang di SPB |
+| Invoice | invoices | Invoice / Nota Penjualan per SPB |
 
 ---
 
@@ -94,6 +95,8 @@ routes/
 - PurchaseOrderPDFService
 - SpbService
 - SpbPDFService
+- InvoiceService
+- InvoicePDFService
 
 ---
 
@@ -137,6 +140,15 @@ App\Enums\SpbStatus:
 
 App\Enums\ReferensiTipe:
   PR, PO
+
+App\Enums\TipeDokumen:
+  INVOICE, NOTA_PENJUALAN
+
+App\Enums\StatusPembayaran:
+  BELUM, SEBAGIAN, LUNAS
+
+App\Enums\InvoiceStatus:
+  ACTIVE, VOID
 ```
 
 ---
@@ -389,8 +401,8 @@ Pastikan setiap modul baru punya:
 - ✅ Phase 3: Sales Order & WIP
 - ✅ Phase 4: PO NAJ
 - ✅ Phase 5: SPB
+- ✅ Phase 6: Invoice & Nota Penjualan
 
 ## 🚧 PHASE BERIKUTNYA
-- ⏳ Phase 6: Invoice & Nota Penjualan
 - ⏳ Phase 7: Permintaan Dana (PD)
 - ⏳ Phase 8: Laporan & Dashboard

@@ -93,6 +93,11 @@ class Spb extends Model
         return $this->status !== SpbStatus::Void && ! $this->hasActiveInvoice();
     }
 
+    public function hasInvoice(): bool
+    {
+        return $this->hasActiveInvoice();
+    }
+
     public function isParsial(): bool
     {
         if (! $this->spb_able_type || ! $this->spb_able_id) {

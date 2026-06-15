@@ -10,6 +10,7 @@ use App\Http\Requests\Quotation\StoreQuotationRequest;
 use App\Http\Requests\Quotation\VoidQuotationRequest;
 use App\Models\Customer;
 use App\Models\DocumentTemplate;
+use App\Models\Invoice;
 use App\Models\Katalog;
 use App\Models\PurchaseOrder;
 use App\Models\Quotation;
@@ -119,6 +120,7 @@ class QuotationController extends Controller
             'salesOrder.wipOrders.spb.customer:id,nama_customer',
             'salesOrder.wipOrders.spb.site:id,nama_site,alamat',
             'salesOrder.wipOrders.spb.items:id,spb_id,qty',
+            'salesOrder.wipOrders.spb.invoice',
         ]);
 
         return Inertia::render('Quotation/Show', [
@@ -341,6 +343,39 @@ class QuotationController extends Controller
             'is_parsial' => $spb->isParsial(),
             'site' => $spb->site?->only(['id', 'nama_site', 'alamat']),
             'customer' => $spb->customer?->only(['id', 'nama_customer']),
+            'invoice' => $spb->invoice ? $this->invoiceData($spb->invoice) : null,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function invoiceData(Invoice $invoice): array
+    {
+        return [
+            'id' => $invoice->id,
+            'no_dokumen' => $invoice->no_dokumen,
+            'tipe_dokumen' => $invoice->tipe_dokumen->value,
+            'tipe_dokumen_label' => $invoice->tipe_dokumen->label(),
+            'tgl_dokumen' => $invoice->tgl_dokumen?->format('Y-m-d'),
+            'no_faktur_pajak' => $invoice->no_faktur_pajak,
+            'total_nilai' => $invoice->total_nilai,
+            'total_hpp' => $invoice->total_hpp,
+            'total_profit' => $invoice->total_profit,
+            'metode_pembayaran' => $invoice->metode_pembayaran->value,
+            'metode_pembayaran_label' => $invoice->metode_pembayaran->label(),
+            'top_hari' => $invoice->top_hari,
+            'tgl_jatuh_tempo' => $invoice->tgl_jatuh_tempo?->format('Y-m-d'),
+            'is_jatuh_tempo_h7' => $invoice->isJatuhTempoH7(),
+            'status_pembayaran' => $invoice->status_pembayaran->value,
+            'status_pembayaran_label' => $invoice->status_pembayaran->label(),
+            'tgl_bayar' => $invoice->tgl_bayar?->format('Y-m-d'),
+            'jumlah_bayar' => $invoice->jumlah_bayar,
+            'file_ttd_gabungan' => $invoice->file_ttd_gabungan,
+            'status' => $invoice->status->value,
+            'status_label' => $invoice->status->label(),
+            'alasan_void' => $invoice->alasan_void,
+            'is_voidable' => $invoice->isVoidable(),
         ];
     }
 }

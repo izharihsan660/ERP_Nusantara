@@ -7,7 +7,9 @@ use App\Http\Controllers\MasterData\DocumentTemplateController;
 use App\Http\Controllers\MasterData\KatalogController;
 use App\Http\Controllers\MasterData\SiteController;
 use App\Http\Controllers\MasterData\VendorController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Transaction\InvoiceController;
 use App\Http\Controllers\Transaction\PurchaseOrderController;
 use App\Http\Controllers\Transaction\QuotationController;
 use App\Http\Controllers\Transaction\SalesOrderController;
@@ -65,6 +67,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/purchase-orders/{purchaseOrder}/spb', [SpbController::class, 'storeFromPurchaseOrder'])->middleware('permission:buat_spb')->name('purchase-orders.spb.store');
     Route::post('/spb/{spb}/void', [SpbController::class, 'void'])->middleware('permission:void_spb')->name('spb.void');
     Route::get('/spb/{spb}/download', [SpbController::class, 'download'])->middleware('permission:download_pdf_spb')->name('spb.download');
+    Route::post('/spb/{spb}/invoices', [InvoiceController::class, 'store'])->middleware('permission:buat_invoice')->name('spb.invoices.store');
+    Route::post('/invoices/{invoice}/pembayaran', [InvoiceController::class, 'updatePembayaran'])->middleware('permission:update_pembayaran_invoice')->name('invoices.pembayaran');
+    Route::post('/invoices/{invoice}/upload-ttd', [InvoiceController::class, 'uploadTtd'])->middleware('permission:upload_ttd_invoice')->name('invoices.upload-ttd');
+    Route::post('/invoices/{invoice}/void', [InvoiceController::class, 'void'])->middleware('permission:void_invoice')->name('invoices.void');
+    Route::get('/invoices/{invoice}/download/{tipe}', [InvoiceController::class, 'download'])->middleware('permission:lihat_invoice')->name('invoices.download');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
 
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('permission:Customer lihat')->name('customers.index');
     Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:Customer tambah')->name('customers.create');

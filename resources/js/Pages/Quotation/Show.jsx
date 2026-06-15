@@ -6,6 +6,7 @@ import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import InvoiceSection from '@/Pages/Shared/InvoiceSection';
 import SpbSection from '@/Pages/Shared/SpbSection';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Copy, Download, Plus, Send, X } from 'lucide-react';
@@ -478,9 +479,13 @@ export default function Show({ quotation, sites }) {
                             sites={sites}
                             defaultItems={spbDefaultItems}
                         />
-                        <ProcessSection title="Tagihan">
-                            <div className="text-sm text-slate-600 dark:text-slate-300">Invoice/Nota akan dibuat setelah SPB tersedia.</div>
-                        </ProcessSection>
+                        <InvoiceSection
+                            spbList={spbList}
+                            defaultPayment={{
+                                metode_pembayaran: quotation.sales_order.metode_pembayaran,
+                                top_hari: quotation.sales_order.top_hari,
+                            }}
+                        />
                     </>
                 )}
             </div>

@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import InvoiceSection from '@/Pages/Shared/InvoiceSection';
 import SpbSection from '@/Pages/Shared/SpbSection';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Download, Send, X } from 'lucide-react';
@@ -50,17 +51,6 @@ function ActionModal({ show, title, label, value, error, processing, variant = '
                 </div>
             </form>
         </Modal>
-    );
-}
-
-function PlaceholderSection({ title, label }) {
-    return (
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <h2 className="font-semibold text-slate-950 dark:text-white">{title}</h2>
-            <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-                {label}
-            </div>
-        </section>
     );
 }
 
@@ -188,7 +178,7 @@ export default function Show({ purchaseOrder, sites }) {
                     sites={sites}
                     defaultItems={spbDefaultItems}
                 />
-                <PlaceholderSection title="Invoice" label="Invoice akan tersedia setelah Phase 6" />
+                <InvoiceSection spbList={purchaseOrder.spb} />
             </div>
 
             <ActionModal

@@ -60,6 +60,17 @@ class RolePermissionSeeder extends Seeder
         'void_spb',
     ];
 
+    /**
+     * @var array<int, string>
+     */
+    private array $invoicePermissions = [
+        'lihat_invoice',
+        'buat_invoice',
+        'upload_ttd_invoice',
+        'update_pembayaran_invoice',
+        'void_invoice',
+    ];
+
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -69,6 +80,7 @@ class RolePermissionSeeder extends Seeder
             ->merge($this->salesOrderPermissions)
             ->merge($this->purchaseOrderPermissions)
             ->merge($this->spbPermissions)
+            ->merge($this->invoicePermissions)
             ->values();
 
         $permissionNames->each(fn (string $name) => Permission::findOrCreate($name, 'web'));
@@ -81,6 +93,7 @@ class RolePermissionSeeder extends Seeder
                 'lihat_purchase_order',
                 'buat_purchase_order',
                 'lihat_spb',
+                'lihat_invoice',
             ],
             'Gudang' => [
                 ...$this->onlyModules(['SPB']),
@@ -89,7 +102,10 @@ class RolePermissionSeeder extends Seeder
                 'download_pdf_spb',
                 'void_spb',
             ],
-            'Finance' => $this->onlyModules(['Invoice/Nota']),
+            'Finance' => [
+                ...$this->onlyModules(['Invoice/Nota']),
+                ...$this->invoicePermissions,
+            ],
             'Procurement' => $this->onlyModules(['PD']),
             'Manager' => [
                 ...$this->onlyActions(['approve']),
@@ -97,6 +113,7 @@ class RolePermissionSeeder extends Seeder
                 'approve_purchase_order',
                 'lihat_spb',
                 'download_pdf_spb',
+                'lihat_invoice',
                 ...$this->onlyModules(['Laporan']),
             ],
         ];
