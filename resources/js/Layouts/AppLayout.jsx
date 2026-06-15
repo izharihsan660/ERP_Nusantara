@@ -4,6 +4,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Bell,
     Building2,
+    ClipboardList,
     FileText,
     LayoutDashboard,
     MapPin,
@@ -19,6 +20,7 @@ import { useState } from 'react';
 const icons = {
     Bell,
     Building2,
+    ClipboardList,
     FileText,
     LayoutDashboard,
     MapPin,

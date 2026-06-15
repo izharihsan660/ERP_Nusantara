@@ -11,6 +11,7 @@ use App\Http\Requests\Quotation\VoidQuotationRequest;
 use App\Models\Customer;
 use App\Models\DocumentTemplate;
 use App\Models\Katalog;
+use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\WipOrder;
@@ -213,16 +214,46 @@ class QuotationController extends Controller
             ->where('qr_token', $token)
             ->first();
 
-        return Inertia::render('Verify', [
-            'valid' => (bool) $quotation,
-            'quotation' => $quotation ? [
+        $purchaseOrder = $quotation ? null : PurchaseOrder::query()
+            ->with(['vendor:id,nama_vendor', 'approvedBy:id,name'])
+            ->approved()
+            ->where('qr_token', $token)
+            ->first();
+
+        $document = null;
+
+        if ($quotation) {
+            $document = [
                 'jenis_dokumen' => 'Quotation',
-                'no_quotation' => $quotation->no_quotation,
-                'customer' => $quotation->customer?->nama_customer,
-                'tgl_quotation' => $quotation->tgl_quotation?->format('Y-m-d'),
+                'nomor_label' => 'No. Quotation',
+                'nomor' => $quotation->no_quotation,
+                'pihak_label' => 'Customer',
+                'pihak' => $quotation->customer?->nama_customer,
+                'tanggal_label' => 'Tanggal Terbit',
+                'tanggal' => $quotation->tgl_quotation?->format('Y-m-d'),
                 'approved_by' => $quotation->approvedBy?->name,
                 'approved_at' => $quotation->approved_at?->format('Y-m-d H:i'),
-            ] : null,
+            ];
+        }
+
+        if ($purchaseOrder) {
+            $document = [
+                'jenis_dokumen' => 'Purchase Order',
+                'nomor_label' => 'No. PO',
+                'nomor' => $purchaseOrder->no_purchase_order,
+                'pihak_label' => 'Vendor',
+                'pihak' => $purchaseOrder->vendor?->nama_vendor,
+                'tanggal_label' => 'Tanggal PO',
+                'tanggal' => $purchaseOrder->tgl_po?->format('Y-m-d'),
+                'approved_by' => $purchaseOrder->approvedBy?->name,
+                'approved_at' => $purchaseOrder->approved_at?->format('Y-m-d H:i'),
+            ];
+        }
+
+        return Inertia::render('Verify', [
+            'valid' => (bool) $document,
+            'document' => $document,
+            'quotation' => $document,
         ]);
     }
 

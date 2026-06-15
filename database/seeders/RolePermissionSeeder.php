@@ -39,6 +39,17 @@ class RolePermissionSeeder extends Seeder
         'void_sales_order',
     ];
 
+    /**
+     * @var array<int, string>
+     */
+    private array $purchaseOrderPermissions = [
+        'lihat_purchase_order',
+        'buat_purchase_order',
+        'approve_purchase_order',
+        'download_pdf_purchase_order',
+        'void_purchase_order',
+    ];
+
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -46,6 +57,7 @@ class RolePermissionSeeder extends Seeder
         $permissionNames = collect($this->permissions)
             ->flatMap(fn (array $actions, string $module) => collect($actions)->map(fn (string $action) => "{$module} {$action}"))
             ->merge($this->salesOrderPermissions)
+            ->merge($this->purchaseOrderPermissions)
             ->values();
 
         $permissionNames->each(fn (string $name) => Permission::findOrCreate($name, 'web'));
@@ -55,12 +67,16 @@ class RolePermissionSeeder extends Seeder
             'Sales' => [
                 ...$this->onlyModules(['Quotation', 'WIP']),
                 ...$this->salesOrderPermissions,
+                'lihat_purchase_order',
+                'buat_purchase_order',
             ],
             'Gudang' => $this->onlyModules(['SPB']),
             'Finance' => $this->onlyModules(['Invoice/Nota']),
             'Procurement' => $this->onlyModules(['PD']),
             'Manager' => [
                 ...$this->onlyActions(['approve']),
+                'lihat_purchase_order',
+                'approve_purchase_order',
                 ...$this->onlyModules(['Laporan']),
             ],
         ];

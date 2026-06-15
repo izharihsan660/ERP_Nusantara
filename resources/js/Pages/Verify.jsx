@@ -10,7 +10,9 @@ function Info({ label, value }) {
     );
 }
 
-export default function Verify({ valid, quotation }) {
+export default function Verify({ valid, document, quotation }) {
+    const verifiedDocument = document ?? quotation;
+
     return (
         <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-950">
             <Head title="Verifikasi Dokumen" />
@@ -30,12 +32,12 @@ export default function Verify({ valid, quotation }) {
 
                 {valid && (
                     <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                        <Info label="Jenis Dokumen" value={quotation.jenis_dokumen} />
-                        <Info label="No. Quotation" value={quotation.no_quotation} />
-                        <Info label="Customer" value={quotation.customer} />
-                        <Info label="Tanggal Terbit" value={quotation.tgl_quotation} />
-                        <Info label="Diapprove oleh" value={quotation.approved_by} />
-                        <Info label="Tanggal Approve" value={quotation.approved_at} />
+                        <Info label="Jenis Dokumen" value={verifiedDocument.jenis_dokumen} />
+                        <Info label={verifiedDocument.nomor_label ?? 'Nomor Dokumen'} value={verifiedDocument.nomor ?? verifiedDocument.no_quotation} />
+                        <Info label={verifiedDocument.pihak_label ?? 'Customer'} value={verifiedDocument.pihak ?? verifiedDocument.customer} />
+                        <Info label={verifiedDocument.tanggal_label ?? 'Tanggal Terbit'} value={verifiedDocument.tanggal ?? verifiedDocument.tgl_quotation} />
+                        <Info label="Diapprove oleh" value={verifiedDocument.approved_by} />
+                        <Info label="Tanggal Approve" value={verifiedDocument.approved_at} />
                     </div>
                 )}
             </div>
