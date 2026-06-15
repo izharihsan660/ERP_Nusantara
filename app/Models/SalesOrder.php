@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use App\Enums\MetodePembayaran;
-use App\Enums\POStatus;
+use App\Enums\SalesOrderStatus;
 use App\Enums\WIPStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-class PurchaseOrder extends Model
+class SalesOrder extends Model
 {
     protected $fillable = [
         'quotation_id',
@@ -31,7 +31,7 @@ class PurchaseOrder extends Model
             'tgl_po' => 'date',
             'top_hari' => 'integer',
             'metode_pembayaran' => MetodePembayaran::class,
-            'status' => POStatus::class,
+            'status' => SalesOrderStatus::class,
         ];
     }
 
@@ -57,7 +57,7 @@ class PurchaseOrder extends Model
 
     public function isVoidable(): bool
     {
-        return $this->status === POStatus::Open && ! $this->hasWIP();
+        return $this->status === SalesOrderStatus::Open && ! $this->hasWIP();
     }
 
     public function hasWIP(): bool

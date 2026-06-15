@@ -54,9 +54,9 @@ class Quotation extends Model
         return $this->hasMany(QuotationItem::class);
     }
 
-    public function purchaseOrder(): HasOne
+    public function salesOrder(): HasOne
     {
-        return $this->hasOne(PurchaseOrder::class);
+        return $this->hasOne(SalesOrder::class);
     }
 
     public function approvedBy(): BelongsTo

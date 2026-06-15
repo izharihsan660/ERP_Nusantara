@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\PurchaseOrder;
+namespace App\Http\Requests\SalesOrder;
 
 use App\Enums\MetodePembayaran;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StorePurchaseOrderRequest extends FormRequest
+class StoreSalesOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {

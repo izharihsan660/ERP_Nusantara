@@ -14,7 +14,6 @@ class RolePermissionSeeder extends Seeder
      */
     private array $permissions = [
         'Quotation' => ['lihat', 'buat', 'approve', 'download_pdf', 'void'],
-        'PO Customer' => ['lihat', 'input', 'upload', 'void'],
         'WIP' => ['lihat', 'buat', 'update_status', 'void'],
         'Surat Kuasa' => ['lihat', 'buat', 'download_pdf'],
         'PO NAJ' => ['lihat', 'buat', 'approve', 'download_pdf', 'void'],
@@ -31,19 +30,32 @@ class RolePermissionSeeder extends Seeder
         'Laporan' => ['rekapan_po', 'rekapan_wip', 'rekapan_spb', 'rekapan_invoice', 'rekapan_pd', 'profit', 'outstanding'],
     ];
 
+    /**
+     * @var array<int, string>
+     */
+    private array $salesOrderPermissions = [
+        'lihat_sales_order',
+        'input_sales_order',
+        'void_sales_order',
+    ];
+
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $permissionNames = collect($this->permissions)
             ->flatMap(fn (array $actions, string $module) => collect($actions)->map(fn (string $action) => "{$module} {$action}"))
+            ->merge($this->salesOrderPermissions)
             ->values();
 
         $permissionNames->each(fn (string $name) => Permission::findOrCreate($name, 'web'));
 
         $roles = [
             'Superadmin' => $permissionNames->all(),
-            'Sales' => $this->onlyModules(['Quotation', 'PO Customer', 'WIP']),
+            'Sales' => [
+                ...$this->onlyModules(['Quotation', 'WIP']),
+                ...$this->salesOrderPermissions,
+            ],
             'Gudang' => $this->onlyModules(['SPB']),
             'Finance' => $this->onlyModules(['Invoice/Nota']),
             'Procurement' => $this->onlyModules(['PD']),

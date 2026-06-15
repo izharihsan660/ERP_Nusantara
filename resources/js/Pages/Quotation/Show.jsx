@@ -75,7 +75,7 @@ function FormRow({ label, error, children }) {
     );
 }
 
-function PurchaseOrderModal({ show, form, onClose, onSubmit }) {
+function SalesOrderModal({ show, form, onClose, onSubmit }) {
     const setMetode = (value) => {
         form.setData({
             ...form.data,
@@ -87,7 +87,7 @@ function PurchaseOrderModal({ show, form, onClose, onSubmit }) {
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
             <form onSubmit={onSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input PO Customer</h2>
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input Sales Order</h2>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                     <FormRow label="No. PO Customer" error={form.errors.no_po_customer}>
                         <Input value={form.data.no_po_customer} onChange={(e) => form.setData('no_po_customer', e.target.value)} />
@@ -181,7 +181,7 @@ export default function Show({ quotation }) {
     const [selectedWip, setSelectedWip] = useState(null);
     const rejectForm = useForm({ catatan_rejection: '' });
     const voidForm = useForm({ alasan_void: '' });
-    const purchaseOrderForm = useForm({
+    const salesOrderForm = useForm({
         no_po_customer: '',
         no_pr_customer: '',
         tgl_po: '',
@@ -193,7 +193,7 @@ export default function Show({ quotation }) {
         tipe_order: 'VOR',
         nama_ekspedisi: '',
     });
-    const voidPurchaseOrderForm = useForm({ alasan_void: '' });
+    const voidSalesOrderForm = useForm({ alasan_void: '' });
     const voidWipOrderForm = useForm({ alasan_void: '' });
 
     const submitReject = (event) => {
@@ -206,11 +206,11 @@ export default function Show({ quotation }) {
         voidForm.post(route('quotations.void', quotation.id), { onSuccess: () => setModal(null) });
     };
 
-    const submitPurchaseOrder = (event) => {
+    const submitSalesOrder = (event) => {
         event.preventDefault();
-        purchaseOrderForm.post(route('quotations.purchase-orders.store', quotation.id), {
+        salesOrderForm.post(route('quotations.sales-orders.store', quotation.id), {
             onSuccess: () => {
-                purchaseOrderForm.reset();
+                salesOrderForm.reset();
                 setModal(null);
             },
         });
@@ -218,7 +218,7 @@ export default function Show({ quotation }) {
 
     const submitWipOrder = (event) => {
         event.preventDefault();
-        wipOrderForm.post(route('purchase-orders.wip-orders.store', quotation.purchase_order.id), {
+        wipOrderForm.post(route('sales-orders.wip-orders.store', quotation.sales_order.id), {
             onSuccess: () => {
                 wipOrderForm.reset();
                 setModal(null);
@@ -226,11 +226,11 @@ export default function Show({ quotation }) {
         });
     };
 
-    const submitVoidPurchaseOrder = (event) => {
+    const submitVoidSalesOrder = (event) => {
         event.preventDefault();
-        voidPurchaseOrderForm.post(route('purchase-orders.void', quotation.purchase_order.id), {
+        voidSalesOrderForm.post(route('sales-orders.void', quotation.sales_order.id), {
             onSuccess: () => {
-                voidPurchaseOrderForm.reset();
+                voidSalesOrderForm.reset();
                 setModal(null);
             },
         });
@@ -255,8 +255,8 @@ export default function Show({ quotation }) {
     const canVoid = permissions.includes('Quotation void') && quotation.status !== 'VOID';
     const canCreate = permissions.includes('Quotation buat');
     const canDownload = permissions.includes('Quotation download_pdf');
-    const canInputPO = permissions.includes('PO Customer input');
-    const canVoidPO = permissions.includes('PO Customer void');
+    const canInputSalesOrder = permissions.includes('input_sales_order');
+    const canVoidSalesOrder = permissions.includes('void_sales_order');
     const canInputWIP = permissions.includes('WIP buat');
     const canVoidWIP = permissions.includes('WIP void');
 
@@ -356,13 +356,13 @@ export default function Show({ quotation }) {
                 </section>
 
                 {quotation.status === 'APPROVED' && (
-                    <ProcessSection title="PO Customer">
-                        {!quotation.purchase_order ? (
+                    <ProcessSection title="Sales Order">
+                        {!quotation.sales_order ? (
                             <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-slate-50 p-4 dark:bg-slate-900">
-                                <div className="text-sm text-slate-600 dark:text-slate-300">Belum ada PO Customer untuk quotation ini.</div>
-                                {canInputPO && (
-                                    <Button type="button" variant="secondary" onClick={() => setModal('purchase-order')}>
-                                        <Plus className="h-4 w-4" />Input PO Customer
+                                <div className="text-sm text-slate-600 dark:text-slate-300">Belum ada Sales Order untuk quotation ini.</div>
+                                {canInputSalesOrder && (
+                                    <Button type="button" variant="secondary" onClick={() => setModal('sales-order')}>
+                                        <Plus className="h-4 w-4" />Input Sales Order
                                     </Button>
                                 )}
                             </div>
@@ -370,43 +370,43 @@ export default function Show({ quotation }) {
                             <div className="space-y-4">
                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                     <div className="grid flex-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                        <Info label="No. PO Customer" value={quotation.purchase_order.no_po_customer} />
-                                        {quotation.purchase_order.no_pr_customer && (
-                                            <Info label="No. PR" value={quotation.purchase_order.no_pr_customer} />
+                                        <Info label="No. PO Customer" value={quotation.sales_order.no_po_customer} />
+                                        {quotation.sales_order.no_pr_customer && (
+                                            <Info label="No. PR" value={quotation.sales_order.no_pr_customer} />
                                         )}
-                                        <Info label="Tanggal PO" value={quotation.purchase_order.tgl_po} />
-                                        <Info label="Metode Bayar" value={quotation.purchase_order.metode_pembayaran_label} />
-                                        {quotation.purchase_order.metode_pembayaran === 'TOP' && (
+                                        <Info label="Tanggal PO" value={quotation.sales_order.tgl_po} />
+                                        <Info label="Metode Bayar" value={quotation.sales_order.metode_pembayaran_label} />
+                                        {quotation.sales_order.metode_pembayaran === 'TOP' && (
                                             <>
-                                                <Info label="TOP Hari" value={quotation.purchase_order.top_hari} />
-                                                <Info label="Jatuh Tempo" value={quotation.purchase_order.tgl_jatuh_tempo} />
+                                                <Info label="TOP Hari" value={quotation.sales_order.top_hari} />
+                                                <Info label="Jatuh Tempo" value={quotation.sales_order.tgl_jatuh_tempo} />
                                             </>
                                         )}
                                         <div>
                                             <div className="text-xs uppercase text-slate-500">Status</div>
-                                            <div className="mt-1"><StatusBadge status={quotation.purchase_order.status} label={quotation.purchase_order.status_label} /></div>
+                                            <div className="mt-1"><StatusBadge status={quotation.sales_order.status} label={quotation.sales_order.status_label} /></div>
                                         </div>
                                     </div>
-                                    {canVoidPO && quotation.purchase_order.is_voidable && (
-                                        <Button type="button" variant="destructive" onClick={() => setModal('void-purchase-order')}>
-                                            <Ban className="h-4 w-4" />Void PO
+                                    {canVoidSalesOrder && quotation.sales_order.is_voidable && (
+                                        <Button type="button" variant="destructive" onClick={() => setModal('void-sales-order')}>
+                                            <Ban className="h-4 w-4" />Void Sales Order
                                         </Button>
                                     )}
                                 </div>
-                                {quotation.purchase_order.alasan_void && (
-                                    <div className="rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {quotation.purchase_order.alasan_void}</div>
+                                {quotation.sales_order.alasan_void && (
+                                    <div className="rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {quotation.sales_order.alasan_void}</div>
                                 )}
                             </div>
                         )}
                     </ProcessSection>
                 )}
 
-                {quotation.status === 'APPROVED' && quotation.purchase_order && (
+                {quotation.status === 'APPROVED' && quotation.sales_order && (
                     <>
                         <ProcessSection title="WIP">
                             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                                 <div className="text-sm font-medium text-slate-700 dark:text-slate-200">WIP - Order ke RMA</div>
-                                {canInputWIP && quotation.purchase_order.status === 'OPEN' && (
+                                {canInputWIP && quotation.sales_order.status === 'OPEN' && (
                                     <Button type="button" variant="secondary" onClick={() => setModal('wip-order')}>
                                         <Plus className="h-4 w-4" />Input WIP
                                     </Button>
@@ -424,12 +424,12 @@ export default function Show({ quotation }) {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
-                                        {quotation.purchase_order.wip_orders.length === 0 && (
+                                        {quotation.sales_order.wip_orders.length === 0 && (
                                             <tr>
                                                 <td className="px-4 py-6 text-center text-slate-500" colSpan="5">Belum ada WIP.</td>
                                             </tr>
                                         )}
-                                        {quotation.purchase_order.wip_orders.map((wip) => (
+                                        {quotation.sales_order.wip_orders.map((wip) => (
                                             <tr key={wip.id}>
                                                 <td className="whitespace-nowrap px-4 py-3">{wip.no_wip}</td>
                                                 <td className="px-4 py-3">{wip.tipe_order_label}</td>
@@ -488,11 +488,11 @@ export default function Show({ quotation }) {
                 onClose={() => setModal(null)}
                 onSubmit={submitVoid}
             />
-            <PurchaseOrderModal
-                show={modal === 'purchase-order'}
-                form={purchaseOrderForm}
+            <SalesOrderModal
+                show={modal === 'sales-order'}
+                form={salesOrderForm}
                 onClose={() => setModal(null)}
-                onSubmit={submitPurchaseOrder}
+                onSubmit={submitSalesOrder}
             />
             <WipOrderModal
                 show={modal === 'wip-order'}
@@ -501,15 +501,15 @@ export default function Show({ quotation }) {
                 onSubmit={submitWipOrder}
             />
             <ActionModal
-                show={modal === 'void-purchase-order'}
-                title="Void PO Customer"
+                show={modal === 'void-sales-order'}
+                title="Void Sales Order"
                 label="Alasan void"
-                value={voidPurchaseOrderForm.data.alasan_void}
-                error={voidPurchaseOrderForm.errors.alasan_void}
-                processing={voidPurchaseOrderForm.processing}
-                onChange={(value) => voidPurchaseOrderForm.setData('alasan_void', value)}
+                value={voidSalesOrderForm.data.alasan_void}
+                error={voidSalesOrderForm.errors.alasan_void}
+                processing={voidSalesOrderForm.processing}
+                onChange={(value) => voidSalesOrderForm.setData('alasan_void', value)}
                 onClose={() => setModal(null)}
-                onSubmit={submitVoidPurchaseOrder}
+                onSubmit={submitVoidSalesOrder}
             />
             <ActionModal
                 show={modal === 'void-wip-order'}

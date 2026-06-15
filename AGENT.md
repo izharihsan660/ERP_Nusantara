@@ -6,7 +6,7 @@
 
 ## 🏢 PROJECT OVERVIEW
 Sistem ERP untuk PT. Nusantara Abadi Jaya — distributor spare part & pallet.
-Bisnis utama: Quotation → PO Customer → WIP → SPB → Invoice/Nota.
+Bisnis utama: Quotation → Sales Order → WIP → SPB → Invoice/Nota.
 
 ---
 
@@ -69,6 +69,8 @@ routes/
 | ActivityLog | activity_logs | Log semua aksi user |
 | Quotation | quotations | Dokumen penawaran |
 | QuotationItem | quotation_items | Item barang di quotation |
+| SalesOrder | sales_orders | Sales order dari PO customer |
+| WipOrder | wip_orders | Work in progress order dari portal RMA |
 
 ---
 
@@ -82,6 +84,8 @@ routes/
 - UserService
 - QuotationService
 - QuotationPDFService
+- SalesOrderService
+- WipOrderService
 
 ---
 
@@ -128,11 +132,10 @@ approve_quotation
 download_pdf_quotation
 void_quotation
 
-# PO Customer
-lihat_po_customer
-input_po_customer
-upload_po_customer
-void_po_customer
+# Sales Order
+lihat_sales_order
+input_sales_order
+void_sales_order
 
 # WIP
 lihat_wip
@@ -282,7 +285,7 @@ Halaman verifikasi: `Pages/Verify.jsx` (publik, tidak perlu login)
 ## 📊 ALUR BISNIS UTAMA
 ```
 Quotation (APPROVED)
-  └── PO Customer (input no. PO dari customer)
+  └── Sales Order (input no. PO dari customer)
         └── WIP (input manual nomor dari portal RMA)
               └── SPB (buat surat pengiriman, bisa parsial)
                     └── Invoice/Nota (1 SPB = 1 Invoice/Nota)
@@ -291,8 +294,8 @@ Quotation (APPROVED)
 
 Semua section di atas ada di dalam `Quotation/Show.jsx`.
 Tombol aksi muncul bertahap sesuai progress:
-- Tombol "Input PO Customer" → muncul setelah Quotation APPROVED
-- Tombol "Input WIP" → muncul setelah PO Customer diinput
+- Tombol "Input Sales Order" → muncul setelah Quotation APPROVED
+- Tombol "Input WIP" → muncul setelah Sales Order diinput
 - Tombol "Buat SPB" → muncul setelah WIP diinput
 - Tombol "Buat Invoice/Nota" → muncul setelah SPB dibuat
 - Tombol "Upload TTD" → muncul setelah Invoice/Nota dibuat
@@ -301,7 +304,7 @@ Tombol aksi muncul bertahap sesuai progress:
 
 ## 🏭 ALUR KHUSUS KMSI (PALLET)
 - Customer bisa kirim PR dulu sebelum PO resmi terbit
-- no_pr_customer disimpan di purchase_orders (nullable)
+- no_pr_customer disimpan di sales_orders (nullable)
 - SPB bisa dibuat dengan referensi no. PR
 - Ketika PO customer terbit → SPB update referensi ke no. PO
 - Custom tanggal di SPB untuk kebutuhan tagihan
@@ -326,7 +329,7 @@ Default jabatan:
 | Jabatan | Akses Utama |
 |---------|-------------|
 | Superadmin | Semua akses |
-| Sales | Quotation, PO Customer, WIP, PO NAJ |
+| Sales | Quotation, Sales Order, WIP, PO NAJ |
 | Gudang | SPB, update status WIP |
 | Finance | Invoice, Nota, pembayaran |
 | Procurement | Permintaan Dana |
@@ -364,7 +367,7 @@ Pastikan setiap modul baru punya:
 - ✅ Phase 2: Modul Quotation
 
 ## 🚧 PHASE BERIKUTNYA
-- 🔄 Phase 3: PO Customer & WIP
+- ✅ Phase 3: Sales Order & WIP
 - ⏳ Phase 4: PO NAJ
 - ⏳ Phase 5: SPB
 - ⏳ Phase 6: Invoice & Nota Penjualan

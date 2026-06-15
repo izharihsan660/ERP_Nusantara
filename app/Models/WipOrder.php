@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class WipOrder extends Model
 {
     protected $fillable = [
-        'purchase_order_id',
+        'sales_order_id',
         'no_wip',
         'tipe_order',
         'nama_ekspedisi',
@@ -32,9 +32,9 @@ class WipOrder extends Model
         ];
     }
 
-    public function purchaseOrder(): BelongsTo
+    public function salesOrder(): BelongsTo
     {
-        return $this->belongsTo(PurchaseOrder::class);
+        return $this->belongsTo(SalesOrder::class);
     }
 
     public function createdBy(): BelongsTo

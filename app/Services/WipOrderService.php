@@ -3,11 +3,11 @@
 namespace App\Services;
 
 use App\Actions\ActivityLog\RecordActivity;
-use App\Enums\POStatus;
+use App\Enums\SalesOrderStatus;
 use App\Enums\StatusSupply;
 use App\Enums\TipeOrder;
 use App\Enums\WIPStatus;
-use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use App\Models\User;
 use App\Models\WipOrder;
 use Illuminate\Support\Facades\DB;
@@ -19,19 +19,19 @@ class WipOrderService
         private readonly RecordActivity $recordActivity,
     ) {}
 
-    public function create(array $data, PurchaseOrder $po, User $user): WipOrder
+    public function create(array $data, SalesOrder $salesOrder, User $user): WipOrder
     {
-        if ($po->status !== POStatus::Open) {
-            throw ValidationException::withMessages(['purchase_order_id' => 'WIP hanya bisa dibuat dari PO Customer Open.']);
+        if ($salesOrder->status !== SalesOrderStatus::Open) {
+            throw ValidationException::withMessages(['sales_order_id' => 'WIP hanya bisa dibuat dari Sales Order Open.']);
         }
 
         if (($data['tipe_order'] ?? null) === TipeOrder::VOR->value && blank($data['nama_ekspedisi'] ?? null)) {
             throw ValidationException::withMessages(['nama_ekspedisi' => 'Nama ekspedisi wajib diisi untuk tipe VOR.']);
         }
 
-        return DB::transaction(function () use ($data, $po, $user): WipOrder {
+        return DB::transaction(function () use ($data, $salesOrder, $user): WipOrder {
             $wip = WipOrder::create([
-                'purchase_order_id' => $po->id,
+                'sales_order_id' => $salesOrder->id,
                 'no_wip' => $data['no_wip'],
                 'tipe_order' => $data['tipe_order'],
                 'nama_ekspedisi' => ($data['tipe_order'] ?? null) === TipeOrder::VOR->value ? $data['nama_ekspedisi'] : null,
@@ -42,7 +42,7 @@ class WipOrderService
 
             $this->recordActivity->handle('WIP buat', $wip, "{$user->name} input WIP {$wip->no_wip}");
 
-            return $wip->load('purchaseOrder');
+            return $wip->load('salesOrder');
         });
     }
 

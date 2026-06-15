@@ -11,8 +11,8 @@ use App\Http\Requests\Quotation\VoidQuotationRequest;
 use App\Models\Customer;
 use App\Models\DocumentTemplate;
 use App\Models\Katalog;
-use App\Models\PurchaseOrder;
 use App\Models\Quotation;
+use App\Models\SalesOrder;
 use App\Models\WipOrder;
 use App\Services\QuotationPDFService;
 use App\Services\QuotationService;
@@ -113,7 +113,7 @@ class QuotationController extends Controller
             'createdBy:id,name',
             'approvedBy:id,name',
             'voidedBy:id,name',
-            'purchaseOrder.wipOrders.createdBy:id,name',
+            'salesOrder.wipOrders.createdBy:id,name',
         ]);
 
         return Inertia::render('Quotation/Show', [
@@ -147,7 +147,7 @@ class QuotationController extends Controller
                 'total' => $quotation->total,
                 'total_hpp' => $quotation->total_hpp,
                 'total_profit' => $quotation->total_profit,
-                'purchase_order' => $quotation->purchaseOrder ? $this->purchaseOrderData($quotation->purchaseOrder) : null,
+                'sales_order' => $quotation->salesOrder ? $this->salesOrderData($quotation->salesOrder) : null,
             ],
         ]);
     }
@@ -242,22 +242,22 @@ class QuotationController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function purchaseOrderData(PurchaseOrder $po): array
+    private function salesOrderData(SalesOrder $salesOrder): array
     {
         return [
-            'id' => $po->id,
-            'no_po_customer' => $po->no_po_customer,
-            'no_pr_customer' => $po->no_pr_customer,
-            'tgl_po' => $po->tgl_po?->format('Y-m-d'),
-            'metode_pembayaran' => $po->metode_pembayaran->value,
-            'metode_pembayaran_label' => $po->metode_pembayaran->label(),
-            'top_hari' => $po->top_hari,
-            'tgl_jatuh_tempo' => $po->getTglJatuhTempo()?->format('Y-m-d'),
-            'status' => $po->status->value,
-            'status_label' => $po->status->label(),
-            'alasan_void' => $po->alasan_void,
-            'is_voidable' => $po->isVoidable(),
-            'wip_orders' => $po->wipOrders->map(fn (WipOrder $wip): array => [
+            'id' => $salesOrder->id,
+            'no_po_customer' => $salesOrder->no_po_customer,
+            'no_pr_customer' => $salesOrder->no_pr_customer,
+            'tgl_po' => $salesOrder->tgl_po?->format('Y-m-d'),
+            'metode_pembayaran' => $salesOrder->metode_pembayaran->value,
+            'metode_pembayaran_label' => $salesOrder->metode_pembayaran->label(),
+            'top_hari' => $salesOrder->top_hari,
+            'tgl_jatuh_tempo' => $salesOrder->getTglJatuhTempo()?->format('Y-m-d'),
+            'status' => $salesOrder->status->value,
+            'status_label' => $salesOrder->status->label(),
+            'alasan_void' => $salesOrder->alasan_void,
+            'is_voidable' => $salesOrder->isVoidable(),
+            'wip_orders' => $salesOrder->wipOrders->map(fn (WipOrder $wip): array => [
                 'id' => $wip->id,
                 'no_wip' => $wip->no_wip,
                 'tipe_order' => $wip->tipe_order->value,
