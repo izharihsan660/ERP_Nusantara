@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Enums\DocumentType;
+use App\Enums\PDStatus;
 use App\Enums\QuotationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotation\RejectQuotationRequest;
@@ -12,6 +13,7 @@ use App\Models\Customer;
 use App\Models\DocumentTemplate;
 use App\Models\Invoice;
 use App\Models\Katalog;
+use App\Models\PermintaanDana;
 use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
@@ -237,6 +239,12 @@ class QuotationController extends Controller
             ->where('qr_token', $token)
             ->first();
 
+        $permintaanDana = ($quotation || $purchaseOrder) ? null : PermintaanDana::query()
+            ->with(['approvedBy:id,name'])
+            ->whereIn('status', [PDStatus::Approved->value, PDStatus::Paid->value])
+            ->where('qr_token', $token)
+            ->first();
+
         $document = null;
 
         if ($quotation) {
@@ -264,6 +272,20 @@ class QuotationController extends Controller
                 'tanggal' => $purchaseOrder->tgl_po?->format('Y-m-d'),
                 'approved_by' => $purchaseOrder->approvedBy?->name,
                 'approved_at' => $purchaseOrder->approved_at?->format('Y-m-d H:i'),
+            ];
+        }
+
+        if ($permintaanDana) {
+            $document = [
+                'jenis_dokumen' => 'Permintaan Dana',
+                'nomor_label' => 'No. PD',
+                'nomor' => $permintaanDana->no_pd,
+                'pihak_label' => 'Kategori',
+                'pihak' => $permintaanDana->kategori->label(),
+                'tanggal_label' => 'Nominal',
+                'tanggal' => 'Rp '.number_format((float) $permintaanDana->nominal, 2, ',', '.'),
+                'approved_by' => $permintaanDana->approvedBy?->name,
+                'approved_at' => $permintaanDana->approved_at?->format('Y-m-d H:i'),
             ];
         }
 

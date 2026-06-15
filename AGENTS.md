@@ -76,6 +76,7 @@ routes/
 | Spb | spb | Surat Pengiriman Barang |
 | SpbItem | spb_items | Item barang di SPB |
 | Invoice | invoices | Invoice / Nota Penjualan per SPB |
+| PermintaanDana | permintaan_dana | Dokumen permintaan pencairan dana internal |
 
 ---
 
@@ -97,6 +98,8 @@ routes/
 - SpbPDFService
 - InvoiceService
 - InvoicePDFService
+- PermintaanDanaService
+- PermintaanDanaPDFService
 
 ---
 
@@ -149,6 +152,12 @@ App\Enums\StatusPembayaran:
 
 App\Enums\InvoiceStatus:
   ACTIVE, VOID
+
+App\Enums\KategoriPD:
+  BAYAR_RMA, BIAYA_PENGIRIMAN, OPERASIONAL_KANTOR
+
+App\Enums\PDStatus:
+  DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, PAID, VOID
 ```
 
 ---
@@ -402,7 +411,7 @@ Pastikan setiap modul baru punya:
 - ✅ Phase 4: PO NAJ
 - ✅ Phase 5: SPB
 - ✅ Phase 6: Invoice & Nota Penjualan
+- ✅ Phase 7: Permintaan Dana (PD)
 
 ## 🚧 PHASE BERIKUTNYA
-- ⏳ Phase 7: Permintaan Dana (PD)
 - ⏳ Phase 8: Laporan & Dashboard

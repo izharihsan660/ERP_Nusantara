@@ -112,6 +112,32 @@ class DocumentNumberService
         });
     }
 
+    public function generatePermintaanDanaNumber(CarbonInterface $date): string
+    {
+        return DB::transaction(function () use ($date): string {
+            $number = DocumentNumber::query()
+                ->where('tipe_dokumen', 'PD')
+                ->where('tahun', $date->year)
+                ->where('bulan', $date->month)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $number) {
+                $number = DocumentNumber::create([
+                    'tipe_dokumen' => 'PD',
+                    'tahun' => $date->year,
+                    'bulan' => $date->month,
+                    'last_number' => 0,
+                ]);
+            }
+
+            $number->increment('last_number');
+            $sequence = str_pad((string) $number->last_number, 3, '0', STR_PAD_LEFT);
+
+            return "{$sequence}/PD-NAJ/{$this->romanMonth($date->month)}/{$date->format('Y')}";
+        });
+    }
+
     private function romanMonth(int $month): string
     {
         return [

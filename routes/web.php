@@ -10,6 +10,7 @@ use App\Http\Controllers\MasterData\VendorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Transaction\InvoiceController;
+use App\Http\Controllers\Transaction\PermintaanDanaController;
 use App\Http\Controllers\Transaction\PurchaseOrderController;
 use App\Http\Controllers\Transaction\QuotationController;
 use App\Http\Controllers\Transaction\SalesOrderController;
@@ -65,6 +66,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/purchase-orders/{purchaseOrder}/void', [PurchaseOrderController::class, 'void'])->middleware('permission:void_purchase_order')->name('purchase-orders.void');
     Route::get('/purchase-orders/{purchaseOrder}/download', [PurchaseOrderController::class, 'download'])->middleware('permission:download_pdf_purchase_order')->name('purchase-orders.download');
     Route::post('/purchase-orders/{purchaseOrder}/spb', [SpbController::class, 'storeFromPurchaseOrder'])->middleware('permission:buat_spb')->name('purchase-orders.spb.store');
+
+    Route::get('/permintaan-dana', [PermintaanDanaController::class, 'index'])->middleware('permission:lihat_pd')->name('permintaan-dana.index');
+    Route::get('/permintaan-dana/create', [PermintaanDanaController::class, 'create'])->middleware('permission:buat_pd')->name('permintaan-dana.create');
+    Route::post('/permintaan-dana', [PermintaanDanaController::class, 'store'])->middleware('permission:buat_pd')->name('permintaan-dana.store');
+    Route::get('/permintaan-dana/{permintaanDana}', [PermintaanDanaController::class, 'show'])->middleware('permission:lihat_pd')->name('permintaan-dana.show');
+    Route::post('/permintaan-dana/{permintaanDana}/submit', [PermintaanDanaController::class, 'submit'])->middleware('permission:buat_pd')->name('permintaan-dana.submit');
+    Route::post('/permintaan-dana/{permintaanDana}/approve', [PermintaanDanaController::class, 'approve'])->middleware('permission:approve_pd')->name('permintaan-dana.approve');
+    Route::post('/permintaan-dana/{permintaanDana}/reject', [PermintaanDanaController::class, 'reject'])->middleware('permission:approve_pd')->name('permintaan-dana.reject');
+    Route::post('/permintaan-dana/{permintaanDana}/upload-bukti', [PermintaanDanaController::class, 'uploadBukti'])->middleware('permission:upload_bukti_pd')->name('permintaan-dana.upload-bukti');
+    Route::post('/permintaan-dana/{permintaanDana}/void', [PermintaanDanaController::class, 'void'])->middleware('permission:void_pd')->name('permintaan-dana.void');
+    Route::get('/permintaan-dana/{permintaanDana}/download', [PermintaanDanaController::class, 'download'])->middleware('permission:lihat_pd')->name('permintaan-dana.download');
+
     Route::post('/spb/{spb}/void', [SpbController::class, 'void'])->middleware('permission:void_spb')->name('spb.void');
     Route::get('/spb/{spb}/download', [SpbController::class, 'download'])->middleware('permission:download_pdf_spb')->name('spb.download');
     Route::post('/spb/{spb}/invoices', [InvoiceController::class, 'store'])->middleware('permission:buat_invoice')->name('spb.invoices.store');

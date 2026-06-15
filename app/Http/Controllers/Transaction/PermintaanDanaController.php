@@ -1,0 +1,160 @@
+<?php
+
+namespace App\Http\Controllers\Transaction;
+
+use App\Enums\KategoriPD;
+use App\Enums\PDStatus;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PermintaanDana\RejectPermintaanDanaRequest;
+use App\Http\Requests\PermintaanDana\StorePermintaanDanaRequest;
+use App\Http\Requests\PermintaanDana\UploadBuktiRequest;
+use App\Http\Requests\PermintaanDana\VoidPermintaanDanaRequest;
+use App\Models\PermintaanDana;
+use App\Services\PermintaanDanaPDFService;
+use App\Services\PermintaanDanaService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
+class PermintaanDanaController extends Controller
+{
+    public function __construct(
+        private readonly PermintaanDanaService $permintaanDanaService,
+        private readonly PermintaanDanaPDFService $permintaanDanaPDFService,
+    ) {}
+
+    public function index(Request $request): Response
+    {
+        return Inertia::render('PermintaanDana/Index', [
+            'permintaanDana' => $this->permintaanDanaService->paginate($request->query())->through(fn (PermintaanDana $permintaanDana): array => [
+                'id' => $permintaanDana->id,
+                'no_pd' => $permintaanDana->no_pd,
+                'kategori' => $permintaanDana->kategori->value,
+                'kategori_label' => $permintaanDana->kategori->label(),
+                'nominal' => $permintaanDana->nominal,
+                'status' => $permintaanDana->status->value,
+                'status_label' => $permintaanDana->status->label(),
+                'created_by' => $permintaanDana->createdBy?->name,
+                'tgl_pd' => $permintaanDana->tgl_pd?->format('Y-m-d'),
+            ]),
+            'filters' => $request->only(['search', 'kategori', 'status', 'date_from', 'date_to', 'sort', 'direction', 'per_page']),
+            'categories' => KategoriPD::options(),
+            'statuses' => PDStatus::options(),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('PermintaanDana/Create', [
+            'categories' => KategoriPD::options(),
+        ]);
+    }
+
+    public function store(StorePermintaanDanaRequest $request): RedirectResponse
+    {
+        $permintaanDana = $this->permintaanDanaService->create($request->validated(), $request->user());
+
+        if ($request->boolean('submit')) {
+            $this->permintaanDanaService->submit($permintaanDana, $request->user());
+        }
+
+        return to_route('permintaan-dana.show', $permintaanDana)->with('success', 'Permintaan Dana berhasil dibuat.');
+    }
+
+    public function show(PermintaanDana $permintaanDana): Response
+    {
+        $permintaanDana->load(['createdBy:id,name', 'approvedBy:id,name', 'voidedBy:id,name']);
+
+        return Inertia::render('PermintaanDana/Show', [
+            'permintaanDana' => [
+                'id' => $permintaanDana->id,
+                'no_pd' => $permintaanDana->no_pd,
+                'tgl_pd' => $permintaanDana->tgl_pd?->format('Y-m-d'),
+                'kategori' => $permintaanDana->kategori->value,
+                'kategori_label' => $permintaanDana->kategori->label(),
+                'nominal' => $permintaanDana->nominal,
+                'keterangan' => $permintaanDana->keterangan,
+                'referensi_dokumen' => $permintaanDana->referensi_dokumen,
+                'status' => $permintaanDana->status->value,
+                'status_label' => $permintaanDana->status->label(),
+                'catatan_rejection' => $permintaanDana->catatan_rejection,
+                'submitted_at' => $permintaanDana->submitted_at?->format('Y-m-d H:i'),
+                'approved_at' => $permintaanDana->approved_at?->format('Y-m-d H:i'),
+                'tgl_realisasi' => $permintaanDana->tgl_realisasi?->format('Y-m-d'),
+                'jumlah_realisasi' => $permintaanDana->jumlah_realisasi,
+                'file_bukti' => $permintaanDana->file_bukti,
+                'file_bukti_name' => $permintaanDana->file_bukti ? basename($permintaanDana->file_bukti) : null,
+                'voided_at' => $permintaanDana->voided_at?->format('Y-m-d H:i'),
+                'alasan_void' => $permintaanDana->alasan_void,
+                'created_at' => $permintaanDana->created_at?->format('Y-m-d H:i'),
+                'updated_at' => $permintaanDana->updated_at?->format('Y-m-d H:i'),
+                'created_by' => $permintaanDana->createdBy?->only(['id', 'name']),
+                'approved_by' => $permintaanDana->approvedBy?->only(['id', 'name']),
+                'voided_by' => $permintaanDana->voidedBy?->only(['id', 'name']),
+                'is_voidable' => $permintaanDana->isVoidable(),
+            ],
+        ]);
+    }
+
+    public function submit(Request $request, PermintaanDana $permintaanDana): RedirectResponse
+    {
+        $this->permintaanDanaService->submit($permintaanDana, $request->user());
+
+        return back()->with('success', 'Permintaan Dana berhasil disubmit ke Manager.');
+    }
+
+    public function approve(Request $request, PermintaanDana $permintaanDana): RedirectResponse
+    {
+        $this->permintaanDanaService->approve($permintaanDana, $request->user());
+
+        return back()->with('success', 'Permintaan Dana berhasil diapprove.');
+    }
+
+    public function reject(RejectPermintaanDanaRequest $request, PermintaanDana $permintaanDana): RedirectResponse
+    {
+        $this->permintaanDanaService->reject($permintaanDana, $request->validated('catatan_rejection'), $request->user());
+
+        return back()->with('success', 'Permintaan Dana berhasil direject.');
+    }
+
+    public function uploadBukti(UploadBuktiRequest $request, PermintaanDana $permintaanDana): RedirectResponse
+    {
+        $this->permintaanDanaService->uploadBukti($permintaanDana, $request->validated(), $request->user());
+
+        return back()->with('success', 'Bukti pembayaran berhasil diupload.');
+    }
+
+    public function void(VoidPermintaanDanaRequest $request, PermintaanDana $permintaanDana): RedirectResponse
+    {
+        $this->permintaanDanaService->void($permintaanDana, $request->validated('alasan_void'), $request->user());
+
+        return to_route('permintaan-dana.show', $permintaanDana)->with('success', 'Permintaan Dana berhasil divoid.');
+    }
+
+    public function download(Request $request, PermintaanDana $permintaanDana): BinaryFileResponse
+    {
+        if ($request->query('type') === 'bukti') {
+            abort_unless($permintaanDana->status === PDStatus::Paid && $permintaanDana->file_bukti, 403);
+
+            return response()->download(Storage::disk('local')->path($permintaanDana->file_bukti));
+        }
+
+        abort_unless(in_array($permintaanDana->status, [PDStatus::Approved, PDStatus::Paid], true), 403);
+
+        $path = $this->permintaanDanaPDFService->path($permintaanDana);
+
+        if (! Storage::disk('local')->exists($path)) {
+            $path = $this->permintaanDanaPDFService->generate($permintaanDana);
+        }
+
+        $fileName = str_replace('/', '-', $permintaanDana->no_pd).'.pdf';
+
+        return response()->file(Storage::disk('local')->path($path), [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$fileName.'"',
+        ]);
+    }
+}
