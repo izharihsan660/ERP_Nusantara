@@ -74,6 +74,7 @@ class DatabaseSeeder extends Seeder
             ['email' => env('SUPERADMIN_EMAIL', 'superadmin@naj.local')],
             [
                 'name' => env('SUPERADMIN_NAME', 'Superadmin NAJ'),
+                'email_verified_at' => now(),
                 'password' => Hash::make(env('SUPERADMIN_PASSWORD', 'password')),
                 'is_active' => true,
             ],
