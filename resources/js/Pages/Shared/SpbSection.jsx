@@ -18,7 +18,6 @@ const emptyItem = {
     part_no: '',
     deskripsi: '',
     qty: 1,
-    satuan: '',
     berat: 0,
     volume: 0,
     dimensi: '',
@@ -60,7 +59,6 @@ function normalizeItems(items) {
         part_no: item.part_no ?? '',
         deskripsi: item.deskripsi ?? '',
         qty: item.qty ?? 1,
-        satuan: item.satuan ?? '',
         berat: 0,
         volume: 0,
         dimensi: '',
@@ -232,7 +230,7 @@ export default function SpbSection({
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Buat SPB</h2>
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
                         {sourceOptions.length > 1 && (
-                            <FormRow label="Sumber WIP" required error={form.errors.source_id}>
+                            <FormRow label="Sumber SPB" required error={form.errors.source_id}>
                                 <Select value={form.data.source_id} onChange={(e) => form.setData('source_id', e.target.value)}>
                                     {sourceOptions.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
                                 </Select>
@@ -290,7 +288,6 @@ export default function SpbSection({
                                         <th className="px-3 py-2 text-left"><InputLabel label="Part No" required className="text-xs" /></th>
                                         <th className="px-3 py-2 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
                                         <th className="px-3 py-2 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
-                                        <th className="px-3 py-2 text-left">Satuan</th>
                                         <th className="px-3 py-2 text-left"><InputLabel label="Berat" optional className="text-xs" /></th>
                                         <th className="px-3 py-2 text-left"><InputLabel label="Volume" optional className="text-xs" /></th>
                                         <th className="px-3 py-2 text-left"><InputLabel label="Dimensi" optional className="text-xs" /></th>
@@ -312,10 +309,6 @@ export default function SpbSection({
                                             <td className="w-24 px-3 py-2">
                                                 <Input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', e.target.value)} />
                                                 <FieldError message={form.errors[`items.${index}.qty`]} />
-                                            </td>
-                                            <td className="w-28 px-3 py-2">
-                                                <Input value={item.satuan} onChange={(e) => updateItem(index, 'satuan', e.target.value)} />
-                                                <FieldError message={form.errors[`items.${index}.satuan`]} />
                                             </td>
                                             <td className="w-28 px-3 py-2">
                                                 <Input type="number" min="0" step="0.01" value={item.berat} onChange={(e) => updateItem(index, 'berat', e.target.value)} />

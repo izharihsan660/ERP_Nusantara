@@ -9,6 +9,7 @@ use App\Enums\TipeDokumen;
 use App\Services\InvoicePDFService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class Invoice extends Model
@@ -74,6 +75,11 @@ class Invoice extends Model
     public function voidedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function paymentDocuments(): HasMany
+    {
+        return $this->hasMany(InvoicePaymentDocument::class);
     }
 
     public function isVoidable(): bool

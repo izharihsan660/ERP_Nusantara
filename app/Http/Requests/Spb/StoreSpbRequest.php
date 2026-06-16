@@ -33,7 +33,6 @@ class StoreSpbRequest extends FormRequest
             'items.*.part_no' => ['required', 'string', 'max:50'],
             'items.*.deskripsi' => ['required', 'string', 'max:200'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
-            'items.*.satuan' => ['required', 'string', 'max:20'],
             'items.*.berat' => ['nullable', 'numeric', 'min:0'],
             'items.*.volume' => ['nullable', 'numeric', 'min:0'],
             'items.*.dimensi' => ['nullable', 'string', 'max:100'],

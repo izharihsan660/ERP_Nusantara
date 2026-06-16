@@ -9,6 +9,7 @@ use App\Http\Requests\PurchaseOrder\StorePurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\VoidPurchaseOrderRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\InvoicePaymentDocument;
 use App\Models\Katalog;
 use App\Models\PurchaseOrder;
 use App\Models\Site;
@@ -91,7 +92,7 @@ class PurchaseOrderController extends Controller
             'spb.customer:id,nama_customer',
             'spb.site:id,nama_site,alamat',
             'spb.items:id,spb_id,qty',
-            'spb.invoice',
+            'spb.invoice.paymentDocuments',
         ]);
 
         return Inertia::render('PurchaseOrder/Show', [
@@ -269,6 +270,13 @@ class PurchaseOrderController extends Controller
             'status_label' => $invoice->status->label(),
             'alasan_void' => $invoice->alasan_void,
             'is_voidable' => $invoice->isVoidable(),
+            'payment_documents' => $invoice->paymentDocuments->map(fn (InvoicePaymentDocument $document): array => [
+                'id' => $document->id,
+                'tipe_dokumen' => $document->tipe_dokumen->value,
+                'tipe_dokumen_label' => $document->tipe_dokumen->label(),
+                'nama_file' => $document->nama_file,
+                'created_at' => $document->created_at?->format('Y-m-d H:i'),
+            ])->values(),
         ];
     }
 }

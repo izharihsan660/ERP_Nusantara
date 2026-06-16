@@ -12,6 +12,7 @@ use App\Http\Requests\Quotation\VoidQuotationRequest;
 use App\Models\Customer;
 use App\Models\DocumentTemplate;
 use App\Models\Invoice;
+use App\Models\InvoicePaymentDocument;
 use App\Models\Katalog;
 use App\Models\PermintaanDana;
 use App\Models\PurchaseOrder;
@@ -122,7 +123,7 @@ class QuotationController extends Controller
             'salesOrder.wipOrders.spb.customer:id,nama_customer',
             'salesOrder.wipOrders.spb.site:id,nama_site,alamat',
             'salesOrder.wipOrders.spb.items:id,spb_id,qty',
-            'salesOrder.wipOrders.spb.invoice',
+            'salesOrder.wipOrders.spb.invoice.paymentDocuments',
         ]);
 
         return Inertia::render('Quotation/Show', [
@@ -399,6 +400,13 @@ class QuotationController extends Controller
             'status_label' => $invoice->status->label(),
             'alasan_void' => $invoice->alasan_void,
             'is_voidable' => $invoice->isVoidable(),
+            'payment_documents' => $invoice->paymentDocuments->map(fn (InvoicePaymentDocument $document): array => [
+                'id' => $document->id,
+                'tipe_dokumen' => $document->tipe_dokumen->value,
+                'tipe_dokumen_label' => $document->tipe_dokumen->label(),
+                'nama_file' => $document->nama_file,
+                'created_at' => $document->created_at?->format('Y-m-d H:i'),
+            ])->values(),
         ];
     }
 }

@@ -217,7 +217,6 @@ trait CreatesErpFixtures
                     'part_no' => $data['katalog']->part_no,
                     'deskripsi' => $data['katalog']->nama_barang,
                     'qty' => 1,
-                    'satuan' => $data['katalog']->satuan,
                     'berat' => 1.5,
                     'volume' => 0.5,
                     'dimensi' => '10x10x10',

@@ -51,7 +51,6 @@
             <tr>
                 <th>Deskripsi</th>
                 <th class="right" style="width: 70px;">Qty</th>
-                <th style="width: 70px;">Satuan</th>
                 <th class="right" style="width: 120px;">Harga</th>
                 <th class="right" style="width: 130px;">Jumlah</th>
             </tr>
@@ -61,13 +60,12 @@
                 <tr>
                     <td>{{ $item['deskripsi'] }}</td>
                     <td class="right">{{ number_format($item['qty'], 0, ',', '.') }}</td>
-                    <td>{{ $item['satuan'] }}</td>
                     <td class="right">{{ number_format($item['harga_satuan'], 2, ',', '.') }}</td>
                     <td class="right">{{ number_format($item['jumlah'], 2, ',', '.') }}</td>
                 </tr>
             @endforeach
             <tr class="total">
-                <td colspan="4">Total</td>
+                <td colspan="3">Total</td>
                 <td class="right">{{ number_format((float) $invoice->total_nilai, 2, ',', '.') }}</td>
             </tr>
         </tbody>

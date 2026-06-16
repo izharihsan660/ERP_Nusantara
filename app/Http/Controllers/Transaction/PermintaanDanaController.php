@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Enums\KategoriPD;
+use App\Enums\PdDocumentKategori;
 use App\Enums\PDStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PermintaanDana\RejectPermintaanDanaRequest;
 use App\Http\Requests\PermintaanDana\StorePermintaanDanaRequest;
 use App\Http\Requests\PermintaanDana\UploadBuktiRequest;
 use App\Http\Requests\PermintaanDana\VoidPermintaanDanaRequest;
+use App\Models\PdDocument;
 use App\Models\PermintaanDana;
 use App\Services\PermintaanDanaPDFService;
 use App\Services\PermintaanDanaService;
@@ -66,9 +68,10 @@ class PermintaanDanaController extends Controller
 
     public function show(PermintaanDana $permintaanDana): Response
     {
-        $permintaanDana->load(['createdBy:id,name', 'approvedBy:id,name', 'voidedBy:id,name']);
+        $permintaanDana->load(['createdBy:id,name', 'approvedBy:id,name', 'voidedBy:id,name', 'documents']);
 
         return Inertia::render('PermintaanDana/Show', [
+            'documentCategories' => PdDocumentKategori::options(),
             'permintaanDana' => [
                 'id' => $permintaanDana->id,
                 'no_pd' => $permintaanDana->no_pd,
@@ -85,8 +88,13 @@ class PermintaanDanaController extends Controller
                 'approved_at' => $permintaanDana->approved_at?->format('Y-m-d H:i'),
                 'tgl_realisasi' => $permintaanDana->tgl_realisasi?->format('Y-m-d'),
                 'jumlah_realisasi' => $permintaanDana->jumlah_realisasi,
-                'file_bukti' => $permintaanDana->file_bukti,
-                'file_bukti_name' => $permintaanDana->file_bukti ? basename($permintaanDana->file_bukti) : null,
+                'documents' => $permintaanDana->documents->map(fn (PdDocument $document): array => [
+                    'id' => $document->id,
+                    'kategori' => $document->kategori->value,
+                    'kategori_label' => $document->kategori->label(),
+                    'nama_file' => $document->nama_file,
+                    'created_at' => $document->created_at?->format('Y-m-d H:i'),
+                ])->values(),
                 'voided_at' => $permintaanDana->voided_at?->format('Y-m-d H:i'),
                 'alasan_void' => $permintaanDana->alasan_void,
                 'created_at' => $permintaanDana->created_at?->format('Y-m-d H:i'),
@@ -136,12 +144,6 @@ class PermintaanDanaController extends Controller
 
     public function download(Request $request, PermintaanDana $permintaanDana): BinaryFileResponse
     {
-        if ($request->query('type') === 'bukti') {
-            abort_unless($permintaanDana->status === PDStatus::Paid && $permintaanDana->file_bukti, 403);
-
-            return response()->download(Storage::disk('local')->path($permintaanDana->file_bukti));
-        }
-
         abort_unless(in_array($permintaanDana->status, [PDStatus::Approved, PDStatus::Paid], true), 403);
 
         $path = $this->permintaanDanaPDFService->path($permintaanDana);
@@ -156,5 +158,13 @@ class PermintaanDanaController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$fileName.'"',
         ]);
+    }
+
+    public function downloadDocument(PdDocument $document): BinaryFileResponse
+    {
+        abort_unless($document->permintaanDana?->status === PDStatus::Paid, 403);
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404);
+
+        return response()->download(Storage::disk('local')->path($document->file_path), $document->nama_file);
     }
 }

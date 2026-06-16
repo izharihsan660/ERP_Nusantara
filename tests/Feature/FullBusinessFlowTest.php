@@ -6,6 +6,7 @@ use App\Enums\DocumentType;
 use App\Enums\InvoiceStatus;
 use App\Enums\KategoriPD;
 use App\Enums\MetodePembayaran;
+use App\Enums\PdDocumentKategori;
 use App\Enums\PDStatus;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\QuotationStatus;
@@ -251,10 +252,15 @@ class FullBusinessFlowTest extends TestCase
         $this->post(route('permintaan-dana.upload-bukti', $permintaanDana), [
             'tgl_realisasi' => '2026-06-16',
             'jumlah_realisasi' => 2500000,
-            'file_bukti' => UploadedFile::fake()->image('bukti.png'),
+            'documents' => [
+                [
+                    'kategori' => PdDocumentKategori::BuktiPembelian->value,
+                    'file' => UploadedFile::fake()->image('bukti.png'),
+                ],
+            ],
         ])->assertRedirect();
         $this->assertSame(PDStatus::Paid, $permintaanDana->refresh()->status);
-        Storage::disk('local')->assertExists($permintaanDana->file_bukti);
+        Storage::disk('local')->assertExists($permintaanDana->documents()->firstOrFail()->file_path);
 
         $rejected = PermintaanDana::query()->create([
             'no_pd' => app(DocumentNumberService::class)->generatePermintaanDanaNumber(now()),
@@ -359,7 +365,6 @@ class FullBusinessFlowTest extends TestCase
                     'part_no' => $katalog->part_no,
                     'deskripsi' => $katalog->nama_barang,
                     'qty' => 1,
-                    'satuan' => $katalog->satuan,
                     'berat' => 1.5,
                     'volume' => 0.5,
                     'dimensi' => '10x10x10',

@@ -36,7 +36,7 @@ class InvoicePDFService
         $pdf = Pdf::loadView($view, [
             'invoice' => $invoice,
             'items' => $this->items($invoice),
-        ])->setPaper('a4');
+        ])->setPaper('a4')->setOptions(['enable_compression' => true]);
 
         $path = $this->path($invoice, 'invoice');
         Storage::disk('local')->put($path, $pdf->output());
@@ -51,7 +51,7 @@ class InvoicePDFService
         $pdf = Pdf::loadView('pdf.invoice.faktur-pajak', [
             'invoice' => $invoice,
             'items' => $this->items($invoice),
-        ])->setPaper('a4');
+        ])->setPaper('a4')->setOptions(['enable_compression' => true]);
 
         $path = $this->path($invoice, 'faktur');
         Storage::disk('local')->put($path, $pdf->output());
@@ -66,7 +66,7 @@ class InvoicePDFService
         $pdf = Pdf::loadView('pdf.invoice.tanda-terima', [
             'invoice' => $invoice,
             'items' => $this->items($invoice),
-        ])->setPaper('a4');
+        ])->setPaper('a4')->setOptions(['enable_compression' => true]);
 
         $path = $this->path($invoice, 'tanda-terima');
         Storage::disk('local')->put($path, $pdf->output());
@@ -117,7 +117,6 @@ class InvoicePDFService
                 'part_no' => $item->part_no,
                 'deskripsi' => $item->deskripsi,
                 'qty' => (int) $item->qty,
-                'satuan' => $item->satuan,
                 'harga_satuan' => $hargaSatuan,
                 'jumlah' => $jumlah,
                 'hpp_satuan' => $hppSatuan,

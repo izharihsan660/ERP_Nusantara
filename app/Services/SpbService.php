@@ -64,7 +64,6 @@ class SpbService
                     'part_no' => $item['part_no'],
                     'deskripsi' => $item['deskripsi'],
                     'qty' => $item['qty'],
-                    'satuan' => $item['satuan'],
                     'berat' => $item['berat'] ?? 0,
                     'volume' => $item['volume'] ?? 0,
                     'dimensi' => $item['dimensi'] ?? null,

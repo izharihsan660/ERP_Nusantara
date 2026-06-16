@@ -4,11 +4,12 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Ban, Check, Download, Send, Upload, X } from 'lucide-react';
+import { Ban, Check, Download, Plus, Send, Trash2, Upload, X } from 'lucide-react';
 import { useState } from 'react';
 
 const statusStyles = {
@@ -58,9 +59,33 @@ function TextActionModal({ show, title, label, value, error, processing, submitL
     );
 }
 
-function UploadBuktiModal({ show, form, onClose, onSubmit }) {
+function UploadBuktiModal({ show, form, documentCategories, onClose, onSubmit }) {
+    const defaultCategory = documentCategories[0]?.value ?? 'BUKTI_PEMBELIAN';
+
+    const updateDocument = (index, field, value) => {
+        const documents = [...form.data.documents];
+        documents[index] = { ...documents[index], [field]: value };
+        form.setData('documents', documents);
+    };
+
+    const addDocument = () => {
+        if (form.data.documents.length >= 3) {
+            return;
+        }
+
+        form.setData('documents', [...form.data.documents, { kategori: defaultCategory, file: null }]);
+    };
+
+    const removeDocument = (index) => {
+        if (form.data.documents.length === 1) {
+            return;
+        }
+
+        form.setData('documents', form.data.documents.filter((_, documentIndex) => documentIndex !== index));
+    };
+
     return (
-        <Modal show={show} onClose={onClose} maxWidth="md">
+        <Modal show={show} onClose={onClose} maxWidth="lg">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Upload Bukti</h2>
                 <div className="mt-4 space-y-4">
@@ -75,10 +100,35 @@ function UploadBuktiModal({ show, form, onClose, onSubmit }) {
                         <div className="mt-1 text-xs text-slate-500">{formatRupiah(form.data.jumlah_realisasi)}</div>
                         <InputError message={form.errors.jumlah_realisasi} className="mt-2" />
                     </div>
-                    <div>
-                        <InputLabel label="File Bukti" required />
-                        <Input className="mt-1" type="file" accept=".pdf,.jpg,.png" onChange={(e) => form.setData('file_bukti', e.target.files[0])} />
-                        <InputError message={form.errors.file_bukti} className="mt-2" />
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <InputLabel label="Dokumen Bukti" required />
+                            <Button type="button" size="sm" variant="secondary" onClick={addDocument} disabled={form.data.documents.length >= 3}>
+                                <Plus className="h-4 w-4" />Tambah Dokumen
+                            </Button>
+                        </div>
+                        <InputError message={form.errors.documents} className="mt-2" />
+                        {form.data.documents.map((document, index) => (
+                            <div key={index} className="grid gap-3 rounded-md border border-slate-200 p-3 dark:border-slate-800 md:grid-cols-[180px_1fr_auto]">
+                                <div>
+                                    <InputLabel label="Kategori" required />
+                                    <Select className="mt-1" value={document.kategori} onChange={(e) => updateDocument(index, 'kategori', e.target.value)}>
+                                        {documentCategories.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                    </Select>
+                                    <InputError message={form.errors[`documents.${index}.kategori`]} className="mt-2" />
+                                </div>
+                                <div>
+                                    <InputLabel label="File" required />
+                                    <Input className="mt-1" type="file" accept=".pdf,.jpg,.png" onChange={(e) => updateDocument(index, 'file', e.target.files[0])} />
+                                    <InputError message={form.errors[`documents.${index}.file`]} className="mt-2" />
+                                </div>
+                                <div className="flex items-end">
+                                    <Button type="button" size="icon" variant="ghost" onClick={() => removeDocument(index)} disabled={form.data.documents.length === 1}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
                 <div className="mt-6 flex justify-end gap-2">
@@ -90,15 +140,16 @@ function UploadBuktiModal({ show, form, onClose, onSubmit }) {
     );
 }
 
-export default function Show({ permintaanDana }) {
+export default function Show({ permintaanDana, documentCategories = [] }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
+    const defaultDocumentCategory = documentCategories[0]?.value ?? 'BUKTI_PEMBELIAN';
     const rejectForm = useForm({ catatan_rejection: '' });
     const voidForm = useForm({ alasan_void: '' });
     const uploadForm = useForm({
         tgl_realisasi: today(),
         jumlah_realisasi: permintaanDana.nominal ?? '',
-        file_bukti: null,
+        documents: [{ kategori: defaultDocumentCategory, file: null }],
     });
 
     const canCreate = permissions.includes('buat_pd');
@@ -116,11 +167,23 @@ export default function Show({ permintaanDana }) {
         voidForm.post(route('permintaan-dana.void', permintaanDana.id), { onSuccess: () => setModal(null) });
     };
 
+    const openUploadBukti = () => {
+        uploadForm.setData({
+            tgl_realisasi: today(),
+            jumlah_realisasi: permintaanDana.nominal ?? '',
+            documents: [{ kategori: defaultDocumentCategory, file: null }],
+        });
+        setModal('upload-bukti');
+    };
+
     const submitUploadBukti = (event) => {
         event.preventDefault();
         uploadForm.post(route('permintaan-dana.upload-bukti', permintaanDana.id), {
             forceFormData: true,
-            onSuccess: () => setModal(null),
+            onSuccess: () => {
+                uploadForm.reset();
+                setModal(null);
+            },
         });
     };
 
@@ -146,7 +209,7 @@ export default function Show({ permintaanDana }) {
                             <Button asChild variant="secondary"><a href={route('permintaan-dana.download', permintaanDana.id)}><Download className="h-4 w-4" />Download PDF</a></Button>
                         )}
                         {permintaanDana.status === 'APPROVED' && canUploadBukti && (
-                            <Button type="button" onClick={() => setModal('upload-bukti')}><Upload className="h-4 w-4" />Upload Bukti</Button>
+                            <Button type="button" onClick={openUploadBukti}><Upload className="h-4 w-4" />Upload Bukti</Button>
                         )}
                         {canVoid && (
                             <Button type="button" variant="destructive" onClick={() => setModal('void')}><Ban className="h-4 w-4" />Void</Button>
@@ -173,14 +236,6 @@ export default function Show({ permintaanDana }) {
                         <>
                             <Info label="Tanggal realisasi" value={permintaanDana.tgl_realisasi} />
                             <Info label="Jumlah realisasi" value={formatRupiah(permintaanDana.jumlah_realisasi)} />
-                            <Info
-                                label="File bukti"
-                                value={(
-                                    <a className="text-sky-700 underline underline-offset-2" href={`${route('permintaan-dana.download', permintaanDana.id)}?type=bukti`}>
-                                        {permintaanDana.file_bukti_name ?? 'Download bukti'}
-                                    </a>
-                                )}
-                            />
                         </>
                     )}
                     {permintaanDana.voided_by && <Info label="Voided oleh" value={permintaanDana.voided_by?.name} />}
@@ -191,6 +246,43 @@ export default function Show({ permintaanDana }) {
                 </div>
                 {permintaanDana.catatan_rejection && <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">Catatan rejection: {permintaanDana.catatan_rejection}</div>}
                 {permintaanDana.alasan_void && <div className="mt-4 rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {permintaanDana.alasan_void}</div>}
+            </section>
+
+            <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <div className="border-b border-slate-200 p-4 dark:border-slate-800">
+                    <h2 className="font-semibold text-slate-950 dark:text-white">Dokumen Bukti</h2>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                        <thead className="bg-slate-50 dark:bg-slate-900">
+                            <tr>
+                                <th className="px-4 py-3 text-left">Kategori</th>
+                                <th className="px-4 py-3 text-left">Nama File</th>
+                                <th className="px-4 py-3 text-left">Tanggal</th>
+                                <th className="px-4 py-3 text-right">Download</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                            {permintaanDana.documents.length === 0 && (
+                                <tr>
+                                    <td className="px-4 py-6 text-center text-slate-500" colSpan="4">Belum ada dokumen bukti.</td>
+                                </tr>
+                            )}
+                            {permintaanDana.documents.map((document) => (
+                                <tr key={document.id}>
+                                    <td className="px-4 py-3">{document.kategori_label}</td>
+                                    <td className="px-4 py-3">{document.nama_file}</td>
+                                    <td className="px-4 py-3">{document.created_at}</td>
+                                    <td className="px-4 py-3 text-right">
+                                        <Button asChild size="sm" variant="secondary">
+                                            <a href={route('permintaan-dana.documents.download', document.id)}><Download className="h-4 w-4" />Download</a>
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             <TextActionModal
@@ -208,6 +300,7 @@ export default function Show({ permintaanDana }) {
             <UploadBuktiModal
                 show={modal === 'upload-bukti'}
                 form={uploadForm}
+                documentCategories={documentCategories}
                 onClose={() => setModal(null)}
                 onSubmit={submitUploadBukti}
             />

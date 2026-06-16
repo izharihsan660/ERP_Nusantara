@@ -86,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/permintaan-dana/{permintaanDana}/upload-bukti', [PermintaanDanaController::class, 'uploadBukti'])->middleware('permission:upload_bukti_pd')->name('permintaan-dana.upload-bukti');
     Route::post('/permintaan-dana/{permintaanDana}/void', [PermintaanDanaController::class, 'void'])->middleware('permission:void_pd')->name('permintaan-dana.void');
     Route::get('/permintaan-dana/{permintaanDana}/download', [PermintaanDanaController::class, 'download'])->middleware('permission:lihat_pd')->name('permintaan-dana.download');
+    Route::get('/permintaan-dana-documents/{document}/download', [PermintaanDanaController::class, 'downloadDocument'])->middleware('permission:lihat_pd')->name('permintaan-dana.documents.download');
 
     Route::post('/spb/{spb}/void', [SpbController::class, 'void'])->middleware('permission:void_spb')->name('spb.void');
     Route::get('/spb/{spb}/download', [SpbController::class, 'download'])->middleware('permission:download_pdf_spb')->name('spb.download');
@@ -94,6 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/invoices/{invoice}/upload-ttd', [InvoiceController::class, 'uploadTtd'])->middleware('permission:upload_ttd_invoice')->name('invoices.upload-ttd');
     Route::post('/invoices/{invoice}/void', [InvoiceController::class, 'void'])->middleware('permission:void_invoice')->name('invoices.void');
     Route::get('/invoices/{invoice}/download/{tipe}', [InvoiceController::class, 'download'])->middleware('permission:lihat_invoice')->name('invoices.download');
+    Route::get('/invoice-payment-documents/{document}/download', [InvoiceController::class, 'downloadPaymentDocument'])->middleware('permission:lihat_invoice')->name('invoices.payment-documents.download');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
 

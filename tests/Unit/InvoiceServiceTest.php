@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Enums\InvoicePaymentDocumentType;
 use App\Enums\MetodePembayaran;
 use App\Enums\StatusPembayaran;
 use App\Enums\TipeDokumen;
@@ -9,6 +10,7 @@ use App\Models\Spb;
 use App\Models\User;
 use App\Services\InvoiceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\CreatesErpFixtures;
 use Tests\TestCase;
@@ -80,6 +82,25 @@ class InvoiceServiceTest extends TestCase
             'jumlah_bayar' => $partial->total_nilai,
         ], $this->user);
         $this->assertSame(StatusPembayaran::Lunas, $paid->status_pembayaran);
+    }
+
+    public function test_update_pembayaran_can_store_payment_documents(): void
+    {
+        $invoice = $this->createInvoice($this->preparedSpb('INV-PAY-DOC'));
+
+        $paid = app(InvoiceService::class)->updatePembayaran($invoice, [
+            'tgl_bayar' => '2026-06-21',
+            'jumlah_bayar' => $invoice->total_nilai,
+            'documents' => [
+                [
+                    'tipe_dokumen' => InvoicePaymentDocumentType::BuktiTransfer->value,
+                    'file' => UploadedFile::fake()->image('transfer.png'),
+                ],
+            ],
+        ], $this->user);
+
+        $this->assertSame(StatusPembayaran::Lunas, $paid->status_pembayaran);
+        $this->assertCount(1, $paid->paymentDocuments);
     }
 
     public function test_void_fails_when_invoice_has_payment(): void

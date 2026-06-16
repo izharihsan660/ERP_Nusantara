@@ -22,7 +22,7 @@ class QuotationPDFService
             'quotation' => $quotation,
             'qrCode' => "data:image/svg+xml;base64,{$qrCode}",
             'verifyUrl' => $verifyUrl,
-        ])->setPaper('a4');
+        ])->setPaper('a4')->setOptions(['enable_compression' => true]);
 
         $path = 'quotations/'.$this->fileName($quotation);
         Storage::disk('local')->put($path, $pdf->output());

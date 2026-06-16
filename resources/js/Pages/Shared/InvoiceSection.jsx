@@ -6,7 +6,7 @@ import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
 import { useForm, usePage } from '@inertiajs/react';
-import { Ban, Banknote, Download, FileCheck2, Plus, Upload } from 'lucide-react';
+import { Ban, Banknote, Download, FileCheck2, Plus, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
 
 const paymentStyles = {
@@ -14,6 +14,11 @@ const paymentStyles = {
     SEBAGIAN: 'bg-amber-50 text-amber-700 ring-amber-200',
     LUNAS: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
 };
+
+const paymentDocumentTypes = [
+    { value: 'BUKTI_TRANSFER', label: 'Bukti Transfer' },
+    { value: 'INVOICE_CUSTOMER', label: 'Invoice Customer' },
+];
 
 function today() {
     return new Date().toISOString().slice(0, 10);
@@ -67,7 +72,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
         top_hari: defaultPayment.metode_pembayaran === 'TOP' ? (defaultPayment.top_hari ?? '') : '',
         tgl_dokumen: today(),
     });
-    const paymentForm = useForm({ tgl_bayar: today(), jumlah_bayar: '', keterangan: '' });
+    const paymentForm = useForm({ tgl_bayar: today(), jumlah_bayar: '', keterangan: '', documents: [] });
     const uploadForm = useForm({ file_spb: null, file_invoice: null, file_tanda_terima: null });
     const voidForm = useForm({ alasan_void: '' });
 
@@ -88,6 +93,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
             tgl_bayar: invoice.tgl_bayar ?? today(),
             jumlah_bayar: invoice.jumlah_bayar ?? '',
             keterangan: '',
+            documents: [],
         });
         setModal('payment');
     };
@@ -129,6 +135,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
         }
 
         paymentForm.post(route('invoices.pembayaran', selectedInvoice.id), {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 paymentForm.reset();
@@ -136,6 +143,24 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                 setModal(null);
             },
         });
+    };
+
+    const updatePaymentDocument = (index, field, value) => {
+        const documents = [...paymentForm.data.documents];
+        documents[index] = { ...documents[index], [field]: value };
+        paymentForm.setData('documents', documents);
+    };
+
+    const addPaymentDocument = () => {
+        if (paymentForm.data.documents.length >= 3) {
+            return;
+        }
+
+        paymentForm.setData('documents', [...paymentForm.data.documents, { tipe_dokumen: paymentDocumentTypes[0].value, file: null }]);
+    };
+
+    const removePaymentDocument = (index) => {
+        paymentForm.setData('documents', paymentForm.data.documents.filter((_, documentIndex) => documentIndex !== index));
     };
 
     const submitUpload = (event) => {
@@ -252,6 +277,36 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                                         <Button type="button" size="sm" variant="destructive" onClick={() => openVoid(spb.invoice)}><Ban className="h-4 w-4" />Void</Button>
                                     )}
                                 </div>
+                                {spb.invoice.payment_documents?.length > 0 && (
+                                    <div className="lg:col-span-2">
+                                        <div className="mt-2 overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
+                                            <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                                                <thead className="bg-slate-50 dark:bg-slate-900">
+                                                    <tr>
+                                                        <th className="px-3 py-2 text-left">Tipe</th>
+                                                        <th className="px-3 py-2 text-left">Nama File</th>
+                                                        <th className="px-3 py-2 text-left">Tanggal</th>
+                                                        <th className="px-3 py-2 text-right">Download</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                                                    {spb.invoice.payment_documents.map((document) => (
+                                                        <tr key={document.id}>
+                                                            <td className="px-3 py-2">{document.tipe_dokumen_label}</td>
+                                                            <td className="px-3 py-2">{document.nama_file}</td>
+                                                            <td className="px-3 py-2">{document.created_at}</td>
+                                                            <td className="px-3 py-2 text-right">
+                                                                <Button asChild size="sm" variant="secondary">
+                                                                    <a href={route('invoices.payment-documents.download', document.id)}><Download className="h-4 w-4" />Download</a>
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -302,6 +357,36 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                             <FormRow label="Keterangan" optional error={paymentForm.errors.keterangan}>
                                 <Textarea value={paymentForm.data.keterangan} onChange={(e) => paymentForm.setData('keterangan', e.target.value)} />
                             </FormRow>
+                        </div>
+                        <div className="space-y-3 md:col-span-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <InputLabel label="Dokumen Pembayaran" optional />
+                                <Button type="button" size="sm" variant="secondary" onClick={addPaymentDocument} disabled={paymentForm.data.documents.length >= 3}>
+                                    <Plus className="h-4 w-4" />Tambah Dokumen
+                                </Button>
+                            </div>
+                            <FieldError message={paymentForm.errors.documents} />
+                            {paymentForm.data.documents.map((document, index) => (
+                                <div key={index} className="grid gap-3 rounded-md border border-slate-200 p-3 dark:border-slate-800 md:grid-cols-[180px_1fr_auto]">
+                                    <div>
+                                        <InputLabel label="Tipe" required />
+                                        <Select className="mt-1" value={document.tipe_dokumen} onChange={(e) => updatePaymentDocument(index, 'tipe_dokumen', e.target.value)}>
+                                            {paymentDocumentTypes.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                        </Select>
+                                        <FieldError message={paymentForm.errors[`documents.${index}.tipe_dokumen`]} />
+                                    </div>
+                                    <div>
+                                        <InputLabel label="File" required />
+                                        <Input className="mt-1" type="file" accept=".pdf,.jpg,.png" onChange={(e) => updatePaymentDocument(index, 'file', e.target.files[0])} />
+                                        <FieldError message={paymentForm.errors[`documents.${index}.file`]} />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <Button type="button" size="icon" variant="ghost" onClick={() => removePaymentDocument(index)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end gap-2">

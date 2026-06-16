@@ -48,7 +48,6 @@
             <tr>
                 <th>Deskripsi Barang</th>
                 <th style="width: 80px;">Qty</th>
-                <th style="width: 80px;">Satuan</th>
             </tr>
         </thead>
         <tbody>
@@ -56,7 +55,6 @@
                 <tr>
                     <td>{{ $item['deskripsi'] }}</td>
                     <td>{{ number_format($item['qty'], 0, ',', '.') }}</td>
-                    <td>{{ $item['satuan'] }}</td>
                 </tr>
             @endforeach
         </tbody>

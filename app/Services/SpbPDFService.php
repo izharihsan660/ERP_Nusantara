@@ -19,7 +19,7 @@ class SpbPDFService
         $view = $this->viewName($spb);
         $pdf = Pdf::loadView($view, [
             'spb' => $spb,
-        ])->setPaper('a4');
+        ])->setPaper('a4')->setOptions(['enable_compression' => true]);
 
         $path = $this->path($spb);
         Storage::disk('local')->put($path, $pdf->output());

@@ -70,7 +70,6 @@ export default function Show({ purchaseOrder, sites }) {
         part_no: item.part_no ?? '',
         deskripsi: item.deskripsi,
         qty: item.qty,
-        satuan: item.satuan,
     }));
 
     const submitReject = (event) => {

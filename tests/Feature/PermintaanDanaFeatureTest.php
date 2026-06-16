@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PdDocumentKategori;
 use App\Enums\PDStatus;
 use App\Models\PermintaanDana;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,9 +46,15 @@ class PermintaanDanaFeatureTest extends TestCase
         $this->post(route('permintaan-dana.upload-bukti', $pd), [
             'tgl_realisasi' => '2026-06-16',
             'jumlah_realisasi' => 2500000,
-            'file_bukti' => UploadedFile::fake()->image('bukti.png'),
+            'documents' => [
+                [
+                    'kategori' => PdDocumentKategori::BuktiPembelian->value,
+                    'file' => UploadedFile::fake()->image('bukti.png'),
+                ],
+            ],
         ])->assertRedirect();
         $this->assertSame(PDStatus::Paid, $pd->refresh()->status);
+        $this->assertSame(1, $pd->documents()->count());
 
         $this->post(route('permintaan-dana.void', $pd), ['alasan_void' => 'Sudah paid'])
             ->assertSessionHasErrors('status');

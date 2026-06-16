@@ -9,6 +9,7 @@ use App\Http\Requests\Invoice\UpdatePembayaranRequest;
 use App\Http\Requests\Invoice\UploadTtdRequest;
 use App\Http\Requests\Invoice\VoidInvoiceRequest;
 use App\Models\Invoice;
+use App\Models\InvoicePaymentDocument;
 use App\Models\PurchaseOrder;
 use App\Models\Spb;
 use App\Models\WipOrder;
@@ -83,6 +84,14 @@ class InvoiceController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$fileName.'"',
         ]);
+    }
+
+    public function downloadPaymentDocument(InvoicePaymentDocument $document): BinaryFileResponse
+    {
+        abort_if($document->invoice?->status === InvoiceStatus::Void, 403);
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404);
+
+        return response()->download(Storage::disk('local')->path($document->file_path), $document->nama_file);
     }
 
     private function redirectToParent(Spb $spb): RedirectResponse

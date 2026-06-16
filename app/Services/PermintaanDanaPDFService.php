@@ -21,7 +21,7 @@ class PermintaanDanaPDFService
             'permintaanDana' => $permintaanDana,
             'qrCode' => "data:image/svg+xml;base64,{$qrCode}",
             'verifyUrl' => $verifyUrl,
-        ])->setPaper('a4');
+        ])->setPaper('a4')->setOptions(['enable_compression' => true]);
 
         $path = $this->path($permintaanDana);
         Storage::disk('local')->put($path, $pdf->output());

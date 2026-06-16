@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Actions\ActivityLog\RecordActivity;
 use App\Enums\PDStatus;
+use App\Helpers\FileCompressionHelper;
 use App\Models\PermintaanDana;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -118,23 +120,32 @@ class PermintaanDanaService
     {
         $this->ensureStatus($permintaanDana, PDStatus::Approved, 'Bukti hanya bisa diupload untuk Permintaan Dana yang sudah Approved.');
 
-        $file = $data['file_bukti'];
+        return DB::transaction(function () use ($permintaanDana, $data, $user): PermintaanDana {
+            foreach ($data['documents'] as $index => $document) {
+                $file = $document['file'] ?? null;
 
-        if (! $file instanceof UploadedFile) {
-            throw ValidationException::withMessages(['file_bukti' => 'File bukti tidak valid.']);
-        }
+                if (! $file instanceof UploadedFile) {
+                    throw ValidationException::withMessages(["documents.{$index}.file" => 'File bukti tidak valid.']);
+                }
 
-        $path = $file->store('pd-bukti', 'local');
+                $path = $this->storeCompressedFile($file, 'pd-bukti');
 
-        $permintaanDana->update([
-            'status' => PDStatus::Paid,
-            'tgl_realisasi' => $data['tgl_realisasi'],
-            'jumlah_realisasi' => $data['jumlah_realisasi'],
-            'file_bukti' => $path,
-        ]);
-        $this->recordActivity->handle('paid_pd', $permintaanDana, "{$user->name} upload bukti pembayaran Permintaan Dana {$permintaanDana->no_pd}");
+                $permintaanDana->documents()->create([
+                    'kategori' => $document['kategori'],
+                    'file_path' => $path,
+                    'nama_file' => str($file->getClientOriginalName())->limit(100, '')->toString(),
+                ]);
+            }
 
-        return $permintaanDana->refresh();
+            $permintaanDana->update([
+                'status' => PDStatus::Paid,
+                'tgl_realisasi' => $data['tgl_realisasi'],
+                'jumlah_realisasi' => $data['jumlah_realisasi'],
+            ]);
+            $this->recordActivity->handle('paid_pd', $permintaanDana, "{$user->name} upload bukti pembayaran Permintaan Dana {$permintaanDana->no_pd}");
+
+            return $permintaanDana->refresh()->load('documents');
+        });
     }
 
     public function void(PermintaanDana $permintaanDana, string $alasan, User $user): PermintaanDana
@@ -159,5 +170,13 @@ class PermintaanDanaService
         if ($permintaanDana->status !== $status) {
             throw ValidationException::withMessages(['status' => $message]);
         }
+    }
+
+    private function storeCompressedFile(UploadedFile $file, string $directory): string
+    {
+        $path = $file->store($directory, 'local');
+        FileCompressionHelper::compress(Storage::disk('local')->path($path));
+
+        return $path;
     }
 }

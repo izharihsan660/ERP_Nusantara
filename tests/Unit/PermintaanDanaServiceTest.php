@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Enums\PdDocumentKategori;
 use App\Enums\PDStatus;
 use App\Models\User;
 use App\Services\PermintaanDanaService;
@@ -65,10 +66,16 @@ class PermintaanDanaServiceTest extends TestCase
         $paid = app(PermintaanDanaService::class)->uploadBukti($pd->refresh(), [
             'tgl_realisasi' => '2026-06-16',
             'jumlah_realisasi' => 2500000,
-            'file_bukti' => UploadedFile::fake()->image('bukti.png'),
+            'documents' => [
+                [
+                    'kategori' => PdDocumentKategori::BuktiPembelian->value,
+                    'file' => UploadedFile::fake()->image('bukti.png'),
+                ],
+            ],
         ], $this->user);
 
         $this->assertSame(PDStatus::Paid, $paid->status);
+        $this->assertCount(1, $paid->documents);
     }
 
     public function test_upload_bukti_fails_when_status_is_not_approved(): void
@@ -79,7 +86,12 @@ class PermintaanDanaServiceTest extends TestCase
         app(PermintaanDanaService::class)->uploadBukti($pd, [
             'tgl_realisasi' => '2026-06-16',
             'jumlah_realisasi' => 2500000,
-            'file_bukti' => UploadedFile::fake()->image('bukti.png'),
+            'documents' => [
+                [
+                    'kategori' => PdDocumentKategori::BuktiPembelian->value,
+                    'file' => UploadedFile::fake()->image('bukti.png'),
+                ],
+            ],
         ], $this->user);
     }
 

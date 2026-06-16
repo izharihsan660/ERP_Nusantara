@@ -7,6 +7,7 @@ use App\Enums\PDStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PermintaanDana extends Model
 {
@@ -27,7 +28,6 @@ class PermintaanDana extends Model
         'approved_at',
         'tgl_realisasi',
         'jumlah_realisasi',
-        'file_bukti',
         'voided_by',
         'voided_at',
         'alasan_void',
@@ -62,6 +62,11 @@ class PermintaanDana extends Model
     public function voidedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(PdDocument::class);
     }
 
     public function scopeApproved(Builder $query): Builder

@@ -270,7 +270,6 @@ export default function Show({ quotation, sites }) {
         part_no: item.part_no,
         deskripsi: item.deskripsi,
         qty: item.qty,
-        satuan: item.satuan,
     }));
 
     return (

@@ -12,7 +12,6 @@ class SpbItem extends Model
         'part_no',
         'deskripsi',
         'qty',
-        'satuan',
         'berat',
         'volume',
         'dimensi',

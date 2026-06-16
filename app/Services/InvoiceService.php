@@ -8,6 +8,7 @@ use App\Enums\MetodePembayaran;
 use App\Enums\SpbStatus;
 use App\Enums\StatusPembayaran;
 use App\Enums\TipeDokumen;
+use App\Helpers\FileCompressionHelper;
 use App\Models\Invoice;
 use App\Models\Spb;
 use App\Models\User;
@@ -78,21 +79,39 @@ class InvoiceService
             throw ValidationException::withMessages(['status' => 'Invoice/Nota yang sudah Void tidak bisa diubah pembayarannya.']);
         }
 
-        $jumlahBayar = (float) $data['jumlah_bayar'];
+        return DB::transaction(function () use ($invoice, $data, $user): Invoice {
+            $jumlahBayar = (float) $data['jumlah_bayar'];
 
-        $invoice->update([
-            'tgl_bayar' => $data['tgl_bayar'],
-            'jumlah_bayar' => $jumlahBayar,
-            'status_pembayaran' => match (true) {
-                $jumlahBayar >= (float) $invoice->total_nilai => StatusPembayaran::Lunas,
-                $jumlahBayar > 0 => StatusPembayaran::Sebagian,
-                default => StatusPembayaran::Belum,
-            },
-        ]);
+            $invoice->update([
+                'tgl_bayar' => $data['tgl_bayar'],
+                'jumlah_bayar' => $jumlahBayar,
+                'status_pembayaran' => match (true) {
+                    $jumlahBayar >= (float) $invoice->total_nilai => StatusPembayaran::Lunas,
+                    $jumlahBayar > 0 => StatusPembayaran::Sebagian,
+                    default => StatusPembayaran::Belum,
+                },
+            ]);
 
-        $this->recordActivity->handle('updated_pembayaran_invoice', $invoice, "{$user->name} update pembayaran Invoice/Nota {$invoice->no_dokumen}");
+            foreach (($data['documents'] ?? []) as $index => $document) {
+                $file = $document['file'] ?? null;
 
-        return $invoice->refresh();
+                if (! $file instanceof UploadedFile) {
+                    throw ValidationException::withMessages(["documents.{$index}.file" => 'File dokumen pembayaran tidak valid.']);
+                }
+
+                $path = $this->storeCompressedFile($file, 'invoice-payment-documents');
+
+                $invoice->paymentDocuments()->create([
+                    'tipe_dokumen' => $document['tipe_dokumen'],
+                    'file_path' => $path,
+                    'nama_file' => str($file->getClientOriginalName())->limit(100, '')->toString(),
+                ]);
+            }
+
+            $this->recordActivity->handle('updated_pembayaran_invoice', $invoice, "{$user->name} update pembayaran Invoice/Nota {$invoice->no_dokumen}");
+
+            return $invoice->refresh()->load('paymentDocuments');
+        });
     }
 
     /**
@@ -169,21 +188,33 @@ class InvoiceService
 
     private function prepareMergeFile(UploadedFile $file, string $prefix): string
     {
-        if ($file->getClientOriginalExtension() === 'pdf') {
-            return $file->getRealPath();
-        }
-
-        $data = base64_encode(file_get_contents($file->getRealPath()));
-        $mime = $file->getMimeType();
-        $pdf = Pdf::loadHTML(
-            '<html><body style="margin:0"><img src="data:'.$mime.';base64,'.$data.'" style="width:100%;height:auto"></body></html>'
-        )->setPaper('a4');
-
         $directory = 'tmp/invoice-upload';
         Storage::disk('local')->makeDirectory($directory);
+        $storedPath = $file->store($directory, 'local');
+        $absolutePath = Storage::disk('local')->path($storedPath);
+        FileCompressionHelper::compress($absolutePath);
+
+        if (strtolower($file->getClientOriginalExtension()) === 'pdf') {
+            return $absolutePath;
+        }
+
+        $data = base64_encode(file_get_contents($absolutePath));
+        $mime = mime_content_type($absolutePath) ?: $file->getMimeType();
+        $pdf = Pdf::loadHTML(
+            '<html><body style="margin:0"><img src="data:'.$mime.';base64,'.$data.'" style="width:100%;height:auto"></body></html>'
+        )->setPaper('a4')->setOptions(['enable_compression' => true]);
+
         $path = $directory.'/'.$prefix.'-'.Str::uuid().'.pdf';
         Storage::disk('local')->put($path, $pdf->output());
 
         return Storage::disk('local')->path($path);
+    }
+
+    private function storeCompressedFile(UploadedFile $file, string $directory): string
+    {
+        $path = $file->store($directory, 'local');
+        FileCompressionHelper::compress(Storage::disk('local')->path($path));
+
+        return $path;
     }
 }
