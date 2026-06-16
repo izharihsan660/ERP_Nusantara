@@ -4,11 +4,12 @@ import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Select } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Download, Eye } from 'lucide-react';
 
 export function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return formatRupiah(value);
 }
 
 export function percent(value) {

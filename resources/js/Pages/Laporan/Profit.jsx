@@ -31,7 +31,7 @@ export default function Profit({ data, filters, routeName, exportType, summary, 
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="month" />
                                 <YAxis tickFormatter={(value) => `${Number(value) / 1000000}jt`} />
-                                <Tooltip formatter={(value) => [`Rp ${money(value)}`, 'Profit']} />
+                                <Tooltip formatter={(value) => [money(value), 'Profit']} />
                                 <Bar dataKey="profit" fill="#0f766e" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>

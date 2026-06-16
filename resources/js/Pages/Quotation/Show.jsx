@@ -1,13 +1,14 @@
 import Modal from '@/Components/Modal';
+import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import InvoiceSection from '@/Pages/Shared/InvoiceSection';
 import SpbSection from '@/Pages/Shared/SpbSection';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Copy, Download, Plus, Send, X } from 'lucide-react';
 import { useState } from 'react';
@@ -33,10 +34,6 @@ function StatusBadge({ status, label }) {
     );
 }
 
-function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function Info({ label, value }) {
     return (
         <div>
@@ -51,7 +48,7 @@ function ActionModal({ show, title, label, value, error, processing, onChange, o
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{title}</h2>
-                <label className="mt-4 block text-sm font-medium text-slate-700 dark:text-slate-200">{label}</label>
+                <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
                 <div className="mt-6 flex justify-end gap-2">
@@ -67,10 +64,10 @@ function FieldError({ message }) {
     return message ? <div className="mt-1 text-sm text-red-600">{message}</div> : null;
 }
 
-function FormRow({ label, error, children }) {
+function FormRow({ label, error, required = false, optional = false, conditionalNote = '', children }) {
     return (
         <div>
-            <Label>{label}</Label>
+            <InputLabel label={label} required={required} optional={optional} conditionalNote={conditionalNote} />
             <div className="mt-1">{children}</div>
             <FieldError message={error} />
         </div>
@@ -91,20 +88,20 @@ function SalesOrderModal({ show, form, onClose, onSubmit }) {
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input Sales Order</h2>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                    <FormRow label="No. PO Customer" error={form.errors.no_po_customer}>
+                    <FormRow label="No. PO Customer" required error={form.errors.no_po_customer}>
                         <Input value={form.data.no_po_customer} onChange={(e) => form.setData('no_po_customer', e.target.value)} />
                     </FormRow>
-                    <FormRow label="No. PR Customer" error={form.errors.no_pr_customer}>
+                    <FormRow label="No. PR Customer" optional error={form.errors.no_pr_customer}>
                         <Input
                             value={form.data.no_pr_customer}
                             onChange={(e) => form.setData('no_pr_customer', e.target.value)}
                             placeholder="Opsional - khusus jika customer belum keluarkan PO resmi"
                         />
                     </FormRow>
-                    <FormRow label="Tanggal PO" error={form.errors.tgl_po}>
+                    <FormRow label="Tanggal PO" required error={form.errors.tgl_po}>
                         <Input type="date" value={form.data.tgl_po} onChange={(e) => form.setData('tgl_po', e.target.value)} />
                     </FormRow>
-                    <FormRow label="Metode Pembayaran" error={form.errors.metode_pembayaran}>
+                    <FormRow label="Metode Pembayaran" required error={form.errors.metode_pembayaran}>
                         <Select value={form.data.metode_pembayaran} onChange={(e) => setMetode(e.target.value)}>
                             <option value="COD">COD</option>
                             <option value="CBD">CBD</option>
@@ -112,7 +109,7 @@ function SalesOrderModal({ show, form, onClose, onSubmit }) {
                         </Select>
                     </FormRow>
                     {form.data.metode_pembayaran === 'TOP' && (
-                        <FormRow label="Jangka Waktu (hari)" error={form.errors.top_hari}>
+                        <FormRow label="Jangka TOP" conditionalNote="wajib jika metode TOP" error={form.errors.top_hari}>
                             <Input type="number" min="1" value={form.data.top_hari} onChange={(e) => form.setData('top_hari', e.target.value)} />
                         </FormRow>
                     )}
@@ -140,21 +137,21 @@ function WipOrderModal({ show, form, onClose, onSubmit }) {
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input WIP</h2>
                 <div className="mt-5 grid gap-4">
-                    <FormRow label="No. WIP" error={form.errors.no_wip}>
+                    <FormRow label="No. WIP" required error={form.errors.no_wip}>
                         <Input
                             value={form.data.no_wip}
                             onChange={(e) => form.setData('no_wip', e.target.value)}
                             placeholder="Nomor dari portal RMA"
                         />
                     </FormRow>
-                    <FormRow label="Tipe Order" error={form.errors.tipe_order}>
+                    <FormRow label="Tipe Order" required error={form.errors.tipe_order}>
                         <Select value={form.data.tipe_order} onChange={(e) => setTipeOrder(e.target.value)}>
                             <option value="VOR">VOR</option>
                             <option value="STK">STK</option>
                         </Select>
                     </FormRow>
                     {form.data.tipe_order === 'VOR' && (
-                        <FormRow label="Nama Ekspedisi" error={form.errors.nama_ekspedisi}>
+                        <FormRow label="Nama Ekspedisi" conditionalNote="wajib jika tipe VOR" error={form.errors.nama_ekspedisi}>
                             <Input value={form.data.nama_ekspedisi} onChange={(e) => form.setData('nama_ekspedisi', e.target.value)} />
                         </FormRow>
                     )}
@@ -323,6 +320,7 @@ export default function Show({ quotation, sites }) {
                         <Info label="Tanggal approve" value={quotation.approved_at} />
                         <Info label="Voided oleh" value={quotation.voided_by?.name} />
                     </div>
+                    {quotation.catatan && <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300">Catatan: {quotation.catatan}</div>}
                     {quotation.catatan_rejection && <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">Catatan rejection: {quotation.catatan_rejection}</div>}
                     {quotation.alasan_void && <div className="mt-4 rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {quotation.alasan_void}</div>}
                 </section>
@@ -352,19 +350,19 @@ export default function Show({ quotation, sites }) {
                                         <td className="px-4 py-3">{item.deskripsi}</td>
                                         <td className="px-4 py-3 text-right">{item.qty}</td>
                                         <td className="px-4 py-3">{item.satuan}</td>
-                                        <td className="px-4 py-3 text-right">{money(item.harga_satuan)}</td>
-                                        <td className="px-4 py-3 text-right">{money(item.jumlah)}</td>
-                                        <td className="px-4 py-3 text-right">{money(Number(item.qty) * Number(item.hpp_satuan))}</td>
-                                        <td className="px-4 py-3 text-right">{money(item.profit)}</td>
+                                        <td className="px-4 py-3 text-right">{formatRupiah(item.harga_satuan)}</td>
+                                        <td className="px-4 py-3 text-right">{formatRupiah(item.jumlah)}</td>
+                                        <td className="px-4 py-3 text-right">{formatRupiah(Number(item.qty) * Number(item.hpp_satuan))}</td>
+                                        <td className="px-4 py-3 text-right">{formatRupiah(item.profit)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot className="bg-slate-50 font-semibold dark:bg-slate-900">
                                 <tr>
                                     <td className="px-4 py-3" colSpan="5">Total</td>
-                                    <td className="px-4 py-3 text-right">{money(quotation.total)}</td>
-                                    <td className="px-4 py-3 text-right">{money(quotation.total_hpp)}</td>
-                                    <td className="px-4 py-3 text-right">{money(quotation.total_profit)}</td>
+                                    <td className="px-4 py-3 text-right">{formatRupiah(quotation.total)}</td>
+                                    <td className="px-4 py-3 text-right">{formatRupiah(quotation.total_hpp)}</td>
+                                    <td className="px-4 py-3 text-right">{formatRupiah(quotation.total_profit)}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -392,6 +390,7 @@ export default function Show({ quotation, sites }) {
                                         )}
                                         <Info label="Tanggal PO" value={quotation.sales_order.tgl_po} />
                                         <Info label="Metode Bayar" value={quotation.sales_order.metode_pembayaran_label} />
+                                        <Info label="Total Nilai" value={formatRupiah(quotation.total)} />
                                         {quotation.sales_order.metode_pembayaran === 'TOP' && (
                                             <>
                                                 <Info label="TOP Hari" value={quotation.sales_order.top_hari} />

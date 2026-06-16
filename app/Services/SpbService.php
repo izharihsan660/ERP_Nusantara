@@ -65,8 +65,8 @@ class SpbService
                     'deskripsi' => $item['deskripsi'],
                     'qty' => $item['qty'],
                     'satuan' => $item['satuan'],
-                    'berat' => $item['berat'],
-                    'volume' => $item['volume'],
+                    'berat' => $item['berat'] ?? 0,
+                    'volume' => $item['volume'] ?? 0,
                     'dimensi' => $item['dimensi'] ?? null,
                     'sku' => $item['sku'] ?? null,
                 ]);

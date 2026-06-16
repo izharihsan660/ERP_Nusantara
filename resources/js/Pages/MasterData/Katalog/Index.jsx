@@ -6,6 +6,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { FileUp, Pencil, Plus, Power } from 'lucide-react';
 import { useState } from 'react';
@@ -19,8 +20,8 @@ export default function Index({ items, filters, categories }) {
         { key: 'part_no', label: 'Part No', sortable: true },
         { key: 'nama_barang', label: 'Nama Barang', sortable: true },
         { key: 'kategori', label: 'Kategori', sortable: true },
-        { key: 'hpp', label: 'HPP', sortable: true, render: (row) => Number(row.hpp).toLocaleString('id-ID') },
-        { key: 'harga_jual_default', label: 'Harga Jual', sortable: true, render: (row) => Number(row.harga_jual_default).toLocaleString('id-ID') },
+        { key: 'hpp', label: 'HPP', sortable: true, render: (row) => formatRupiah(row.hpp) },
+        { key: 'harga_jual_default', label: 'Harga Jual', sortable: true, render: (row) => formatRupiah(row.harga_jual_default) },
         { key: 'is_active', label: 'Status', render: (row) => <StatusBadge value={row.is_active} /> },
         {
             key: 'actions',

@@ -2,13 +2,10 @@ import SummaryCards from '@/Components/Laporan/SummaryCards';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link } from '@inertiajs/react';
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Eye } from 'lucide-react';
-
-function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
 
 const badgeStyles = {
     DRAFT: 'bg-slate-100 text-slate-700 ring-slate-200',
@@ -101,7 +98,7 @@ function SalesDashboard({ dashboard }) {
                 columns={[
                     { key: 'no_quotation', label: 'No. Quotation' },
                     { key: 'customer', label: 'Customer' },
-                    { key: 'total', label: 'Total', render: (row) => money(row.total) },
+                    { key: 'total', label: 'Total', render: (row) => formatRupiah(row.total) },
                     { key: 'status', label: 'Status', render: (row) => <StatusPill value={row.status}>{row.status_label}</StatusPill> },
                 ]}
             />
@@ -131,7 +128,7 @@ function FinanceDashboard({ dashboard }) {
     const invoiceColumns = [
         { key: 'no_invoice', label: 'No. Invoice' },
         { key: 'customer', label: 'Customer' },
-        { key: 'total', label: 'Total', render: (row) => money(row.total) },
+        { key: 'total', label: 'Total', render: (row) => formatRupiah(row.total) },
         { key: 'jatuh_tempo', label: 'Jatuh Tempo' },
     ];
 
@@ -144,7 +141,7 @@ function FinanceDashboard({ dashboard }) {
                 columns={[
                     { key: 'no_invoice', label: 'No. Invoice' },
                     { key: 'customer', label: 'Customer' },
-                    { key: 'total', label: 'Total', render: (row) => money(row.total) },
+                    { key: 'total', label: 'Total', render: (row) => formatRupiah(row.total) },
                     { key: 'status', label: 'Status', render: (row) => <StatusPill value={row.status}>{row.status_label}</StatusPill> },
                     { key: 'aksi', label: 'Aksi', render: () => <Button asChild size="icon" variant="outline" title="Outstanding"><Link href={route('laporan.outstanding')}><Eye className="h-4 w-4" /></Link></Button> },
                 ]}
@@ -162,7 +159,7 @@ function ProcurementDashboard({ dashboard }) {
                 columns={[
                     { key: 'no_pd', label: 'No. PD' },
                     { key: 'kategori', label: 'Kategori' },
-                    { key: 'nominal', label: 'Nominal', render: (row) => money(row.nominal) },
+                    { key: 'nominal', label: 'Nominal', render: (row) => formatRupiah(row.nominal) },
                     { key: 'status', label: 'Status', render: (row) => <StatusPill value={row.status}>{row.status_label}</StatusPill> },
                 ]}
             />
@@ -181,7 +178,7 @@ function ManagerDashboard({ dashboard }) {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="month" />
                             <YAxis tickFormatter={(value) => `${Number(value) / 1000000}jt`} />
-                            <Tooltip formatter={(value) => [`Rp ${money(value)}`, 'Total Quotation']} />
+                            <Tooltip formatter={(value) => [formatRupiah(value), 'Total Quotation']} />
                             <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} />
                         </LineChart>
                     </ResponsiveContainer>
@@ -192,7 +189,7 @@ function ManagerDashboard({ dashboard }) {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="month" />
                             <YAxis tickFormatter={(value) => `${Number(value) / 1000000}jt`} />
-                            <Tooltip formatter={(value) => [`Rp ${money(value)}`, 'Profit']} />
+                            <Tooltip formatter={(value) => [formatRupiah(value), 'Profit']} />
                             <Bar dataKey="value" fill="#0f766e" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
@@ -203,7 +200,7 @@ function ManagerDashboard({ dashboard }) {
                 columns={[
                     { key: 'no_pd', label: 'No. PD' },
                     { key: 'kategori', label: 'Kategori' },
-                    { key: 'nominal', label: 'Nominal', render: (row) => money(row.nominal) },
+                    { key: 'nominal', label: 'Nominal', render: (row) => formatRupiah(row.nominal) },
                     { key: 'dibuat_oleh', label: 'Dibuat oleh' },
                     { key: 'aksi', label: 'Aksi', render: (row) => <Button asChild size="icon" variant="outline" title="Lihat PD"><Link href={route('permintaan-dana.show', row.id)}><Eye className="h-4 w-4" /></Link></Button> },
                 ]}

@@ -133,6 +133,7 @@ class QuotationController extends Controller
                 'revisi' => $quotation->revisi,
                 'status' => $quotation->status->value,
                 'status_label' => $quotation->status->label(),
+                'catatan' => $quotation->catatan,
                 'catatan_rejection' => $quotation->catatan_rejection,
                 'alasan_void' => $quotation->alasan_void,
                 'approved_at' => $quotation->approved_at?->format('Y-m-d H:i'),

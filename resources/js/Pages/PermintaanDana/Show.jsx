@@ -1,11 +1,12 @@
 import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/Form/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Download, Send, Upload, X } from 'lucide-react';
 import { useState } from 'react';
@@ -27,10 +28,6 @@ function StatusBadge({ status, label }) {
     );
 }
 
-function rupiah(value) {
-    return `Rp ${Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 function today() {
     return new Date().toISOString().slice(0, 10);
 }
@@ -49,7 +46,7 @@ function TextActionModal({ show, title, label, value, error, processing, submitL
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{title}</h2>
-                <Label className="mt-4 block">{label}</Label>
+                <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 <InputError message={error} className="mt-2" />
                 <div className="mt-6 flex justify-end gap-2">
@@ -68,18 +65,18 @@ function UploadBuktiModal({ show, form, onClose, onSubmit }) {
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Upload Bukti</h2>
                 <div className="mt-4 space-y-4">
                     <div>
-                        <Label>Tanggal Realisasi</Label>
+                        <InputLabel label="Tanggal Realisasi" required />
                         <Input className="mt-1" type="date" value={form.data.tgl_realisasi} onChange={(e) => form.setData('tgl_realisasi', e.target.value)} />
                         <InputError message={form.errors.tgl_realisasi} className="mt-2" />
                     </div>
                     <div>
-                        <Label>Jumlah aktual yang dicairkan</Label>
-                        <Input className="mt-1" type="number" min="0" step="0.01" value={form.data.jumlah_realisasi} onChange={(e) => form.setData('jumlah_realisasi', e.target.value)} />
-                        <div className="mt-1 text-xs text-slate-500">{rupiah(form.data.jumlah_realisasi)}</div>
+                        <InputLabel label="Jumlah Realisasi" required />
+                        <Input className="mt-1" inputMode="numeric" value={formatRupiahInput(form.data.jumlah_realisasi)} onChange={(e) => form.setData('jumlah_realisasi', parseRupiah(e.target.value))} />
+                        <div className="mt-1 text-xs text-slate-500">{formatRupiah(form.data.jumlah_realisasi)}</div>
                         <InputError message={form.errors.jumlah_realisasi} className="mt-2" />
                     </div>
                     <div>
-                        <Label>Bukti transfer / kwitansi</Label>
+                        <InputLabel label="File Bukti" required />
                         <Input className="mt-1" type="file" accept=".pdf,.jpg,.png" onChange={(e) => form.setData('file_bukti', e.target.files[0])} />
                         <InputError message={form.errors.file_bukti} className="mt-2" />
                     </div>
@@ -166,7 +163,7 @@ export default function Show({ permintaanDana }) {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Info label="Tanggal PD" value={permintaanDana.tgl_pd} />
                     <Info label="Kategori" value={permintaanDana.kategori_label} />
-                    <Info label="Nominal" value={rupiah(permintaanDana.nominal)} />
+                    <Info label="Nominal" value={formatRupiah(permintaanDana.nominal)} />
                     <Info label="Referensi" value={permintaanDana.referensi_dokumen} />
                     <Info label="Dibuat oleh" value={permintaanDana.created_by?.name} />
                     <Info label="Tanggal submit" value={permintaanDana.submitted_at} />
@@ -175,7 +172,7 @@ export default function Show({ permintaanDana }) {
                     {permintaanDana.status === 'PAID' && (
                         <>
                             <Info label="Tanggal realisasi" value={permintaanDana.tgl_realisasi} />
-                            <Info label="Jumlah realisasi" value={rupiah(permintaanDana.jumlah_realisasi)} />
+                            <Info label="Jumlah realisasi" value={formatRupiah(permintaanDana.jumlah_realisasi)} />
                             <Info
                                 label="File bukti"
                                 value={(

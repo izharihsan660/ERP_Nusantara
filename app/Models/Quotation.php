@@ -18,6 +18,7 @@ class Quotation extends Model
         'template_id',
         'revisi',
         'status',
+        'catatan',
         'catatan_rejection',
         'qr_token',
         'approved_by',

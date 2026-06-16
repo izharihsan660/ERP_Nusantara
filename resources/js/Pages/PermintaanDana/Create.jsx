@@ -1,20 +1,17 @@
 import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Save, Send } from 'lucide-react';
 
 function today() {
     return new Date().toISOString().slice(0, 10);
-}
-
-function rupiah(value) {
-    return `Rp ${Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export default function Create({ categories }) {
@@ -46,12 +43,12 @@ export default function Create({ categories }) {
                 <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                     <div className="grid gap-4 lg:grid-cols-2">
                         <div>
-                            <Label>Tanggal PD</Label>
+                            <InputLabel label="Tanggal PD" required />
                             <Input className="mt-1" type="date" value={data.tgl_pd} onChange={(e) => setData('tgl_pd', e.target.value)} />
                             <InputError message={errors.tgl_pd} className="mt-2" />
                         </div>
                         <div>
-                            <Label>Kategori</Label>
+                            <InputLabel label="Kategori" required />
                             <Select className="mt-1" value={data.kategori} onChange={(e) => setData('kategori', e.target.value)}>
                                 <option value="">Pilih kategori...</option>
                                 {categories.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
@@ -59,18 +56,18 @@ export default function Create({ categories }) {
                             <InputError message={errors.kategori} className="mt-2" />
                         </div>
                         <div>
-                            <Label>Nominal</Label>
-                            <Input className="mt-1" type="number" min="1" step="0.01" value={data.nominal} onChange={(e) => setData('nominal', e.target.value)} />
-                            <div className="mt-1 text-xs text-slate-500">{rupiah(data.nominal)}</div>
+                            <InputLabel label="Nominal" required />
+                            <Input className="mt-1" inputMode="numeric" value={formatRupiahInput(data.nominal)} onChange={(e) => setData('nominal', parseRupiah(e.target.value))} />
+                            <div className="mt-1 text-xs text-slate-500">{formatRupiah(data.nominal)}</div>
                             <InputError message={errors.nominal} className="mt-2" />
                         </div>
                         <div>
-                            <Label>Referensi Dokumen</Label>
+                            <InputLabel label="Referensi Dokumen" optional />
                             <Input className="mt-1" value={data.referensi_dokumen} onChange={(e) => setData('referensi_dokumen', e.target.value)} placeholder="No. referensi terkait (opsional, misal: WIP 12210)" />
                             <InputError message={errors.referensi_dokumen} className="mt-2" />
                         </div>
                         <div className="lg:col-span-2">
-                            <Label>Keterangan</Label>
+                            <InputLabel label="Keterangan" required />
                             <Textarea className="mt-1 min-h-32" value={data.keterangan} onChange={(e) => setData('keterangan', e.target.value)} />
                             <InputError message={errors.keterangan} className="mt-2" />
                         </div>

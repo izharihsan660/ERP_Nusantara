@@ -4,6 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, FilePlus2 } from 'lucide-react';
 
@@ -22,17 +23,13 @@ function StatusBadge({ status, label }) {
     );
 }
 
-function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 export default function Index({ purchaseOrders, filters, vendors, statuses }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const columns = [
         { key: 'no_purchase_order', label: 'No. PO', sortable: true },
         { key: 'vendor', label: 'Vendor' },
         { key: 'tgl_po', label: 'Tanggal', sortable: true },
-        { key: 'total', label: 'Total', render: (row) => money(row.total) },
+        { key: 'total', label: 'Total', render: (row) => formatRupiah(row.total) },
         { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge status={row.status} label={row.status_label} /> },
         {
             key: 'actions',

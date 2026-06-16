@@ -1,7 +1,7 @@
 import Modal from '@/Components/Modal';
+import InputLabel from '@/Components/Form/InputLabel';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { useForm, usePage } from '@inertiajs/react';
@@ -41,10 +41,10 @@ function FieldError({ message }) {
     return message ? <div className="mt-1 text-sm text-red-600">{message}</div> : null;
 }
 
-function FormRow({ label, error, children }) {
+function FormRow({ label, error, required = false, optional = false, conditionalNote = '', children }) {
     return (
         <div>
-            <Label>{label}</Label>
+            <InputLabel label={label} required={required} optional={optional} conditionalNote={conditionalNote} />
             <div className="mt-1">{children}</div>
             <FieldError message={error} />
         </div>
@@ -232,14 +232,14 @@ export default function SpbSection({
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Buat SPB</h2>
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
                         {sourceOptions.length > 1 && (
-                            <FormRow label="Sumber WIP" error={form.errors.source_id}>
+                            <FormRow label="Sumber WIP" required error={form.errors.source_id}>
                                 <Select value={form.data.source_id} onChange={(e) => form.setData('source_id', e.target.value)}>
                                     {sourceOptions.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
                                 </Select>
                             </FormRow>
                         )}
                         {showCustomerField && (
-                            <FormRow label="Customer" error={form.errors.customer_id}>
+                            <FormRow label="Customer" required error={form.errors.customer_id}>
                                 <Select
                                     value={form.data.customer_id}
                                     onChange={(e) => form.setData({ ...form.data, customer_id: e.target.value, site_id: '' })}
@@ -249,27 +249,27 @@ export default function SpbSection({
                                 </Select>
                             </FormRow>
                         )}
-                        <FormRow label="Tanggal SPB" error={form.errors.tgl_spb}>
+                        <FormRow label="Tanggal SPB" required error={form.errors.tgl_spb}>
                             <Input type="date" value={form.data.tgl_spb} onChange={(e) => form.setData('tgl_spb', e.target.value)} />
                         </FormRow>
-                        <FormRow label="Site Tujuan" error={form.errors.site_id}>
+                        <FormRow label="Site Tujuan" optional error={form.errors.site_id}>
                             <Input className="mb-2" value={siteSearch} onChange={(e) => setSiteSearch(e.target.value)} placeholder="Cari site..." />
                             <Select value={form.data.site_id} onChange={(e) => form.setData('site_id', e.target.value)}>
                                 <option value="">Pilih site...</option>
                                 {filteredSites.map((site) => <option key={site.id} value={site.id}>{site.label}</option>)}
                             </Select>
                         </FormRow>
-                        <FormRow label="Nama Ekspedisi" error={form.errors.nama_ekspedisi}>
+                        <FormRow label="Nama Ekspedisi" required error={form.errors.nama_ekspedisi}>
                             <Input value={form.data.nama_ekspedisi} onChange={(e) => form.setData('nama_ekspedisi', e.target.value)} />
                         </FormRow>
-                        <FormRow label="ETD" error={form.errors.etd}>
+                        <FormRow label="ETD" optional error={form.errors.etd}>
                             <Input type="date" value={form.data.etd} onChange={(e) => form.setData('etd', e.target.value)} />
                         </FormRow>
-                        <FormRow label="ETA" error={form.errors.eta}>
+                        <FormRow label="ETA" optional error={form.errors.eta}>
                             <Input type="date" value={form.data.eta} onChange={(e) => form.setData('eta', e.target.value)} />
                         </FormRow>
                         <div className="md:col-span-2">
-                            <FormRow label="Catatan" error={form.errors.catatan}>
+                            <FormRow label="Catatan" optional error={form.errors.catatan}>
                                 <Textarea value={form.data.catatan} onChange={(e) => form.setData('catatan', e.target.value)} />
                             </FormRow>
                         </div>
@@ -277,21 +277,24 @@ export default function SpbSection({
 
                     <div className="mt-6 rounded-lg border border-slate-200 dark:border-slate-700">
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-3 dark:border-slate-700">
-                            <h3 className="font-medium text-slate-950 dark:text-white">Items</h3>
+                            <div>
+                                <h3 className="font-medium text-slate-950 dark:text-white">Items <span className="text-red-600">*</span></h3>
+                                <FieldError message={form.errors.items} />
+                            </div>
                             <Button type="button" size="sm" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-sm">
                                 <thead className="bg-slate-50 dark:bg-slate-900">
                                     <tr>
-                                        <th className="px-3 py-2 text-left">Part No</th>
-                                        <th className="px-3 py-2 text-left">Deskripsi</th>
-                                        <th className="px-3 py-2 text-left">Qty</th>
+                                        <th className="px-3 py-2 text-left"><InputLabel label="Part No" required className="text-xs" /></th>
+                                        <th className="px-3 py-2 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
+                                        <th className="px-3 py-2 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
                                         <th className="px-3 py-2 text-left">Satuan</th>
-                                        <th className="px-3 py-2 text-left">Berat</th>
-                                        <th className="px-3 py-2 text-left">Volume</th>
-                                        <th className="px-3 py-2 text-left">Dimensi</th>
-                                        <th className="px-3 py-2 text-left">SKU</th>
+                                        <th className="px-3 py-2 text-left"><InputLabel label="Berat" optional className="text-xs" /></th>
+                                        <th className="px-3 py-2 text-left"><InputLabel label="Volume" optional className="text-xs" /></th>
+                                        <th className="px-3 py-2 text-left"><InputLabel label="Dimensi" optional className="text-xs" /></th>
+                                        <th className="px-3 py-2 text-left"><InputLabel label="SKU" optional className="text-xs" /></th>
                                         <th className="px-3 py-2" />
                                     </tr>
                                 </thead>
@@ -334,7 +337,6 @@ export default function SpbSection({
                                 </tbody>
                             </table>
                         </div>
-                        <FieldError message={form.errors.items} />
                     </div>
 
                     <div className="mt-6 flex justify-end gap-2">
@@ -347,7 +349,7 @@ export default function SpbSection({
             <Modal show={modal === 'void'} onClose={() => setModal(null)} maxWidth="md">
                 <form onSubmit={submitVoid} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Void SPB {selectedSpb?.no_spb ?? ''}</h2>
-                    <FormRow label="Alasan void" error={voidForm.errors.alasan_void}>
+                    <FormRow label="Alasan void" required error={voidForm.errors.alasan_void}>
                         <Textarea value={voidForm.data.alasan_void} onChange={(e) => voidForm.setData('alasan_void', e.target.value)} />
                     </FormRow>
                     <div className="mt-6 flex justify-end gap-2">

@@ -4,6 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, FilePlus2 } from 'lucide-react';
 
@@ -24,16 +25,12 @@ function StatusBadge({ status, label }) {
     );
 }
 
-function rupiah(value) {
-    return `Rp ${Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 export default function Index({ permintaanDana, filters, categories, statuses }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const columns = [
         { key: 'no_pd', label: 'No. PD', sortable: true },
         { key: 'kategori', label: 'Kategori', sortable: true, render: (row) => row.kategori_label },
-        { key: 'nominal', label: 'Nominal', sortable: true, render: (row) => rupiah(row.nominal) },
+        { key: 'nominal', label: 'Nominal', sortable: true, render: (row) => formatRupiah(row.nominal) },
         { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge status={row.status} label={row.status_label} /> },
         { key: 'created_by', label: 'Dibuat oleh' },
         { key: 'tgl_pd', label: 'Tanggal', sortable: true },

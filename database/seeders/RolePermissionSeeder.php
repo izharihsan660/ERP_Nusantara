@@ -112,7 +112,11 @@ class RolePermissionSeeder extends Seeder
         $roles = [
             'Superadmin' => $permissionNames->all(),
             'Sales' => [
-                ...$this->onlyModules(['Quotation', 'WIP']),
+                'Quotation lihat',
+                'Quotation buat',
+                'Quotation download_pdf',
+                'Quotation void',
+                ...$this->onlyModules(['WIP']),
                 ...$this->salesOrderPermissions,
                 'lihat_purchase_order',
                 'buat_purchase_order',

@@ -34,8 +34,8 @@ class StoreSpbRequest extends FormRequest
             'items.*.deskripsi' => ['required', 'string', 'max:200'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
             'items.*.satuan' => ['required', 'string', 'max:20'],
-            'items.*.berat' => ['required', 'numeric', 'min:0'],
-            'items.*.volume' => ['required', 'numeric', 'min:0'],
+            'items.*.berat' => ['nullable', 'numeric', 'min:0'],
+            'items.*.volume' => ['nullable', 'numeric', 'min:0'],
             'items.*.dimensi' => ['nullable', 'string', 'max:100'],
             'items.*.sku' => ['nullable', 'string', 'max:50'],
         ];

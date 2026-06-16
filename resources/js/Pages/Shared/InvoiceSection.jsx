@@ -1,9 +1,10 @@
 import Modal from '@/Components/Modal';
+import InputLabel from '@/Components/Form/InputLabel';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
+import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
 import { useForm, usePage } from '@inertiajs/react';
 import { Ban, Banknote, Download, FileCheck2, Plus, Upload } from 'lucide-react';
 import { useState } from 'react';
@@ -18,10 +19,6 @@ function today() {
     return new Date().toISOString().slice(0, 10);
 }
 
-function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function PaymentBadge({ status, label }) {
     return (
         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${paymentStyles[status] ?? paymentStyles.BELUM}`}>
@@ -34,10 +31,10 @@ function FieldError({ message }) {
     return message ? <div className="mt-1 text-sm text-red-600">{message}</div> : null;
 }
 
-function FormRow({ label, error, children }) {
+function FormRow({ label, error, required = false, optional = false, conditionalNote = '', children }) {
     return (
         <div>
-            <Label>{label}</Label>
+            <InputLabel label={label} required={required} optional={optional} conditionalNote={conditionalNote} />
             <div className="mt-1">{children}</div>
             <FieldError message={error} />
         </div>
@@ -213,7 +210,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                                     </div>
                                     <div>
                                         <div className="text-xs uppercase text-slate-500">Total</div>
-                                        <div className="mt-1 font-medium">Rp {money(spb.invoice.total_nilai)}</div>
+                                        <div className="mt-1 font-medium">{formatRupiah(spb.invoice.total_nilai)}</div>
                                     </div>
                                     <div>
                                         <div className="text-xs uppercase text-slate-500">Status Bayar</div>
@@ -226,8 +223,12 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                                         </div>
                                     )}
                                     <div>
-                                        <div className="text-xs uppercase text-slate-500">Jumlah Bayar</div>
-                                        <div className="mt-1 font-medium">Rp {money(spb.invoice.jumlah_bayar)}</div>
+                                        <div className="text-xs uppercase text-slate-500">Sudah Dibayar</div>
+                                        <div className="mt-1 font-medium">{formatRupiah(spb.invoice.jumlah_bayar)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs uppercase text-slate-500">Sisa</div>
+                                        <div className="mt-1 font-medium">{formatRupiah(Number(spb.invoice.total_nilai ?? 0) - Number(spb.invoice.jumlah_bayar ?? 0))}</div>
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
@@ -261,13 +262,13 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                 <form onSubmit={submitCreate} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Buat Invoice/Nota</h2>
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
-                        <FormRow label="No. Faktur Pajak" error={invoiceForm.errors.no_faktur_pajak}>
+                        <FormRow label="No. Faktur Pajak" optional error={invoiceForm.errors.no_faktur_pajak}>
                             <Input value={invoiceForm.data.no_faktur_pajak} onChange={(e) => invoiceForm.setData('no_faktur_pajak', e.target.value)} />
                         </FormRow>
-                        <FormRow label="Tanggal Dokumen" error={invoiceForm.errors.tgl_dokumen}>
+                        <FormRow label="Tanggal Dokumen" required error={invoiceForm.errors.tgl_dokumen}>
                             <Input type="date" value={invoiceForm.data.tgl_dokumen} onChange={(e) => invoiceForm.setData('tgl_dokumen', e.target.value)} />
                         </FormRow>
-                        <FormRow label="Metode Pembayaran" error={invoiceForm.errors.metode_pembayaran}>
+                        <FormRow label="Metode Pembayaran" required error={invoiceForm.errors.metode_pembayaran}>
                             <Select value={invoiceForm.data.metode_pembayaran} onChange={(e) => setPayment(invoiceForm, e.target.value)}>
                                 <option value="COD">COD</option>
                                 <option value="CBD">CBD</option>
@@ -275,7 +276,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                             </Select>
                         </FormRow>
                         {invoiceForm.data.metode_pembayaran === 'TOP' && (
-                            <FormRow label="Jangka TOP (hari)" error={invoiceForm.errors.top_hari}>
+                            <FormRow label="Jangka TOP" conditionalNote="wajib jika metode TOP" error={invoiceForm.errors.top_hari}>
                                 <Input type="number" min="1" max="365" value={invoiceForm.data.top_hari} onChange={(e) => invoiceForm.setData('top_hari', e.target.value)} />
                             </FormRow>
                         )}
@@ -291,14 +292,14 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                 <form onSubmit={submitPayment} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Update Pembayaran</h2>
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
-                        <FormRow label="Tanggal Bayar" error={paymentForm.errors.tgl_bayar}>
+                        <FormRow label="Tanggal Bayar" required error={paymentForm.errors.tgl_bayar}>
                             <Input type="date" value={paymentForm.data.tgl_bayar} onChange={(e) => paymentForm.setData('tgl_bayar', e.target.value)} />
                         </FormRow>
-                        <FormRow label="Jumlah Bayar" error={paymentForm.errors.jumlah_bayar}>
-                            <Input type="number" min="0" step="0.01" value={paymentForm.data.jumlah_bayar} onChange={(e) => paymentForm.setData('jumlah_bayar', e.target.value)} />
+                        <FormRow label="Jumlah Bayar" required error={paymentForm.errors.jumlah_bayar}>
+                            <Input inputMode="numeric" value={formatRupiahInput(paymentForm.data.jumlah_bayar)} onChange={(e) => paymentForm.setData('jumlah_bayar', parseRupiah(e.target.value))} />
                         </FormRow>
                         <div className="md:col-span-2">
-                            <FormRow label="Keterangan" error={paymentForm.errors.keterangan}>
+                            <FormRow label="Keterangan" optional error={paymentForm.errors.keterangan}>
                                 <Textarea value={paymentForm.data.keterangan} onChange={(e) => paymentForm.setData('keterangan', e.target.value)} />
                             </FormRow>
                         </div>
@@ -314,13 +315,13 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                 <form onSubmit={submitUpload} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Upload TTD Customer</h2>
                     <div className="mt-5 grid gap-4">
-                        <FormRow label="Upload SPB TTD" error={uploadForm.errors.file_spb}>
+                        <FormRow label="File SPB TTD" required error={uploadForm.errors.file_spb}>
                             <Input type="file" accept=".pdf,.jpg,.png" onChange={(e) => uploadForm.setData('file_spb', e.target.files[0])} />
                         </FormRow>
-                        <FormRow label="Upload Invoice/Nota TTD" error={uploadForm.errors.file_invoice}>
+                        <FormRow label="File Invoice/Nota TTD" required error={uploadForm.errors.file_invoice}>
                             <Input type="file" accept=".pdf,.jpg,.png" onChange={(e) => uploadForm.setData('file_invoice', e.target.files[0])} />
                         </FormRow>
-                        <FormRow label="Upload Tanda Terima TTD" error={uploadForm.errors.file_tanda_terima}>
+                        <FormRow label="File Tanda Terima TTD" required error={uploadForm.errors.file_tanda_terima}>
                             <Input type="file" accept=".pdf,.jpg,.png" onChange={(e) => uploadForm.setData('file_tanda_terima', e.target.files[0])} />
                         </FormRow>
                         <div className="rounded-md bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
@@ -337,7 +338,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
             <Modal show={modal === 'void'} onClose={() => setModal(null)} maxWidth="md">
                 <form onSubmit={submitVoid} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Void Invoice/Nota</h2>
-                    <FormRow label="Alasan void" error={voidForm.errors.alasan_void}>
+                    <FormRow label="Alasan void" required error={voidForm.errors.alasan_void}>
                         <Textarea value={voidForm.data.alasan_void} onChange={(e) => voidForm.setData('alasan_void', e.target.value)} />
                     </FormRow>
                     <div className="mt-6 flex justify-end gap-2">

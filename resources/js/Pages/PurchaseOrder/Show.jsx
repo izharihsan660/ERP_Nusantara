@@ -1,10 +1,12 @@
 import Modal from '@/Components/Modal';
+import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import InvoiceSection from '@/Pages/Shared/InvoiceSection';
 import SpbSection from '@/Pages/Shared/SpbSection';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Download, Send, X } from 'lucide-react';
 import { useState } from 'react';
@@ -24,10 +26,6 @@ function StatusBadge({ status, label }) {
     );
 }
 
-function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function Info({ label, value }) {
     return (
         <div>
@@ -42,7 +40,7 @@ function ActionModal({ show, title, label, value, error, processing, variant = '
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{title}</h2>
-                <label className="mt-4 block text-sm font-medium text-slate-700 dark:text-slate-200">{label}</label>
+                <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
                 <div className="mt-6 flex justify-end gap-2">
@@ -168,15 +166,15 @@ export default function Show({ purchaseOrder, sites }) {
                                         <td className="px-4 py-3">{item.deskripsi}</td>
                                         <td className="px-4 py-3 text-right">{item.qty}</td>
                                         <td className="px-4 py-3">{item.satuan}</td>
-                                        <td className="px-4 py-3 text-right">{money(item.harga_satuan)}</td>
-                                        <td className="px-4 py-3 text-right">{money(item.jumlah)}</td>
+                                        <td className="px-4 py-3 text-right">{formatRupiah(item.harga_satuan)}</td>
+                                        <td className="px-4 py-3 text-right">{formatRupiah(item.jumlah)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot className="bg-slate-50 font-semibold dark:bg-slate-900">
                                 <tr>
                                     <td className="px-4 py-3" colSpan="5">Total</td>
-                                    <td className="px-4 py-3 text-right">{money(purchaseOrder.total)}</td>
+                                    <td className="px-4 py-3 text-right">{formatRupiah(purchaseOrder.total)}</td>
                                 </tr>
                             </tfoot>
                         </table>

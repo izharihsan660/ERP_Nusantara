@@ -21,6 +21,7 @@ class StoreQuotationRequest extends FormRequest
             'tgl_quotation' => ['required', 'date'],
             'customer_id' => ['required', Rule::exists('customers', 'id')],
             'template_id' => ['required', Rule::exists('document_templates', 'id')],
+            'catatan' => ['nullable', 'string'],
             'submit' => ['nullable', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.katalog_id' => ['required', Rule::exists('katalog', 'id')],

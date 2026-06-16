@@ -1,21 +1,18 @@
 import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Plus, Save, Send, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 function today() {
     return new Date().toISOString().slice(0, 10);
-}
-
-function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 const emptyItem = { katalog_id: '', deskripsi: '', satuan: '', qty: 1, harga_satuan: 0 };
@@ -83,7 +80,7 @@ export default function Create({ customers, vendors, katalog }) {
                 <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                     <div className="grid gap-4 lg:grid-cols-3">
                         <div>
-                            <Label>Pilih Customer</Label>
+                            <InputLabel label="Customer" required />
                             <Input className="mt-1" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Cari customer..." />
                             <Select className="mt-2" value={data.customer_id} onChange={(e) => setData('customer_id', e.target.value)}>
                                 <option value="">Pilih customer...</option>
@@ -92,7 +89,7 @@ export default function Create({ customers, vendors, katalog }) {
                             <InputError message={errors.customer_id} className="mt-2" />
                         </div>
                         <div>
-                            <Label>Pilih Vendor</Label>
+                            <InputLabel label="Vendor" required />
                             <Input className="mt-1" value={vendorSearch} onChange={(e) => setVendorSearch(e.target.value)} placeholder="Cari vendor..." />
                             <Select className="mt-2" value={data.vendor_id} onChange={(e) => setData('vendor_id', e.target.value)}>
                                 <option value="">Pilih vendor...</option>
@@ -101,22 +98,22 @@ export default function Create({ customers, vendors, katalog }) {
                             <InputError message={errors.vendor_id} className="mt-2" />
                         </div>
                         <div>
-                            <Label>Tanggal PO</Label>
+                            <InputLabel label="Tanggal PO" required />
                             <Input className="mt-1" type="date" value={data.tgl_po} onChange={(e) => setData('tgl_po', e.target.value)} />
                             <InputError message={errors.tgl_po} className="mt-2" />
                         </div>
                         <div>
-                            <Label>No. PR Customer (opsional)</Label>
+                            <InputLabel label="No. PR Customer" optional />
                             <Input className="mt-1" value={data.no_pr_customer} onChange={(e) => setData('no_pr_customer', e.target.value)} />
                             <InputError message={errors.no_pr_customer} className="mt-2" />
                         </div>
                         <div>
-                            <Label>No. PO Customer (opsional)</Label>
+                            <InputLabel label="No. PO Customer" optional />
                             <Input className="mt-1" value={data.no_po_customer} onChange={(e) => setData('no_po_customer', e.target.value)} />
                             <InputError message={errors.no_po_customer} className="mt-2" />
                         </div>
                         <div className="lg:col-span-2">
-                            <Label>Catatan (opsional)</Label>
+                            <InputLabel label="Catatan" optional />
                             <Textarea className="mt-1" value={data.catatan} onChange={(e) => setData('catatan', e.target.value)} />
                             <InputError message={errors.catatan} className="mt-2" />
                         </div>
@@ -125,7 +122,10 @@ export default function Create({ customers, vendors, katalog }) {
 
                 <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-slate-800">
-                        <h2 className="font-semibold">Item</h2>
+                        <div>
+                            <h2 className="font-semibold">Item <span className="text-red-600">*</span></h2>
+                            <InputError message={errors.items} className="mt-1" />
+                        </div>
                         <div className="flex flex-wrap items-center gap-2">
                             <Input value={katalogSearch} onChange={(e) => setKatalogSearch(e.target.value)} placeholder="Cari katalog..." className="w-56" />
                             <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
@@ -136,10 +136,10 @@ export default function Create({ customers, vendors, katalog }) {
                             <thead className="bg-slate-50 dark:bg-slate-900">
                                 <tr>
                                     <th className="px-3 py-3 text-left">Katalog</th>
-                                    <th className="px-3 py-3 text-left">Deskripsi</th>
-                                    <th className="px-3 py-3 text-left">Qty</th>
+                                    <th className="px-3 py-3 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
+                                    <th className="px-3 py-3 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
                                     <th className="px-3 py-3 text-left">Satuan</th>
-                                    <th className="px-3 py-3 text-left">Harga Satuan</th>
+                                    <th className="px-3 py-3 text-left"><InputLabel label="Harga Satuan" required className="text-xs" /></th>
                                     <th className="px-3 py-3 text-right">Jumlah</th>
                                     <th className="px-3 py-3" />
                                 </tr>
@@ -156,11 +156,23 @@ export default function Create({ customers, vendors, katalog }) {
                                                     {filteredKatalog.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
                                                 </Select>
                                             </td>
-                                            <td className="min-w-64 px-3 py-3"><Input value={item.deskripsi} onChange={(e) => updateItem(index, 'deskripsi', e.target.value)} /></td>
-                                            <td className="w-24 px-3 py-3"><Input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', e.target.value)} /></td>
-                                            <td className="w-28 px-3 py-3"><Input value={item.satuan ?? ''} onChange={(e) => updateItem(index, 'satuan', e.target.value)} /></td>
-                                            <td className="w-40 px-3 py-3"><Input type="number" min="0" step="0.01" value={item.harga_satuan} onChange={(e) => updateItem(index, 'harga_satuan', e.target.value)} /></td>
-                                            <td className="whitespace-nowrap px-3 py-3 text-right">{money(jumlah)}</td>
+                                            <td className="min-w-64 px-3 py-3">
+                                                <Input value={item.deskripsi} onChange={(e) => updateItem(index, 'deskripsi', e.target.value)} />
+                                                <InputError message={errors[`items.${index}.deskripsi`]} className="mt-2" />
+                                            </td>
+                                            <td className="w-24 px-3 py-3">
+                                                <Input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', e.target.value)} />
+                                                <InputError message={errors[`items.${index}.qty`]} className="mt-2" />
+                                            </td>
+                                            <td className="w-28 px-3 py-3">
+                                                <Input value={item.satuan ?? ''} onChange={(e) => updateItem(index, 'satuan', e.target.value)} />
+                                                <InputError message={errors[`items.${index}.satuan`]} className="mt-2" />
+                                            </td>
+                                            <td className="w-40 px-3 py-3">
+                                                <Input inputMode="numeric" value={formatRupiahInput(item.harga_satuan)} onChange={(e) => updateItem(index, 'harga_satuan', parseRupiah(e.target.value))} />
+                                                <InputError message={errors[`items.${index}.harga_satuan`]} className="mt-2" />
+                                            </td>
+                                            <td className="whitespace-nowrap px-3 py-3 text-right">{formatRupiah(jumlah)}</td>
                                             <td className="px-3 py-3">
                                                 <Button type="button" size="icon" variant="ghost" onClick={() => removeItem(index)} disabled={data.items.length === 1}>
                                                     <Trash2 className="h-4 w-4" />
@@ -173,13 +185,12 @@ export default function Create({ customers, vendors, katalog }) {
                             <tfoot className="bg-slate-50 font-semibold dark:bg-slate-900">
                                 <tr>
                                     <td className="px-3 py-3" colSpan="5">Total Keseluruhan</td>
-                                    <td className="px-3 py-3 text-right">{money(total)}</td>
+                                    <td className="px-3 py-3 text-right">{formatRupiah(total)}</td>
                                     <td />
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
-                    <InputError message={errors.items} className="px-4 pb-4" />
                 </section>
 
                 <div className="flex justify-end gap-2">

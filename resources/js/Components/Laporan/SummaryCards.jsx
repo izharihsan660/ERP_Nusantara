@@ -1,6 +1,8 @@
+import { formatRupiah } from '@/utils/currency';
+
 function formatValue(value, type = 'number') {
     if (type === 'money') {
-        return `Rp ${Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        return formatRupiah(value);
     }
 
     if (type === 'percent') {

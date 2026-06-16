@@ -4,6 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
+import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, FilePlus2, Ban } from 'lucide-react';
 
@@ -23,10 +24,6 @@ function StatusBadge({ status, label }) {
     );
 }
 
-function money(value) {
-    return Number(value ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 export default function Index({ quotations, filters, customers, statuses }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const columns = [
@@ -34,7 +31,7 @@ export default function Index({ quotations, filters, customers, statuses }) {
         { key: 'customer', label: 'Customer' },
         { key: 'tgl_quotation', label: 'Tanggal', sortable: true },
         { key: 'revisi', label: 'Revisi', sortable: true },
-        { key: 'total', label: 'Total', render: (row) => money(row.total) },
+        { key: 'total', label: 'Total', render: (row) => formatRupiah(row.total) },
         { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge status={row.status} label={row.status_label} /> },
         {
             key: 'actions',

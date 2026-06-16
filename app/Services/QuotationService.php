@@ -55,6 +55,7 @@ class QuotationService
                 'template_id' => $data['template_id'],
                 'revisi' => $data['revisi'] ?? 0,
                 'status' => QuotationStatus::Draft,
+                'catatan' => $data['catatan'] ?? null,
                 'created_by' => $user->id,
             ]);
 
@@ -132,6 +133,7 @@ class QuotationService
             'tgl_quotation' => now()->toDateString(),
             'customer_id' => $quotation->customer_id,
             'template_id' => $quotation->template_id,
+            'catatan' => $quotation->catatan,
             'revisi' => $quotation->revisi + 1,
             'items' => $quotation->items->map(fn ($item): array => [
                 'katalog_id' => $item->katalog_id,
