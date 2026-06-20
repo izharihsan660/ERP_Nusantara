@@ -88,6 +88,7 @@ export default function SpbSection({
     const [modal, setModal] = useState(null);
     const [siteSearch, setSiteSearch] = useState('');
     const [selectedSpb, setSelectedSpb] = useState(null);
+    const initialSourceItems = sourceOptions[0]?.source_items ?? sourceItems;
     const form = useForm({
         source_id: sourceOptions[0]?.id ?? '',
         tgl_spb: today(),
@@ -97,7 +98,7 @@ export default function SpbSection({
         etd: '',
         eta: '',
         catatan: '',
-        items: normalizeItems(sourceItems),
+        items: normalizeItems(initialSourceItems),
     });
     const voidForm = useForm({ alasan_void: '' });
 

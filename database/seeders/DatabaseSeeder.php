@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\DocumentType;
-use App\Models\Customer;
-use App\Models\DocumentTemplate;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -17,58 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RolePermissionSeeder::class);
-
-        $defaultQuotationTemplate = DocumentTemplate::updateOrCreate(
-            ['kode_template' => 'QUOTATION-DEFAULT'],
-            [
-                'nama_template' => 'Quotation Umum',
-                'tipe_dokumen' => DocumentType::Quotation,
-                'blade_file' => 'pdf.quotation.default',
-                'is_default' => true,
-                'keterangan' => 'Template standar quotation.',
-            ],
-        );
-
-        DocumentTemplate::updateOrCreate(
-            ['kode_template' => 'QUOTATION-MIL'],
-            [
-                'nama_template' => 'Quotation MIL',
-                'tipe_dokumen' => DocumentType::Quotation,
-                'blade_file' => 'pdf.quotation.mil',
-                'is_default' => false,
-                'keterangan' => 'Template quotation khusus MIL.',
-            ],
-        );
-
-        $defaultSpbTemplate = DocumentTemplate::updateOrCreate(
-            ['kode_template' => 'SPB-DEFAULT'],
-            [
-                'nama_template' => 'SPB Umum',
-                'tipe_dokumen' => DocumentType::Spb,
-                'blade_file' => 'pdf.spb.default',
-                'is_default' => true,
-                'keterangan' => 'Template standar SPB.',
-            ],
-        );
-
-        DocumentTemplate::updateOrCreate(
-            ['kode_template' => 'SPB-MIL'],
-            [
-                'nama_template' => 'SPB MIL',
-                'tipe_dokumen' => DocumentType::Spb,
-                'blade_file' => 'pdf.spb.mil',
-                'is_default' => false,
-                'keterangan' => 'Template SPB khusus MIL.',
-            ],
-        );
-
-        Customer::query()
-            ->whereNull('template_quotation_id')
-            ->update(['template_quotation_id' => $defaultQuotationTemplate->id]);
-
-        Customer::query()
-            ->whereNull('template_spb_id')
-            ->update(['template_spb_id' => $defaultSpbTemplate->id]);
+        $this->call(MasterDataSeeder::class);
 
         $superadmin = User::updateOrCreate(
             ['email' => env('SUPERADMIN_EMAIL', 'superadmin@naj.local')],
@@ -81,5 +27,27 @@ class DatabaseSeeder extends Seeder
         );
 
         $superadmin->assignRole('Superadmin');
+
+        $dummyUsers = [
+            ['name' => 'Sales NAJ', 'email' => 'sales@naj.local', 'role' => 'Sales'],
+            ['name' => 'Gudang NAJ', 'email' => 'gudang@naj.local', 'role' => 'Gudang'],
+            ['name' => 'Finance NAJ', 'email' => 'finance@naj.local', 'role' => 'Finance'],
+            ['name' => 'Procurement NAJ', 'email' => 'procurement@naj.local', 'role' => 'Procurement'],
+            ['name' => 'Manager NAJ', 'email' => 'manager@naj.local', 'role' => 'Manager'],
+        ];
+
+        foreach ($dummyUsers as $dummyUser) {
+            $user = User::updateOrCreate(
+                ['email' => $dummyUser['email']],
+                [
+                    'name' => $dummyUser['name'],
+                    'email_verified_at' => now(),
+                    'password' => Hash::make('password'),
+                    'is_active' => true,
+                ],
+            );
+
+            $user->syncRoles([$dummyUser['role']]);
+        }
     }
 }
