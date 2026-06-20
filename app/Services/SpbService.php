@@ -40,6 +40,7 @@ class SpbService
             $date = Carbon::parse($data['tgl_spb']);
 
             $this->validateSite($data['site_id'] ?? null, $customer);
+            $itemsToCreate = $this->validatedItemsForSource($data['items'], $spbAble);
 
             $spb = Spb::create([
                 'no_spb' => $this->documentNumberService->generateSpbNumber($date),
@@ -59,11 +60,11 @@ class SpbService
                 'created_by' => $user->id,
             ]);
 
-            foreach ($data['items'] as $item) {
+            foreach ($itemsToCreate as $item) {
                 $spb->items()->create([
                     'part_no' => $item['part_no'],
                     'deskripsi' => $item['deskripsi'],
-                    'qty' => $item['qty'],
+                    'qty' => $item['qty_kirim'],
                     'berat' => $item['berat'] ?? 0,
                     'volume' => $item['volume'] ?? 0,
                     'dimensi' => $item['dimensi'] ?? null,
@@ -244,5 +245,85 @@ class SpbService
             ->whereKeyNot($spb->id)
             ->where('status', '!=', SpbStatus::Void->value)
             ->exists();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function validatedItemsForSource(array $items, Model $spbAble): array
+    {
+        $sourceItems = $this->sourceItemsByPartNo($spbAble);
+        $itemsToCreate = [];
+
+        foreach ($items as $index => $item) {
+            $partNo = $item['part_no'] ?? '';
+            $qtyKirim = (int) ($item['qty_kirim'] ?? $item['qty'] ?? 0);
+
+            if ($qtyKirim <= 0) {
+                continue;
+            }
+
+            if (! isset($sourceItems[$partNo])) {
+                throw ValidationException::withMessages(["items.{$index}.part_no" => 'Item tidak ditemukan di sumber dokumen.']);
+            }
+
+            if ($qtyKirim > $sourceItems[$partNo]['qty_sisa']) {
+                throw ValidationException::withMessages(["items.{$index}.qty_kirim" => "Qty kirim tidak boleh melebihi qty sisa ({$sourceItems[$partNo]['qty_sisa']})."]);
+            }
+
+            $itemsToCreate[] = [
+                'part_no' => $partNo,
+                'deskripsi' => $sourceItems[$partNo]['deskripsi'],
+                'qty_kirim' => $qtyKirim,
+                'berat' => $item['berat'] ?? 0,
+                'volume' => $item['volume'] ?? 0,
+                'dimensi' => $item['dimensi'] ?? null,
+                'sku' => $item['sku'] ?? null,
+            ];
+        }
+
+        if ($itemsToCreate === []) {
+            throw ValidationException::withMessages(['items' => 'Minimal 1 item harus memiliki qty kirim > 0.']);
+        }
+
+        return $itemsToCreate;
+    }
+
+    /**
+     * @return array<string, array{deskripsi: string, qty_sisa: int}>
+     */
+    private function sourceItemsByPartNo(Model $spbAble): array
+    {
+        if ($spbAble instanceof WipOrder) {
+            $spbAble->loadMissing('salesOrder.quotation.items');
+            $qtyTerkirim = Spb::getQtyTerkirimGrouped(WipOrder::class, $spbAble->id);
+
+            return $spbAble->salesOrder->quotation->items
+                ->mapWithKeys(fn ($item): array => [
+                    $item->part_no => [
+                        'deskripsi' => $item->deskripsi,
+                        'qty_sisa' => max(0, $item->qty - ($qtyTerkirim[$item->part_no] ?? 0)),
+                    ],
+                ])->toArray();
+        }
+
+        if ($spbAble instanceof PurchaseOrder) {
+            $spbAble->loadMissing('items.katalog');
+            $qtyTerkirim = Spb::getQtyTerkirimGrouped(PurchaseOrder::class, $spbAble->id);
+
+            return $spbAble->items
+                ->mapWithKeys(function ($item) use ($qtyTerkirim): array {
+                    $partNo = $item->katalog?->part_no ?? '';
+
+                    return [
+                        $partNo => [
+                            'deskripsi' => $item->deskripsi,
+                            'qty_sisa' => max(0, $item->qty - ($qtyTerkirim[$partNo] ?? 0)),
+                        ],
+                    ];
+                })->toArray();
+        }
+
+        return [];
     }
 }

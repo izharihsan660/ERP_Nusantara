@@ -265,12 +265,8 @@ export default function Show({ quotation, sites }) {
             id: wip.id,
             label: `${wip.no_wip} - ${wip.tipe_order_label}`,
             route: 'wip-orders.spb.store',
+            source_items: wip.source_items ?? [],
         })) ?? [];
-    const spbDefaultItems = quotation.items.map((item) => ({
-        part_no: item.part_no,
-        deskripsi: item.deskripsi,
-        qty: item.qty,
-    }));
 
     return (
         <AppLayout title="Detail Quotation">
@@ -475,7 +471,6 @@ export default function Show({ quotation, sites }) {
                             sourceOptions={wipSourceOptions}
                             customer={quotation.customer}
                             sites={sites}
-                            defaultItems={spbDefaultItems}
                         />
                         <InvoiceSection
                             spbList={spbList}

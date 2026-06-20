@@ -5,7 +5,7 @@ import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { useForm, usePage } from '@inertiajs/react';
-import { Ban, Download, Plus, Trash2 } from 'lucide-react';
+import { Ban, Download, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const statusStyles = {
@@ -15,9 +15,11 @@ const statusStyles = {
 };
 
 const emptyItem = {
+    katalog_id: null,
     part_no: '',
     deskripsi: '',
-    qty: 1,
+    qty_kirim: 0,
+    qty_sisa: 0,
     berat: 0,
     volume: 0,
     dimensi: '',
@@ -56,9 +58,13 @@ function normalizeItems(items) {
     }
 
     return items.map((item) => ({
+        katalog_id: item.katalog_id ?? null,
         part_no: item.part_no ?? '',
         deskripsi: item.deskripsi ?? '',
-        qty: item.qty ?? 1,
+        qty_dipesan: item.qty_dipesan ?? item.qty ?? 0,
+        qty_terkirim: item.qty_terkirim ?? 0,
+        qty_sisa: item.qty_sisa ?? item.qty ?? 0,
+        qty_kirim: item.qty_sisa ?? item.qty ?? 0,
         berat: 0,
         volume: 0,
         dimensi: '',
@@ -69,10 +75,10 @@ function normalizeItems(items) {
 export default function SpbSection({
     spbList = [],
     sourceOptions = [],
+    sourceItems = [],
     customer = null,
     customers = [],
     sites = [],
-    defaultItems = [],
     showCustomerField = false,
 }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
@@ -91,7 +97,7 @@ export default function SpbSection({
         etd: '',
         eta: '',
         catatan: '',
-        items: normalizeItems(defaultItems),
+        items: normalizeItems(sourceItems),
     });
     const voidForm = useForm({ alasan_void: '' });
 
@@ -101,7 +107,21 @@ export default function SpbSection({
         .filter((site) => site.label.toLowerCase().includes(siteSearch.toLowerCase())), [sites, selectedCustomerId, siteSearch]);
     const selectedSource = sourceOptions.find((source) => String(source.id) === String(form.data.source_id));
 
+    const handleSourceChange = (sourceId) => {
+        form.setData('source_id', sourceId);
+        const source = sourceOptions.find((s) => String(s.id) === String(sourceId));
+        if (source && source.source_items) {
+            const items = normalizeItems(source.source_items);
+            form.setData('items', items);
+        }
+    };
+
     const openCreate = () => {
+        const initialSource = sourceOptions[0];
+        const initialItems = initialSource?.source_items
+            ? normalizeItems(initialSource.source_items)
+            : normalizeItems(sourceItems);
+
         form.setData({
             source_id: sourceOptions[0]?.id ?? '',
             tgl_spb: today(),
@@ -111,7 +131,7 @@ export default function SpbSection({
             etd: '',
             eta: '',
             catatan: '',
-            items: normalizeItems(defaultItems),
+            items: initialItems,
         });
         setSiteSearch('');
         setModal('create');
@@ -119,12 +139,14 @@ export default function SpbSection({
 
     const updateItem = (index, field, value) => {
         const items = [...form.data.items];
-        items[index] = { ...items[index], [field]: value };
+        const item = { ...items[index], [field]: value };
+
+        items[index] = item;
         form.setData('items', items);
     };
 
-    const addItem = () => form.setData('items', [...form.data.items, { ...emptyItem }]);
-    const removeItem = (index) => form.setData('items', form.data.items.filter((_, itemIndex) => itemIndex !== index));
+    const totalQtyKirim = form.data.items.reduce((sum, item) => sum + (parseInt(item.qty_kirim) || 0), 0);
+    const allItemsSent = form.data.items.every((item) => (item.qty_sisa || 0) === 0);
 
     const submitCreate = (event) => {
         event.preventDefault();
@@ -195,7 +217,14 @@ export default function SpbSection({
                                 </td>
                                 <td className="whitespace-nowrap px-4 py-3">{spb.tgl_spb}</td>
                                 <td className="px-4 py-3">{spb.referensi_tipe} - {spb.no_referensi}</td>
-                                <td className="px-4 py-3">{spb.items_count} baris / {spb.items_qty} qty</td>
+                                <td className="px-4 py-3">
+                                    <div>{spb.items_count} item | {spb.items_qty} qty dikirim</div>
+                                    {spb.total_dipesan > 0 && (
+                                        <div className="mt-1 text-xs text-slate-500">
+                                            Total terkirim: {spb.total_terkirim} / {spb.total_dipesan} qty
+                                        </div>
+                                    )}
+                                </td>
                                 <td className="px-4 py-3"><StatusBadge status={spb.status} label={spb.status_label} /></td>
                                 <td className="px-4 py-3">
                                     <div className="flex justify-end gap-2">
@@ -231,7 +260,7 @@ export default function SpbSection({
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
                         {sourceOptions.length > 1 && (
                             <FormRow label="Sumber SPB" required error={form.errors.source_id}>
-                                <Select value={form.data.source_id} onChange={(e) => form.setData('source_id', e.target.value)}>
+                                <Select value={form.data.source_id} onChange={(e) => handleSourceChange(e.target.value)}>
                                     {sourceOptions.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
                                 </Select>
                             </FormRow>
@@ -273,68 +302,78 @@ export default function SpbSection({
                         </div>
                     </div>
 
-                    <div className="mt-6 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-3 dark:border-slate-700">
-                            <div>
-                                <h3 className="font-medium text-slate-950 dark:text-white">Items <span className="text-red-600">*</span></h3>
-                                <FieldError message={form.errors.items} />
-                            </div>
-                            <Button type="button" size="sm" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
+                    <div className="mt-6 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <InputLabel label="Daftar Barang dari Sumber Dokumen" required />
+                            {allItemsSent && (
+                                <span className="text-sm font-medium text-amber-600">Semua item sudah terkirim penuh</span>
+                            )}
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full text-sm">
+                        <FieldError message={form.errors.items} />
+                        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                            <table className="w-full border-collapse text-sm">
                                 <thead className="bg-slate-50 dark:bg-slate-900">
                                     <tr>
-                                        <th className="px-3 py-2 text-left"><InputLabel label="Part No" required className="text-xs" /></th>
-                                        <th className="px-3 py-2 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
-                                        <th className="px-3 py-2 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
-                                        <th className="px-3 py-2 text-left"><InputLabel label="Berat" optional className="text-xs" /></th>
-                                        <th className="px-3 py-2 text-left"><InputLabel label="Volume" optional className="text-xs" /></th>
-                                        <th className="px-3 py-2 text-left"><InputLabel label="Dimensi" optional className="text-xs" /></th>
-                                        <th className="px-3 py-2 text-left"><InputLabel label="SKU" optional className="text-xs" /></th>
-                                        <th className="px-3 py-2" />
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Part No</th>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Nama Barang</th>
+                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Dipesan</th>
+                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Terkirim</th>
+                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Sisa</th>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Kirim Sekarang</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {form.data.items.map((item, index) => (
-                                        <tr key={index}>
-                                            <td className="min-w-32 px-3 py-2">
-                                                <Input value={item.part_no} onChange={(e) => updateItem(index, 'part_no', e.target.value)} />
-                                                <FieldError message={form.errors[`items.${index}.part_no`]} />
-                                            </td>
-                                            <td className="min-w-56 px-3 py-2">
-                                                <Input value={item.deskripsi} onChange={(e) => updateItem(index, 'deskripsi', e.target.value)} />
-                                                <FieldError message={form.errors[`items.${index}.deskripsi`]} />
-                                            </td>
-                                            <td className="w-24 px-3 py-2">
-                                                <Input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', e.target.value)} />
-                                                <FieldError message={form.errors[`items.${index}.qty`]} />
-                                            </td>
-                                            <td className="w-28 px-3 py-2">
-                                                <Input type="number" min="0" step="0.01" value={item.berat} onChange={(e) => updateItem(index, 'berat', e.target.value)} />
-                                                <FieldError message={form.errors[`items.${index}.berat`]} />
-                                            </td>
-                                            <td className="w-28 px-3 py-2">
-                                                <Input type="number" min="0" step="0.01" value={item.volume} onChange={(e) => updateItem(index, 'volume', e.target.value)} />
-                                                <FieldError message={form.errors[`items.${index}.volume`]} />
-                                            </td>
-                                            <td className="w-36 px-3 py-2"><Input value={item.dimensi} onChange={(e) => updateItem(index, 'dimensi', e.target.value)} /></td>
-                                            <td className="w-32 px-3 py-2"><Input value={item.sku} onChange={(e) => updateItem(index, 'sku', e.target.value)} /></td>
+                                        <tr key={index} className={(item.qty_sisa || 0) === 0 ? 'bg-slate-50 dark:bg-slate-900/50' : ''}>
                                             <td className="px-3 py-2">
-                                                <Button type="button" size="icon" variant="ghost" onClick={() => removeItem(index)} disabled={form.data.items.length === 1}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                <div className="text-sm font-medium text-slate-900 dark:text-white">{item.part_no || '-'}</div>
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <div className="text-sm text-slate-700 dark:text-slate-300">{item.deskripsi || '-'}</div>
+                                            </td>
+                                            <td className="px-3 py-2 text-right">
+                                                <div className="text-sm text-slate-700 dark:text-slate-300">{item.qty_dipesan || 0}</div>
+                                            </td>
+                                            <td className="px-3 py-2 text-right">
+                                                <div className="text-sm text-slate-700 dark:text-slate-300">{item.qty_terkirim || 0}</div>
+                                            </td>
+                                            <td className="px-3 py-2 text-right">
+                                                <div className={`text-sm font-medium ${(item.qty_sisa || 0) === 0 ? 'text-slate-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                    {item.qty_sisa || 0}
+                                                </div>
+                                            </td>
+                                            <td className="w-36 px-3 py-2">
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    max={item.qty_sisa || 0}
+                                                    value={item.qty_kirim || 0}
+                                                    onChange={(e) => updateItem(index, 'qty_kirim', e.target.value)}
+                                                    disabled={(item.qty_sisa || 0) === 0}
+                                                    className={parseInt(item.qty_kirim || 0) > (item.qty_sisa || 0) ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}
+                                                />
+                                                <FieldError message={form.errors[`items.${index}.qty_kirim`]} />
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
+                        <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm dark:bg-slate-900">
+                            <div className="text-slate-600 dark:text-slate-400">
+                                Minimal 1 item harus memiliki qty kirim &gt; 0
+                            </div>
+                            <div className="font-medium text-slate-900 dark:text-white">
+                                Total Kirim: <span className="text-emerald-600 dark:text-emerald-400">{totalQtyKirim}</span> qty
+                            </div>
+                        </div>
                     </div>
 
                     <div className="mt-6 flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => setModal(null)} disabled={form.processing}>Batal</Button>
-                        <Button type="submit" disabled={form.processing || !selectedSource}>Simpan SPB</Button>
+                        <Button type="submit" disabled={form.processing || !selectedSource || allItemsSent || totalQtyKirim === 0}>
+                            Simpan SPB
+                        </Button>
                     </div>
                 </form>
             </Modal>

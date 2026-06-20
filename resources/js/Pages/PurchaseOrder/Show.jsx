@@ -64,13 +64,13 @@ export default function Show({ purchaseOrder, sites }) {
     const canDownload = permissions.includes('download_pdf_purchase_order');
     const canVoid = permissions.includes('void_purchase_order') && purchaseOrder.status !== 'VOID';
     const spbSourceOptions = purchaseOrder.status === 'APPROVED'
-        ? [{ id: purchaseOrder.id, label: purchaseOrder.no_purchase_order, route: 'purchase-orders.spb.store' }]
+        ? [{
+            id: purchaseOrder.id,
+            label: purchaseOrder.no_purchase_order,
+            route: 'purchase-orders.spb.store',
+            source_items: purchaseOrder.source_items ?? [],
+        }]
         : [];
-    const spbDefaultItems = purchaseOrder.items.map((item) => ({
-        part_no: item.part_no ?? '',
-        deskripsi: item.deskripsi,
-        qty: item.qty,
-    }));
 
     const submitReject = (event) => {
         event.preventDefault();
@@ -185,7 +185,6 @@ export default function Show({ purchaseOrder, sites }) {
                     sourceOptions={spbSourceOptions}
                     customer={purchaseOrder.customer}
                     sites={sites}
-                    defaultItems={spbDefaultItems}
                 />
                 <InvoiceSection spbList={purchaseOrder.spb} />
             </div>

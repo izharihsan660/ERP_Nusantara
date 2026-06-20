@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Transaction;
 use App\Enums\DocumentType;
 use App\Enums\PDStatus;
 use App\Enums\QuotationStatus;
+use App\Enums\SpbStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotation\RejectQuotationRequest;
 use App\Http\Requests\Quotation\StoreQuotationRequest;
@@ -19,6 +20,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\Spb;
+use App\Models\SpbItem;
 use App\Models\WipOrder;
 use App\Services\QuotationPDFService;
 use App\Services\QuotationService;
@@ -316,6 +318,8 @@ class QuotationController extends Controller
      */
     private function salesOrderData(SalesOrder $salesOrder): array
     {
+        $quotation = $salesOrder->quotation;
+
         return [
             'id' => $salesOrder->id,
             'no_po_customer' => $salesOrder->no_po_customer,
@@ -329,21 +333,39 @@ class QuotationController extends Controller
             'status_label' => $salesOrder->status->label(),
             'alasan_void' => $salesOrder->alasan_void,
             'is_voidable' => $salesOrder->isVoidable(),
-            'wip_orders' => $salesOrder->wipOrders->map(fn (WipOrder $wip): array => [
-                'id' => $wip->id,
-                'no_wip' => $wip->no_wip,
-                'tipe_order' => $wip->tipe_order->value,
-                'tipe_order_label' => $wip->tipe_order->label(),
-                'nama_ekspedisi' => $wip->nama_ekspedisi,
-                'status_supply' => $wip->status_supply->value,
-                'status_supply_label' => $wip->status_supply->label(),
-                'tersupply_at' => $wip->tersupply_at?->format('Y-m-d H:i'),
-                'status' => $wip->status->value,
-                'status_label' => $wip->status->label(),
-                'alasan_void' => $wip->alasan_void,
-                'is_voidable' => $wip->isVoidable(),
-                'spb' => $wip->spb->map(fn (Spb $spb): array => $this->spbData($spb))->values(),
-            ])->values(),
+            'wip_orders' => $salesOrder->wipOrders->map(function (WipOrder $wip) use ($quotation): array {
+                $qtyTerkirimGrouped = Spb::getQtyTerkirimGrouped(WipOrder::class, $wip->id);
+                $sourceItems = $quotation->items->map(function ($item) use ($qtyTerkirimGrouped) {
+                    $qtyTerkirim = $qtyTerkirimGrouped[$item->part_no] ?? 0;
+                    $qtySisa = max(0, $item->qty - $qtyTerkirim);
+
+                    return [
+                        'katalog_id' => $item->katalog_id,
+                        'part_no' => $item->part_no,
+                        'deskripsi' => $item->deskripsi,
+                        'qty_dipesan' => $item->qty,
+                        'qty_terkirim' => $qtyTerkirim,
+                        'qty_sisa' => $qtySisa,
+                    ];
+                })->values()->toArray();
+
+                return [
+                    'id' => $wip->id,
+                    'no_wip' => $wip->no_wip,
+                    'tipe_order' => $wip->tipe_order->value,
+                    'tipe_order_label' => $wip->tipe_order->label(),
+                    'nama_ekspedisi' => $wip->nama_ekspedisi,
+                    'status_supply' => $wip->status_supply->value,
+                    'status_supply_label' => $wip->status_supply->label(),
+                    'tersupply_at' => $wip->tersupply_at?->format('Y-m-d H:i'),
+                    'status' => $wip->status->value,
+                    'status_label' => $wip->status->label(),
+                    'alasan_void' => $wip->alasan_void,
+                    'is_voidable' => $wip->isVoidable(),
+                    'source_items' => $sourceItems,
+                    'spb' => $wip->spb->map(fn (Spb $spb): array => $this->spbData($spb))->values(),
+                ];
+            })->values(),
         ];
     }
 
@@ -352,6 +374,13 @@ class QuotationController extends Controller
      */
     private function spbData(Spb $spb): array
     {
+        $totalDipesan = $this->spbTotalDipesan($spb);
+        $totalTerkirim = SpbItem::whereHas('spb', function ($query) use ($spb) {
+            $query->where('spb_able_type', $spb->spb_able_type)
+                ->where('spb_able_id', $spb->spb_able_id)
+                ->where('status', '!=', SpbStatus::Void->value);
+        })->sum('qty');
+
         return [
             'id' => $spb->id,
             'no_spb' => $spb->no_spb,
@@ -363,12 +392,26 @@ class QuotationController extends Controller
             'status_label' => $spb->status->label(),
             'items_count' => $spb->items->count(),
             'items_qty' => $spb->items->sum('qty'),
+            'total_dipesan' => $totalDipesan,
+            'total_terkirim' => $totalTerkirim,
             'is_voidable' => $spb->isVoidable(),
             'is_parsial' => $spb->isParsial(),
             'site' => $spb->site?->only(['id', 'nama_site', 'alamat']),
             'customer' => $spb->customer?->only(['id', 'nama_customer']),
             'invoice' => $spb->invoice ? $this->invoiceData($spb->invoice) : null,
         ];
+    }
+
+    private function spbTotalDipesan(Spb $spb): int
+    {
+        if ($spb->spb_able_type !== WipOrder::class) {
+            return 0;
+        }
+
+        $wipOrder = $spb->spbAble ?? WipOrder::query()->find($spb->spb_able_id);
+        $wipOrder?->loadMissing('salesOrder.quotation.items');
+
+        return (int) ($wipOrder?->salesOrder?->quotation?->items?->sum('qty') ?? 0);
     }
 
     /**

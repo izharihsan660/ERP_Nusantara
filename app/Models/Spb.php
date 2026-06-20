@@ -131,4 +131,35 @@ class Spb extends Model
             ->where('status', '!=', 'VOID')
             ->exists();
     }
+
+    /**
+     * Get qty terkirim for specific part_no from a source document
+     */
+    public static function getQtyTerkirim(string $spbAbleType, int $spbAbleId, string $partNo): int
+    {
+        return SpbItem::whereHas('spb', function ($query) use ($spbAbleType, $spbAbleId) {
+            $query->where('spb_able_type', $spbAbleType)
+                ->where('spb_able_id', $spbAbleId)
+                ->where('status', '!=', SpbStatus::Void->value);
+        })
+            ->where('part_no', $partNo)
+            ->sum('qty');
+    }
+
+    /**
+     * Get all qty terkirim grouped by part_no from a source document
+     */
+    public static function getQtyTerkirimGrouped(string $spbAbleType, int $spbAbleId): array
+    {
+        $items = SpbItem::whereHas('spb', function ($query) use ($spbAbleType, $spbAbleId) {
+            $query->where('spb_able_type', $spbAbleType)
+                ->where('spb_able_id', $spbAbleId)
+                ->where('status', '!=', SpbStatus::Void->value);
+        })
+            ->selectRaw('part_no, SUM(qty) as total_qty')
+            ->groupBy('part_no')
+            ->get();
+
+        return $items->pluck('total_qty', 'part_no')->toArray();
+    }
 }

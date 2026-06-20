@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Enums\PurchaseOrderStatus;
+use App\Enums\SpbStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PurchaseOrder\RejectPurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\StorePurchaseOrderRequest;
@@ -14,6 +15,7 @@ use App\Models\Katalog;
 use App\Models\PurchaseOrder;
 use App\Models\Site;
 use App\Models\Spb;
+use App\Models\SpbItem;
 use App\Models\Vendor;
 use App\Services\PurchaseOrderPDFService;
 use App\Services\PurchaseOrderService;
@@ -95,6 +97,21 @@ class PurchaseOrderController extends Controller
             'spb.invoice.paymentDocuments',
         ]);
 
+        $qtyTerkirimGrouped = Spb::getQtyTerkirimGrouped(PurchaseOrder::class, $purchaseOrder->id);
+        $sourceItems = $purchaseOrder->items->map(function ($item) use ($qtyTerkirimGrouped) {
+            $qtyTerkirim = $qtyTerkirimGrouped[$item->katalog?->part_no ?? ''] ?? 0;
+            $qtySisa = max(0, $item->qty - $qtyTerkirim);
+
+            return [
+                'katalog_id' => $item->katalog_id,
+                'part_no' => $item->katalog?->part_no ?? '',
+                'deskripsi' => $item->deskripsi,
+                'qty_dipesan' => $item->qty,
+                'qty_terkirim' => $qtyTerkirim,
+                'qty_sisa' => $qtySisa,
+            ];
+        })->values()->toArray();
+
         return Inertia::render('PurchaseOrder/Show', [
             'purchaseOrder' => [
                 'id' => $purchaseOrder->id,
@@ -124,6 +141,7 @@ class PurchaseOrderController extends Controller
                     'jumlah' => $item->jumlah,
                 ]),
                 'total' => $purchaseOrder->total,
+                'source_items' => $sourceItems,
                 'spb' => $purchaseOrder->spb->map(fn (Spb $spb): array => $this->spbData($spb))->values(),
             ],
             'sites' => Site::query()
@@ -222,6 +240,13 @@ class PurchaseOrderController extends Controller
      */
     private function spbData(Spb $spb): array
     {
+        $totalDipesan = $this->spbTotalDipesan($spb);
+        $totalTerkirim = SpbItem::whereHas('spb', function ($query) use ($spb) {
+            $query->where('spb_able_type', $spb->spb_able_type)
+                ->where('spb_able_id', $spb->spb_able_id)
+                ->where('status', '!=', SpbStatus::Void->value);
+        })->sum('qty');
+
         return [
             'id' => $spb->id,
             'no_spb' => $spb->no_spb,
@@ -233,12 +258,26 @@ class PurchaseOrderController extends Controller
             'status_label' => $spb->status->label(),
             'items_count' => $spb->items->count(),
             'items_qty' => $spb->items->sum('qty'),
+            'total_dipesan' => $totalDipesan,
+            'total_terkirim' => $totalTerkirim,
             'is_voidable' => $spb->isVoidable(),
             'is_parsial' => $spb->isParsial(),
             'site' => $spb->site?->only(['id', 'nama_site', 'alamat']),
             'customer' => $spb->customer?->only(['id', 'nama_customer']),
             'invoice' => $spb->invoice ? $this->invoiceData($spb->invoice) : null,
         ];
+    }
+
+    private function spbTotalDipesan(Spb $spb): int
+    {
+        if ($spb->spb_able_type !== PurchaseOrder::class) {
+            return 0;
+        }
+
+        $purchaseOrder = $spb->spbAble ?? PurchaseOrder::query()->find($spb->spb_able_id);
+        $purchaseOrder?->loadMissing('items');
+
+        return (int) ($purchaseOrder?->items?->sum('qty') ?? 0);
     }
 
     /**
