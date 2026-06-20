@@ -14,7 +14,7 @@ class CreateKatalog
     {
         $katalog = Katalog::create($data);
 
-        $this->recordActivity->handle('Katalog tambah', $katalog, "Menambah barang {$katalog->part_no}", $request);
+        $this->recordActivity->handle('created_katalog', $katalog, "Menambah barang {$katalog->part_no}", $request);
 
         return $katalog;
     }

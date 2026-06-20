@@ -58,7 +58,7 @@ class DocumentTemplateController extends Controller
 
     public function destroy(Request $request, DocumentTemplate $documentTemplate): RedirectResponse
     {
-        abort_unless($request->user()?->can('Template Dokumen hapus'), 403);
+        abort_unless($request->user()?->can('hapus_template'), 403);
 
         $this->documentTemplateService->delete($documentTemplate, $request);
 

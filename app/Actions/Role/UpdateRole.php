@@ -17,7 +17,7 @@ class UpdateRole
         $role->update(['name' => $data['name']]);
         $role->syncPermissions($data['permissions'] ?? []);
 
-        $this->recordActivity->handle('Jabatan ubah', $role, "Mengubah jabatan {$role->name}", $request);
+        $this->recordActivity->handle('updated_role', $role, "Mengubah jabatan {$role->name}", $request);
 
         return $role->refresh();
     }

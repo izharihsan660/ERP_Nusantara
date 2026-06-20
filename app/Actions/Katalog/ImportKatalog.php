@@ -15,6 +15,6 @@ class ImportKatalog
     {
         Excel::import(new KatalogImport, $path);
 
-        $this->recordActivity->handle('Katalog import', null, 'Import katalog dari Excel', $request);
+        $this->recordActivity->handle('imported_katalog', null, 'Import katalog dari Excel', $request);
     }
 }

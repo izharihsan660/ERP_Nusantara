@@ -103,6 +103,7 @@ export default function SpbSection({
     const voidForm = useForm({ alasan_void: '' });
 
     const selectedCustomerId = form.data.customer_id || customer?.id;
+    const hasSourceItems = (sourceOptions[0]?.source_items ?? sourceItems)?.length > 0;
     const filteredSites = useMemo(() => sites
         .filter((site) => !selectedCustomerId || String(site.customer_id) === String(selectedCustomerId))
         .filter((site) => site.label.toLowerCase().includes(siteSearch.toLowerCase())), [sites, selectedCustomerId, siteSearch]);
@@ -123,6 +124,11 @@ export default function SpbSection({
             ? normalizeItems(initialSource.source_items)
             : normalizeItems(sourceItems);
 
+        if (!initialSource || !hasSourceItems) {
+            return;
+        }
+
+        form.clearErrors();
         form.setData({
             source_id: sourceOptions[0]?.id ?? '',
             tgl_spb: today(),
@@ -151,8 +157,9 @@ export default function SpbSection({
 
     const submitCreate = (event) => {
         event.preventDefault();
+        form.clearErrors();
 
-        if (!selectedSource) {
+        if (!selectedSource || !form.data.items.length) {
             return;
         }
 
@@ -187,21 +194,21 @@ export default function SpbSection({
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-slate-800">
                 <h2 className="font-semibold text-slate-950 dark:text-white">Pengiriman (SPB)</h2>
                 {canCreate && sourceOptions.length > 0 && (
-                    <Button type="button" variant="secondary" onClick={openCreate}>
+                    <Button type="button" variant="secondary" onClick={openCreate} disabled={!hasSourceItems}>
                         <Plus className="h-4 w-4" />Buat SPB
                     </Button>
                 )}
             </div>
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                     <thead className="bg-slate-50 dark:bg-slate-900">
                         <tr>
-                            <th className="px-4 py-3 text-left">No. SPB</th>
-                            <th className="px-4 py-3 text-left">Tanggal</th>
-                            <th className="px-4 py-3 text-left">Ref (PR/PO)</th>
-                            <th className="px-4 py-3 text-left">Items</th>
-                            <th className="px-4 py-3 text-left">Status</th>
-                            <th className="px-4 py-3 text-right">Aksi</th>
+                            <th className="w-48 px-4 py-3 text-left">No. SPB</th>
+                            <th className="w-32 px-4 py-3 text-left">Tanggal</th>
+                            <th className="w-48 px-4 py-3 text-left">Ref (PR/PO)</th>
+                            <th className="w-64 px-4 py-3 text-left">Items</th>
+                            <th className="w-32 px-4 py-3 text-left">Status</th>
+                            <th className="w-40 px-4 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
@@ -217,7 +224,7 @@ export default function SpbSection({
                                     <div className="text-xs text-slate-500">{spb.customer?.nama_customer ?? ''}</div>
                                 </td>
                                 <td className="whitespace-nowrap px-4 py-3">{spb.tgl_spb}</td>
-                                <td className="px-4 py-3">{spb.referensi_tipe} - {spb.no_referensi}</td>
+                                <td className="px-4 py-3"><div className="truncate" title={`${spb.referensi_tipe} - ${spb.no_referensi}`}>{spb.referensi_tipe} - {spb.no_referensi}</div></td>
                                 <td className="px-4 py-3">
                                     <div>{spb.items_count} item | {spb.items_qty} qty dikirim</div>
                                     {spb.total_dipesan > 0 && (
@@ -312,15 +319,15 @@ export default function SpbSection({
                         </div>
                         <FieldError message={form.errors.items} />
                         <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
-                            <table className="w-full border-collapse text-sm">
+                            <table className="min-w-full table-fixed border-collapse text-sm">
                                 <thead className="bg-slate-50 dark:bg-slate-900">
                                     <tr>
-                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Part No</th>
-                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Nama Barang</th>
-                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Dipesan</th>
-                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Terkirim</th>
-                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Sisa</th>
-                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Kirim Sekarang</th>
+                                        <th className="w-40 px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Part No</th>
+                                        <th className="w-64 px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Nama Barang</th>
+                                        <th className="w-24 px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Dipesan</th>
+                                        <th className="w-24 px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Terkirim</th>
+                                        <th className="w-24 px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300">Sisa</th>
+                                        <th className="w-40 px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Kirim Sekarang</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

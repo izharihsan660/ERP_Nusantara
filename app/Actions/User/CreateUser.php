@@ -18,7 +18,7 @@ class CreateUser
         $user = User::create($data);
         $user->syncRoles($roles);
 
-        $this->recordActivity->handle('User tambah', $user, "Menambah user {$user->email}", $request);
+        $this->recordActivity->handle('created_user', $user, "Menambah user {$user->email}", $request);
 
         return $user;
     }

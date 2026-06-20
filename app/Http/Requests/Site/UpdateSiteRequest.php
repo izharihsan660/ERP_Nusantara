@@ -12,7 +12,7 @@ class UpdateSiteRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Site ubah') ?? false;
+        return $this->user()?->can('ubah_site') ?? false;
     }
 
     public function rules(): array

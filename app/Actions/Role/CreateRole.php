@@ -15,7 +15,7 @@ class CreateRole
         $role = Role::create(['name' => $data['name'], 'guard_name' => 'web']);
         $role->syncPermissions($data['permissions'] ?? []);
 
-        $this->recordActivity->handle('Jabatan tambah', $role, "Menambah jabatan {$role->name}", $request);
+        $this->recordActivity->handle('created_role', $role, "Menambah jabatan {$role->name}", $request);
 
         return $role;
     }

@@ -14,7 +14,7 @@ class DeleteRole
     {
         abort_if($role->name === 'Superadmin', 422, 'Jabatan Superadmin tidak boleh dihapus.');
 
-        $this->recordActivity->handle('Jabatan hapus', $role, "Menghapus jabatan {$role->name}", $request);
+        $this->recordActivity->handle('deleted_role', $role, "Menghapus jabatan {$role->name}", $request);
 
         $role->delete();
     }

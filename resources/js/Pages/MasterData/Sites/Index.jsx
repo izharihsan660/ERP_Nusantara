@@ -20,8 +20,8 @@ export default function Index({ sites, filters, customers }) {
             label: 'Aksi',
             render: (row) => (
                 <div className="flex gap-2">
-                    {permissions.includes('Site ubah') && <Button asChild size="icon" variant="outline"><Link href={route('sites.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
-                    {permissions.includes('Site hapus') && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Trash2 className="h-4 w-4" /></Button>}
+                    {permissions.includes('ubah_site') && <Button asChild size="icon" variant="outline"><Link href={route('sites.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
+                    {permissions.includes('hapus_site') && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Trash2 className="h-4 w-4" /></Button>}
                 </div>
             ),
         },
@@ -29,7 +29,7 @@ export default function Index({ sites, filters, customers }) {
     return (
         <AppLayout title="Site">
             <Head title="Site" />
-            <PageHeader title="Site" description="Lokasi pekerjaan per customer." actions={permissions.includes('Site tambah') && <Button asChild><Link href={route('sites.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
+            <PageHeader title="Site" description="Lokasi pekerjaan per customer." actions={permissions.includes('tambah_site') && <Button asChild><Link href={route('sites.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
             <DataTable data={sites} columns={columns} filters={filters} routeName="sites.index" filterSlot={(
                 <Select value={filters.customer_id ?? ''} onChange={(e) => router.get(route('sites.index'), { ...filters, customer_id: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-56">
                     <option value="">Semua Customer</option>

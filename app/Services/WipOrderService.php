@@ -40,7 +40,7 @@ class WipOrderService
                 'created_by' => $user->id,
             ]);
 
-            $this->recordActivity->handle('WIP buat', $wip, "{$user->name} input WIP {$wip->no_wip}");
+            $this->recordActivity->handle('created_wip', $wip, "{$user->name} input WIP {$wip->no_wip}");
 
             return $wip->load('salesOrder');
         });
@@ -57,7 +57,7 @@ class WipOrderService
             'alasan_void' => $alasan,
         ]);
 
-        $this->recordActivity->handle('WIP void', $wip, "{$user->name} void WIP {$wip->no_wip}");
+        $this->recordActivity->handle('voided_wip', $wip, "{$user->name} void WIP {$wip->no_wip}");
 
         return $wip->refresh();
     }

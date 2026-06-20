@@ -22,8 +22,8 @@ export default function Index({ vendors, filters, vendorTypes }) {
             label: 'Aksi',
             render: (row) => (
                 <div className="flex gap-2">
-                    {permissions.includes('Vendor ubah') && <Button asChild size="icon" variant="outline"><Link href={route('vendors.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
-                    {permissions.includes('Vendor hapus') && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Trash2 className="h-4 w-4" /></Button>}
+                    {permissions.includes('ubah_vendor') && <Button asChild size="icon" variant="outline"><Link href={route('vendors.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
+                    {permissions.includes('hapus_vendor') && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Trash2 className="h-4 w-4" /></Button>}
                 </div>
             ),
         },
@@ -32,7 +32,7 @@ export default function Index({ vendors, filters, vendorTypes }) {
     return (
         <AppLayout title="Vendor">
             <Head title="Vendor" />
-            <PageHeader title="Vendor" description="Master data pemasok dan RMA." actions={permissions.includes('Vendor tambah') && <Button asChild><Link href={route('vendors.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
+            <PageHeader title="Vendor" description="Master data pemasok dan RMA." actions={permissions.includes('tambah_vendor') && <Button asChild><Link href={route('vendors.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
             <DataTable data={vendors} columns={columns} filters={filters} routeName="vendors.index" filterSlot={(
                 <Select value={filters.tipe_vendor ?? ''} onChange={(e) => router.get(route('vendors.index'), { ...filters, tipe_vendor: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-44">
                     <option value="">Semua Tipe</option>

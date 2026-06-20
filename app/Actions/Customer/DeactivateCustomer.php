@@ -14,7 +14,7 @@ class DeactivateCustomer
     {
         $customer->update(['is_active' => false]);
 
-        $this->recordActivity->handle('Customer hapus', $customer, "Menonaktifkan customer {$customer->kode_customer}", $request);
+        $this->recordActivity->handle('deactivated_customer', $customer, "Menonaktifkan customer {$customer->kode_customer}", $request);
 
         return $customer;
     }

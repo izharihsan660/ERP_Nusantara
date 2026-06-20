@@ -72,7 +72,7 @@ class HandleInertiaRequests extends Middleware
     {
         $items = [
             ['label' => 'Dashboard', 'route' => 'dashboard', 'permission' => null, 'icon' => 'LayoutDashboard'],
-            ['label' => 'Quotation', 'route' => 'quotations.index', 'permission' => 'Quotation lihat', 'icon' => 'FileText'],
+            ['label' => 'Quotation', 'route' => 'quotations.index', 'permission' => 'lihat_quotation', 'icon' => 'FileText'],
             ['label' => 'Purchase Order NAJ', 'route' => 'purchase-orders.index', 'permission' => 'lihat_purchase_order', 'icon' => 'ClipboardList'],
             ['label' => 'Permintaan Dana', 'route' => 'permintaan-dana.index', 'permission' => 'lihat_pd', 'icon' => 'HandCoins'],
             ['type' => 'section', 'label' => 'Laporan'],
@@ -83,13 +83,13 @@ class HandleInertiaRequests extends Middleware
             ['label' => 'Rekapan PD', 'route' => 'laporan.rekapan-pd', 'permission' => 'laporan_rekapan_pd', 'icon' => 'BarChart3'],
             ['label' => 'Laporan Profit', 'route' => 'laporan.profit', 'permission' => 'laporan_profit', 'icon' => 'BarChart3'],
             ['label' => 'Outstanding', 'route' => 'laporan.outstanding', 'permission' => 'laporan_outstanding', 'icon' => 'BarChart3'],
-            ['label' => 'Customer', 'route' => 'customers.index', 'permission' => 'Customer lihat', 'icon' => 'Building2'],
-            ['label' => 'Katalog', 'route' => 'katalog.index', 'permission' => 'Katalog lihat', 'icon' => 'PackageSearch'],
-            ['label' => 'Vendor', 'route' => 'vendors.index', 'permission' => 'Vendor lihat', 'icon' => 'Truck'],
-            ['label' => 'Site', 'route' => 'sites.index', 'permission' => 'Site lihat', 'icon' => 'MapPin'],
-            ['label' => 'Template Dokumen', 'route' => 'document-templates.index', 'permission' => 'Template Dokumen lihat', 'icon' => 'FileText'],
-            ['label' => 'Jabatan', 'route' => 'roles.index', 'permission' => 'Jabatan lihat', 'icon' => 'ShieldCheck'],
-            ['label' => 'User', 'route' => 'users.index', 'permission' => 'User lihat', 'icon' => 'Users'],
+            ['label' => 'Customer', 'route' => 'customers.index', 'permission' => 'lihat_customer', 'icon' => 'Building2'],
+            ['label' => 'Katalog', 'route' => 'katalog.index', 'permission' => 'lihat_katalog', 'icon' => 'PackageSearch'],
+            ['label' => 'Vendor', 'route' => 'vendors.index', 'permission' => 'lihat_vendor', 'icon' => 'Truck'],
+            ['label' => 'Site', 'route' => 'sites.index', 'permission' => 'lihat_site', 'icon' => 'MapPin'],
+            ['label' => 'Template Dokumen', 'route' => 'document-templates.index', 'permission' => 'lihat_template', 'icon' => 'FileText'],
+            ['label' => 'Jabatan', 'route' => 'roles.index', 'permission' => 'lihat_jabatan', 'icon' => 'ShieldCheck'],
+            ['label' => 'User', 'route' => 'users.index', 'permission' => 'lihat_user', 'icon' => 'Users'],
         ];
 
         return array_values(array_filter(

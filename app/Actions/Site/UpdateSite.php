@@ -14,7 +14,7 @@ class UpdateSite
     {
         $site->update($data);
 
-        $this->recordActivity->handle('Site ubah', $site, "Mengubah site {$site->nama_site}", $request);
+        $this->recordActivity->handle('updated_site', $site, "Mengubah site {$site->nama_site}", $request);
 
         return $site->refresh();
     }

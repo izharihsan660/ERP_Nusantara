@@ -12,7 +12,7 @@ class DeleteVendor
 
     public function handle(Vendor $vendor, Request $request): void
     {
-        $this->recordActivity->handle('Vendor hapus', $vendor, "Menghapus vendor {$vendor->nama_vendor}", $request);
+        $this->recordActivity->handle('deleted_vendor', $vendor, "Menghapus vendor {$vendor->nama_vendor}", $request);
 
         $vendor->delete();
     }

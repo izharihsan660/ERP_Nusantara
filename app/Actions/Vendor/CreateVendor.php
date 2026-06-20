@@ -14,7 +14,7 @@ class CreateVendor
     {
         $vendor = Vendor::create($data);
 
-        $this->recordActivity->handle('Vendor tambah', $vendor, "Menambah vendor {$vendor->nama_vendor}", $request);
+        $this->recordActivity->handle('created_vendor', $vendor, "Menambah vendor {$vendor->nama_vendor}", $request);
 
         return $vendor;
     }

@@ -14,7 +14,7 @@ class UpdateDocumentTemplate
     {
         $template->update($data);
 
-        $this->recordActivity->handle('Template Dokumen ubah', $template, "Mengubah template {$template->kode_template}", $request);
+        $this->recordActivity->handle('updated_template', $template, "Mengubah template {$template->kode_template}", $request);
 
         return $template->refresh();
     }

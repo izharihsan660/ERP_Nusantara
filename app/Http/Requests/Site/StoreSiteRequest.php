@@ -12,7 +12,7 @@ class StoreSiteRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Site tambah') ?? false;
+        return $this->user()?->can('tambah_site') ?? false;
     }
 
     public function rules(): array

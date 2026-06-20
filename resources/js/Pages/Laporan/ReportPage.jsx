@@ -83,7 +83,7 @@ export default function ReportPage({
 
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                    <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                         <thead className="bg-slate-50 dark:bg-slate-900">
                             <tr>
                                 {columns.map((column) => (

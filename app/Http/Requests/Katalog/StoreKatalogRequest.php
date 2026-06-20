@@ -11,7 +11,7 @@ class StoreKatalogRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Katalog tambah') ?? false;
+        return $this->user()?->can('tambah_katalog') ?? false;
     }
 
     public function rules(): array

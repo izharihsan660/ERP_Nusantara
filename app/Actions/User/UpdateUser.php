@@ -22,7 +22,7 @@ class UpdateUser
         $user->update($data);
         $user->syncRoles($roles);
 
-        $this->recordActivity->handle('User ubah', $user, "Mengubah user {$user->email}", $request);
+        $this->recordActivity->handle('updated_user', $user, "Mengubah user {$user->email}", $request);
 
         return $user->refresh();
     }

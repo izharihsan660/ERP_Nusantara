@@ -16,7 +16,7 @@ class DeactivateUser
 
         $user->update(['is_active' => false]);
 
-        $this->recordActivity->handle('User hapus', $user, "Menonaktifkan user {$user->email}", $request);
+        $this->recordActivity->handle('deactivated_user', $user, "Menonaktifkan user {$user->email}", $request);
 
         return $user;
     }

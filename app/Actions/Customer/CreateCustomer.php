@@ -14,7 +14,7 @@ class CreateCustomer
     {
         $customer = Customer::create($data);
 
-        $this->recordActivity->handle('Customer tambah', $customer, "Menambah customer {$customer->kode_customer}", $request);
+        $this->recordActivity->handle('created_customer', $customer, "Menambah customer {$customer->kode_customer}", $request);
 
         return $customer;
     }

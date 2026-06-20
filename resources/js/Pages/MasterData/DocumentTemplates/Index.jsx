@@ -24,8 +24,8 @@ export default function Index({ templates, filters, documentTypes }) {
             label: 'Aksi',
             render: (row) => (
                 <div className="flex gap-2">
-                    {permissions.includes('Template Dokumen ubah') && <Button asChild size="icon" variant="outline"><Link href={route('document-templates.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
-                    {permissions.includes('Template Dokumen hapus') && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Trash2 className="h-4 w-4" /></Button>}
+                    {permissions.includes('ubah_template') && <Button asChild size="icon" variant="outline"><Link href={route('document-templates.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
+                    {permissions.includes('hapus_template') && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Trash2 className="h-4 w-4" /></Button>}
                 </div>
             ),
         },
@@ -33,7 +33,7 @@ export default function Index({ templates, filters, documentTypes }) {
     return (
         <AppLayout title="Template Dokumen">
             <Head title="Template Dokumen" />
-            <PageHeader title="Template Dokumen" description="Template blade untuk output dokumen transaksi." actions={permissions.includes('Template Dokumen tambah') && <Button asChild><Link href={route('document-templates.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
+            <PageHeader title="Template Dokumen" description="Template blade untuk output dokumen transaksi." actions={permissions.includes('tambah_template') && <Button asChild><Link href={route('document-templates.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
             <DataTable data={templates} columns={columns} filters={filters} routeName="document-templates.index" filterSlot={(
                 <Select value={filters.tipe_dokumen ?? ''} onChange={(e) => router.get(route('document-templates.index'), { ...filters, tipe_dokumen: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-48">
                     <option value="">Semua Tipe</option>

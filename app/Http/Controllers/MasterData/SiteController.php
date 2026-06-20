@@ -58,7 +58,7 @@ class SiteController extends Controller
 
     public function destroy(Request $request, Site $site): RedirectResponse
     {
-        abort_unless($request->user()?->can('Site hapus'), 403);
+        abort_unless($request->user()?->can('hapus_site'), 403);
 
         $this->siteService->delete($site, $request);
 

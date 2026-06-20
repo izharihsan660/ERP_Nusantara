@@ -24,10 +24,10 @@ export default function Index({ customers, filters }) {
             label: 'Aksi',
             render: (row) => (
                 <div className="flex gap-2">
-                    {permissions.includes('Customer ubah') && (
+                    {permissions.includes('ubah_customer') && (
                         <Button asChild size="icon" variant="outline"><Link href={route('customers.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>
                     )}
-                    {permissions.includes('Customer hapus') && row.is_active && (
+                    {permissions.includes('hapus_customer') && row.is_active && (
                         <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Power className="h-4 w-4" /></Button>
                     )}
                 </div>
@@ -41,7 +41,7 @@ export default function Index({ customers, filters }) {
             <PageHeader
                 title="Customer"
                 description="Master data pelanggan dan template dokumen default."
-                actions={permissions.includes('Customer tambah') && <Button asChild><Link href={route('customers.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>}
+                actions={permissions.includes('tambah_customer') && <Button asChild><Link href={route('customers.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>}
             />
             <DataTable
                 data={customers}

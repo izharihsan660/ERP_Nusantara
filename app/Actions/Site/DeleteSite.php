@@ -12,7 +12,7 @@ class DeleteSite
 
     public function handle(Site $site, Request $request): void
     {
-        $this->recordActivity->handle('Site hapus', $site, "Menghapus site {$site->nama_site}", $request);
+        $this->recordActivity->handle('deleted_site', $site, "Menghapus site {$site->nama_site}", $request);
 
         $site->delete();
     }

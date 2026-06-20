@@ -250,14 +250,14 @@ export default function Show({ quotation, sites }) {
         });
     };
 
-    const canApprove = permissions.includes('Quotation approve');
-    const canVoid = permissions.includes('Quotation void') && quotation.status !== 'VOID';
-    const canCreate = permissions.includes('Quotation buat');
-    const canDownload = permissions.includes('Quotation download_pdf');
+    const canApprove = permissions.includes('approve_quotation');
+    const canVoid = permissions.includes('void_quotation') && quotation.status !== 'VOID';
+    const canCreate = permissions.includes('buat_quotation');
+    const canDownload = permissions.includes('download_pdf_quotation');
     const canInputSalesOrder = permissions.includes('input_sales_order');
     const canVoidSalesOrder = permissions.includes('void_sales_order');
-    const canInputWIP = permissions.includes('WIP buat');
-    const canVoidWIP = permissions.includes('WIP void');
+    const canInputWIP = permissions.includes('buat_wip');
+    const canVoidWIP = permissions.includes('void_wip');
     const spbList = quotation.sales_order?.wip_orders?.flatMap((wip) => wip.spb ?? []) ?? [];
     const wipSourceOptions = quotation.sales_order?.wip_orders
         ?.filter((wip) => wip.status === 'ACTIVE')
@@ -325,7 +325,7 @@ export default function Show({ quotation, sites }) {
                         <h2 className="font-semibold text-slate-950 dark:text-white">Barang</h2>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                        <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                             <thead className="bg-slate-50 dark:bg-slate-900">
                                 <tr>
                                     <th className="px-4 py-3 text-left">Part No</th>
@@ -423,7 +423,7 @@ export default function Show({ quotation, sites }) {
                                 )}
                             </div>
                             <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                                <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                                     <thead className="bg-slate-50 dark:bg-slate-900">
                                         <tr>
                                             <th className="px-4 py-3 text-left">No. WIP</th>

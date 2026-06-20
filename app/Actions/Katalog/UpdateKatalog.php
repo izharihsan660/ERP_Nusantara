@@ -14,7 +14,7 @@ class UpdateKatalog
     {
         $katalog->update($data);
 
-        $this->recordActivity->handle('Katalog ubah', $katalog, "Mengubah barang {$katalog->part_no}", $request);
+        $this->recordActivity->handle('updated_katalog', $katalog, "Mengubah barang {$katalog->part_no}", $request);
 
         return $katalog->refresh();
     }

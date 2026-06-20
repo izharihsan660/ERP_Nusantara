@@ -253,7 +253,7 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                     <h2 className="font-semibold text-slate-950 dark:text-white">Dokumen Bukti</h2>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                    <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                         <thead className="bg-slate-50 dark:bg-slate-900">
                             <tr>
                                 <th className="px-4 py-3 text-left">Kategori</th>

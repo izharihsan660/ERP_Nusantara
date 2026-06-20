@@ -12,7 +12,7 @@ class StoreCustomerRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Customer tambah') ?? false;
+        return $this->user()?->can('tambah_customer') ?? false;
     }
 
     public function rules(): array

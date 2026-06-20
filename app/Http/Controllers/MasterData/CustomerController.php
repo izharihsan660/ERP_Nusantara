@@ -58,7 +58,7 @@ class CustomerController extends Controller
 
     public function destroy(Request $request, Customer $customer): RedirectResponse
     {
-        abort_unless($request->user()?->can('Customer hapus'), 403);
+        abort_unless($request->user()?->can('hapus_customer'), 403);
 
         $this->customerService->deactivate($customer, $request);
 

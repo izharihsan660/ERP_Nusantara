@@ -14,7 +14,7 @@ class CreateDocumentTemplate
     {
         $template = DocumentTemplate::create($data);
 
-        $this->recordActivity->handle('Template Dokumen tambah', $template, "Menambah template {$template->kode_template}", $request);
+        $this->recordActivity->handle('created_template', $template, "Menambah template {$template->kode_template}", $request);
 
         return $template;
     }

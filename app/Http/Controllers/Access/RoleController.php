@@ -63,7 +63,7 @@ class RoleController extends Controller
 
     public function destroy(Request $request, Role $role): RedirectResponse
     {
-        abort_unless($request->user()?->can('Jabatan hapus'), 403);
+        abort_unless($request->user()?->can('hapus_jabatan'), 403);
 
         $this->roleService->delete($role, $request);
 

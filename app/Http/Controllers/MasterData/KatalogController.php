@@ -52,7 +52,7 @@ class KatalogController extends Controller
 
     public function destroy(Request $request, Katalog $katalog): RedirectResponse
     {
-        abort_unless($request->user()?->can('Katalog hapus'), 403);
+        abort_unless($request->user()?->can('hapus_katalog'), 403);
 
         $this->katalogService->deactivate($katalog, $request);
 

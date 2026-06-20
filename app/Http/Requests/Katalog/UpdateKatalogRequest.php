@@ -12,7 +12,7 @@ class UpdateKatalogRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Katalog ubah') ?? false;
+        return $this->user()?->can('ubah_katalog') ?? false;
     }
 
     public function rules(): array

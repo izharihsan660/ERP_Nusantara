@@ -280,7 +280,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                                 {spb.invoice.payment_documents?.length > 0 && (
                                     <div className="lg:col-span-2">
                                         <div className="mt-2 overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
-                                            <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                                            <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                                                 <thead className="bg-slate-50 dark:bg-slate-900">
                                                     <tr>
                                                         <th className="px-3 py-2 text-left">Tipe</th>

@@ -22,8 +22,8 @@ export default function Index({ users, filters }) {
             label: 'Aksi',
             render: (row) => (
                 <div className="flex gap-2">
-                    {permissions.includes('User ubah') && <Button asChild size="icon" variant="outline"><Link href={route('users.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
-                    {permissions.includes('User hapus') && row.is_active && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Power className="h-4 w-4" /></Button>}
+                    {permissions.includes('ubah_user') && <Button asChild size="icon" variant="outline"><Link href={route('users.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
+                    {permissions.includes('hapus_user') && row.is_active && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Power className="h-4 w-4" /></Button>}
                 </div>
             ),
         },
@@ -31,7 +31,7 @@ export default function Index({ users, filters }) {
     return (
         <AppLayout title="User">
             <Head title="User" />
-            <PageHeader title="User Management" description="Kelola akun dan assign jabatan." actions={permissions.includes('User tambah') && <Button asChild><Link href={route('users.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
+            <PageHeader title="User Management" description="Kelola akun dan assign jabatan." actions={permissions.includes('tambah_user') && <Button asChild><Link href={route('users.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>} />
             <DataTable data={users} columns={columns} filters={filters} routeName="users.index" filterSlot={(
                 <Select value={filters.status ?? 'all'} onChange={(e) => router.get(route('users.index'), { ...filters, status: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-36">
                     <option value="all">Semua Status</option>

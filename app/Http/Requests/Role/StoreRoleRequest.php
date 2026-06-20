@@ -11,7 +11,7 @@ class StoreRoleRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Jabatan tambah') ?? false;
+        return $this->user()?->can('tambah_jabatan') ?? false;
     }
 
     public function rules(): array

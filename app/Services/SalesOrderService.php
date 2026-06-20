@@ -41,7 +41,7 @@ class SalesOrderService
                 'created_by' => $user->id,
             ]);
 
-            $this->recordActivity->handle('input_sales_order', $salesOrder, "{$user->name} input Sales Order {$salesOrder->no_po_customer}");
+            $this->recordActivity->handle('created_sales_order', $salesOrder, "{$user->name} input Sales Order {$salesOrder->no_po_customer}");
 
             return $salesOrder->load(['quotation', 'customer']);
         });
@@ -58,7 +58,7 @@ class SalesOrderService
             'alasan_void' => $alasan,
         ]);
 
-        $this->recordActivity->handle('void_sales_order', $salesOrder, "{$user->name} void Sales Order {$salesOrder->no_po_customer}");
+        $this->recordActivity->handle('voided_sales_order', $salesOrder, "{$user->name} void Sales Order {$salesOrder->no_po_customer}");
 
         return $salesOrder->refresh();
     }

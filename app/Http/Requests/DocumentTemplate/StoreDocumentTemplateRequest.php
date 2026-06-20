@@ -13,7 +13,7 @@ class StoreDocumentTemplateRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Template Dokumen tambah') ?? false;
+        return $this->user()?->can('tambah_template') ?? false;
     }
 
     public function rules(): array

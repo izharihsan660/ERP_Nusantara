@@ -60,7 +60,7 @@ class QuotationService
             ]);
 
             $this->syncItems($quotation, $data['items']);
-            $this->recordActivity->handle('Quotation buat', $quotation, "Membuat quotation {$quotation->no_quotation}");
+            $this->recordActivity->handle('created_quotation', $quotation, "Membuat quotation {$quotation->no_quotation}");
 
             return $quotation->load(['customer', 'template', 'items']);
         });
@@ -71,7 +71,7 @@ class QuotationService
         $this->ensureStatus($quotation, QuotationStatus::Draft, 'Quotation hanya bisa disubmit dari status Draft.');
 
         $quotation->update(['status' => QuotationStatus::PendingApproval]);
-        $this->recordActivity->handle('Quotation submit', $quotation, "{$user->name} submit quotation {$quotation->no_quotation}");
+        $this->recordActivity->handle('submitted_quotation', $quotation, "{$user->name} submit quotation {$quotation->no_quotation}");
 
         return $quotation->refresh();
     }
@@ -89,7 +89,7 @@ class QuotationService
             ]);
 
             $this->quotationPDFService->generate($quotation->refresh());
-            $this->recordActivity->handle('Quotation approve', $quotation, "{$user->name} approve quotation {$quotation->no_quotation}");
+            $this->recordActivity->handle('approved_quotation', $quotation, "{$user->name} approve quotation {$quotation->no_quotation}");
 
             return $quotation->refresh();
         });
@@ -103,7 +103,7 @@ class QuotationService
             'status' => QuotationStatus::Rejected,
             'catatan_rejection' => $catatan,
         ]);
-        $this->recordActivity->handle('Quotation reject', $quotation, "{$user->name} reject quotation {$quotation->no_quotation}");
+        $this->recordActivity->handle('rejected_quotation', $quotation, "{$user->name} reject quotation {$quotation->no_quotation}");
 
         return $quotation->refresh();
     }
@@ -120,7 +120,7 @@ class QuotationService
             'voided_at' => now(),
             'alasan_void' => $alasan,
         ]);
-        $this->recordActivity->handle('Quotation void', $quotation, "{$user->name} void quotation {$quotation->no_quotation}");
+        $this->recordActivity->handle('voided_quotation', $quotation, "{$user->name} void quotation {$quotation->no_quotation}");
 
         return $quotation->refresh();
     }

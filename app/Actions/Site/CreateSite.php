@@ -14,7 +14,7 @@ class CreateSite
     {
         $site = Site::create($data);
 
-        $this->recordActivity->handle('Site tambah', $site, "Menambah site {$site->nama_site}", $request);
+        $this->recordActivity->handle('created_site', $site, "Menambah site {$site->nama_site}", $request);
 
         return $site;
     }

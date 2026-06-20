@@ -28,8 +28,8 @@ export default function Index({ items, filters, categories }) {
             label: 'Aksi',
             render: (row) => (
                 <div className="flex gap-2">
-                    {permissions.includes('Katalog ubah') && <Button asChild size="icon" variant="outline"><Link href={route('katalog.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
-                    {permissions.includes('Katalog hapus') && row.is_active && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Power className="h-4 w-4" /></Button>}
+                    {permissions.includes('ubah_katalog') && <Button asChild size="icon" variant="outline"><Link href={route('katalog.edit', row.id)}><Pencil className="h-4 w-4" /></Link></Button>}
+                    {permissions.includes('hapus_katalog') && row.is_active && <Button size="icon" variant="destructive" onClick={() => setTarget(row)}><Power className="h-4 w-4" /></Button>}
                 </div>
             ),
         },
@@ -48,13 +48,13 @@ export default function Index({ items, filters, categories }) {
                 description="Master barang dari RMA dan vendor lain."
                 actions={(
                     <>
-                        {permissions.includes('Katalog import') && (
+                        {permissions.includes('import_katalog') && (
                             <form onSubmit={submitImport} className="flex gap-2">
                                 <Input type="file" accept=".xlsx,.xls,.csv" onChange={(e) => importForm.setData('file', e.target.files[0])} className="max-w-56" />
                                 <Button type="submit" variant="secondary" disabled={importForm.processing}><FileUp className="h-4 w-4" />Import</Button>
                             </form>
                         )}
-                        {permissions.includes('Katalog tambah') && <Button asChild><Link href={route('katalog.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>}
+                        {permissions.includes('tambah_katalog') && <Button asChild><Link href={route('katalog.create')}><Plus className="h-4 w-4" />Tambah</Link></Button>}
                     </>
                 )}
             />

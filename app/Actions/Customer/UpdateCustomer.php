@@ -14,7 +14,7 @@ class UpdateCustomer
     {
         $customer->update($data);
 
-        $this->recordActivity->handle('Customer ubah', $customer, "Mengubah customer {$customer->kode_customer}", $request);
+        $this->recordActivity->handle('updated_customer', $customer, "Mengubah customer {$customer->kode_customer}", $request);
 
         return $customer->refresh();
     }

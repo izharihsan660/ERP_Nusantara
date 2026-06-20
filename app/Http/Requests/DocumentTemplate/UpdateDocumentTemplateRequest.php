@@ -13,7 +13,7 @@ class UpdateDocumentTemplateRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Template Dokumen ubah') ?? false;
+        return $this->user()?->can('ubah_template') ?? false;
     }
 
     public function rules(): array

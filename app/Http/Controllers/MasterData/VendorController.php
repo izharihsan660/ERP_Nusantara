@@ -58,7 +58,7 @@ class VendorController extends Controller
 
     public function destroy(Request $request, Vendor $vendor): RedirectResponse
     {
-        abort_unless($request->user()?->can('Vendor hapus'), 403);
+        abort_unless($request->user()?->can('hapus_vendor'), 403);
 
         $this->vendorService->delete($vendor, $request);
 

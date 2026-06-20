@@ -13,19 +13,16 @@ class RolePermissionSeeder extends Seeder
      * @var array<string, array<int, string>>
      */
     private array $permissions = [
-        'Quotation' => ['lihat', 'buat', 'approve', 'download_pdf', 'void'],
-        'WIP' => ['lihat', 'buat', 'update_status', 'void'],
-        'Surat Kuasa' => ['lihat', 'buat', 'download_pdf'],
-        'PO NAJ' => ['lihat', 'buat', 'approve', 'download_pdf', 'void'],
-        'SPB' => ['lihat', 'buat', 'download_pdf', 'void'],
-        'Invoice/Nota' => ['lihat', 'buat', 'upload_ttd', 'update_pembayaran', 'void'],
-        'Katalog' => ['lihat', 'tambah', 'ubah', 'hapus', 'import'],
-        'Customer' => ['lihat', 'tambah', 'ubah', 'hapus'],
-        'Vendor' => ['lihat', 'tambah', 'ubah', 'hapus'],
-        'Site' => ['lihat', 'tambah', 'ubah', 'hapus'],
-        'Template Dokumen' => ['lihat', 'tambah', 'ubah', 'hapus'],
-        'Jabatan' => ['lihat', 'tambah', 'ubah', 'hapus'],
-        'User' => ['lihat', 'tambah', 'ubah', 'hapus'],
+        'quotation' => ['lihat_quotation', 'buat_quotation', 'approve_quotation', 'download_pdf_quotation', 'void_quotation'],
+        'wip' => ['lihat_wip', 'buat_wip', 'update_status_wip', 'void_wip'],
+        'surat_kuasa' => ['lihat_surat_kuasa', 'buat_surat_kuasa', 'download_pdf_surat_kuasa'],
+        'katalog' => ['lihat_katalog', 'tambah_katalog', 'ubah_katalog', 'hapus_katalog', 'import_katalog'],
+        'customer' => ['lihat_customer', 'tambah_customer', 'ubah_customer', 'hapus_customer'],
+        'vendor' => ['lihat_vendor', 'tambah_vendor', 'ubah_vendor', 'hapus_vendor'],
+        'site' => ['lihat_site', 'tambah_site', 'ubah_site', 'hapus_site'],
+        'template' => ['lihat_template', 'tambah_template', 'ubah_template', 'hapus_template'],
+        'jabatan' => ['lihat_jabatan', 'tambah_jabatan', 'ubah_jabatan', 'hapus_jabatan'],
+        'user' => ['lihat_user', 'tambah_user', 'ubah_user', 'hapus_user'],
     ];
 
     /**
@@ -98,7 +95,7 @@ class RolePermissionSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $permissionNames = collect($this->permissions)
-            ->flatMap(fn (array $actions, string $module) => collect($actions)->map(fn (string $action) => "{$module} {$action}"))
+            ->flatten()
             ->merge($this->salesOrderPermissions)
             ->merge($this->purchaseOrderPermissions)
             ->merge($this->spbPermissions)
@@ -112,11 +109,11 @@ class RolePermissionSeeder extends Seeder
         $roles = [
             'Superadmin' => $permissionNames->all(),
             'Sales' => [
-                'Quotation lihat',
-                'Quotation buat',
-                'Quotation download_pdf',
-                'Quotation void',
-                ...$this->onlyModules(['WIP']),
+                'lihat_quotation',
+                'buat_quotation',
+                'download_pdf_quotation',
+                'void_quotation',
+                ...$this->onlyModules(['wip']),
                 ...$this->salesOrderPermissions,
                 'lihat_purchase_order',
                 'buat_purchase_order',
@@ -126,7 +123,7 @@ class RolePermissionSeeder extends Seeder
                 'laporan_profit',
             ],
             'Gudang' => [
-                ...$this->onlyModules(['SPB']),
+                ...$this->spbPermissions,
                 'lihat_spb',
                 'buat_spb',
                 'download_pdf_spb',
@@ -135,7 +132,6 @@ class RolePermissionSeeder extends Seeder
                 'laporan_rekapan_spb',
             ],
             'Finance' => [
-                ...$this->onlyModules(['Invoice/Nota']),
                 ...$this->invoicePermissions,
                 'laporan_rekapan_invoice',
                 'laporan_outstanding',
@@ -147,7 +143,7 @@ class RolePermissionSeeder extends Seeder
                 'laporan_rekapan_pd',
             ],
             'Manager' => [
-                ...$this->onlyActions(['approve']),
+                'approve_quotation',
                 'lihat_pd',
                 'approve_pd',
                 'lihat_purchase_order',
@@ -172,21 +168,7 @@ class RolePermissionSeeder extends Seeder
     {
         return collect($this->permissions)
             ->only($modules)
-            ->flatMap(fn (array $actions, string $module) => collect($actions)->map(fn (string $action) => "{$module} {$action}"))
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, string>  $actions
-     * @return array<int, string>
-     */
-    private function onlyActions(array $actions): array
-    {
-        return collect($this->permissions)
-            ->flatMap(fn (array $moduleActions, string $module) => collect($moduleActions)
-                ->filter(fn (string $action) => in_array($action, $actions, true))
-                ->map(fn (string $action) => "{$module} {$action}"))
+            ->flatten()
             ->values()
             ->all();
     }

@@ -14,7 +14,7 @@ class UpdateVendor
     {
         $vendor->update($data);
 
-        $this->recordActivity->handle('Vendor ubah', $vendor, "Mengubah vendor {$vendor->nama_vendor}", $request);
+        $this->recordActivity->handle('updated_vendor', $vendor, "Mengubah vendor {$vendor->nama_vendor}", $request);
 
         return $vendor->refresh();
     }

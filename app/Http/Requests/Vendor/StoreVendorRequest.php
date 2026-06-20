@@ -13,7 +13,7 @@ class StoreVendorRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Vendor tambah') ?? false;
+        return $this->user()?->can('tambah_vendor') ?? false;
     }
 
     public function rules(): array

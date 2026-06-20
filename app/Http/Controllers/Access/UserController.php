@@ -62,7 +62,7 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user): RedirectResponse
     {
-        abort_unless($request->user()?->can('User hapus'), 403);
+        abort_unless($request->user()?->can('hapus_user'), 403);
 
         $this->userService->deactivate($user, $request);
 

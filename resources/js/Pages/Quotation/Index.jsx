@@ -41,7 +41,7 @@ export default function Index({ quotations, filters, customers, statuses }) {
                     <Button asChild size="icon" variant="outline" title="Lihat detail">
                         <Link href={route('quotations.show', row.id)}><Eye className="h-4 w-4" /></Link>
                     </Button>
-                    {permissions.includes('Quotation void') && row.status !== 'VOID' && (
+                    {permissions.includes('void_quotation') && row.status !== 'VOID' && (
                         <Button asChild size="icon" variant="destructive" title="Void quotation">
                             <Link href={route('quotations.show', row.id)}><Ban className="h-4 w-4" /></Link>
                         </Button>
@@ -57,7 +57,7 @@ export default function Index({ quotations, filters, customers, statuses }) {
             <PageHeader
                 title="Quotation"
                 description="Kelola penawaran harga dan approval dokumen."
-                actions={permissions.includes('Quotation buat') && (
+                actions={permissions.includes('buat_quotation') && (
                     <Button asChild>
                         <Link href={route('quotations.create')}><FilePlus2 className="h-4 w-4" />Buat Quotation</Link>
                     </Button>

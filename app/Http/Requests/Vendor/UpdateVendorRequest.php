@@ -13,7 +13,7 @@ class UpdateVendorRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Vendor ubah') ?? false;
+        return $this->user()?->can('ubah_vendor') ?? false;
     }
 
     public function rules(): array

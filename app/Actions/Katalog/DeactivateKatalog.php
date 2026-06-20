@@ -14,7 +14,7 @@ class DeactivateKatalog
     {
         $katalog->update(['is_active' => false]);
 
-        $this->recordActivity->handle('Katalog hapus', $katalog, "Menonaktifkan barang {$katalog->part_no}", $request);
+        $this->recordActivity->handle('deactivated_katalog', $katalog, "Menonaktifkan barang {$katalog->part_no}", $request);
 
         return $katalog;
     }

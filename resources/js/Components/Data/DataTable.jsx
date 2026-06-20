@@ -47,11 +47,11 @@ export default function DataTable({
             </div>
 
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                     <thead className="bg-slate-50 dark:bg-slate-900">
                         <tr>
                             {columns.map((column) => (
-                                <th key={column.key} className="whitespace-nowrap px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-300">
+                                <th key={column.key} className={`${column.width ?? 'w-48'} px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-300`}>
                                     {column.sortable ? (
                                         <button type="button" onClick={() => sortBy(column.key)} className="inline-flex items-center gap-1">
                                             {column.label}
@@ -75,8 +75,10 @@ export default function DataTable({
                         {rows.map((row) => (
                             <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/60">
                                 {columns.map((column) => (
-                                    <td key={column.key} className="whitespace-nowrap px-4 py-3 text-slate-700 dark:text-slate-200">
-                                        {column.render ? column.render(row) : row[column.key]}
+                                    <td key={column.key} className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                                        <div className={column.truncate === false ? '' : 'truncate'} title={column.title ? column.title(row) : (typeof row[column.key] === 'string' ? row[column.key] : undefined)}>
+                                            {column.render ? column.render(row) : row[column.key]}
+                                        </div>
                                     </td>
                                 ))}
                             </tr>

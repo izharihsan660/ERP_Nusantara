@@ -12,7 +12,7 @@ class UpdateCustomerRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('Customer ubah') ?? false;
+        return $this->user()?->can('ubah_customer') ?? false;
     }
 
     public function rules(): array

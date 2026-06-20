@@ -8,7 +8,7 @@ class ImportKatalogRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('Katalog import') ?? false;
+        return $this->user()?->can('import_katalog') ?? false;
     }
 
     public function rules(): array

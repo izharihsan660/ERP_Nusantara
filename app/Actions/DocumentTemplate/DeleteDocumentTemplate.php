@@ -12,7 +12,7 @@ class DeleteDocumentTemplate
 
     public function handle(DocumentTemplate $template, Request $request): void
     {
-        $this->recordActivity->handle('Template Dokumen hapus', $template, "Menghapus template {$template->kode_template}", $request);
+        $this->recordActivity->handle('deleted_template', $template, "Menghapus template {$template->kode_template}", $request);
 
         $template->delete();
     }

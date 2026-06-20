@@ -149,7 +149,7 @@ export default function Create({ customers, templates, katalog }) {
                         </div>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                        <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                             <thead className="bg-slate-50 dark:bg-slate-900">
                                 <tr>
                                     <th className="px-3 py-3 text-left"><InputLabel label="Katalog" required className="text-xs" /></th>
