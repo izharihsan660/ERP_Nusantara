@@ -29,11 +29,11 @@ export default function DataTable({
     };
 
     return (
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <div className="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
+        <div className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))]">
+            <div className="flex flex-col gap-3 border-b border-[hsl(var(--border))] p-4 lg:flex-row lg:items-center lg:justify-between">
                 <form onSubmit={submit} className="flex w-full flex-col gap-2 sm:flex-row lg:max-w-md">
                     <div className="relative flex-1">
-                        <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                         <Input
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
@@ -47,13 +47,13 @@ export default function DataTable({
             </div>
 
             <div className="overflow-x-auto">
-                <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                    <thead className="bg-slate-50 dark:bg-slate-900">
-                        <tr>
+                <table className="min-w-full table-fixed text-sm">
+                    <thead className="bg-[hsl(var(--muted))]">
+                        <tr className="border-b border-[hsl(var(--border))]">
                             {columns.map((column) => (
-                                <th key={column.key} className={`${column.width ?? 'w-48'} px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-300`}>
+                                <th key={column.key} className={`${column.width ?? 'w-48'} px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[hsl(var(--muted-foreground))]`}>
                                     {column.sortable ? (
-                                        <button type="button" onClick={() => sortBy(column.key)} className="inline-flex items-center gap-1">
+                                        <button type="button" onClick={() => sortBy(column.key)} className="inline-flex items-center gap-1 hover:text-[hsl(var(--foreground))]">
                                             {column.label}
                                             {filters.sort === column.key && (
                                                 filters.direction === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />
@@ -64,18 +64,23 @@ export default function DataTable({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                    <tbody>
                         {rows.length === 0 && (
                             <tr>
-                                <td colSpan={columns.length} className="px-4 py-10 text-center text-slate-500">
-                                    {emptyText}
+                                <td colSpan={columns.length} className="px-4 py-14 text-center">
+                                    <div className="mx-auto flex max-w-sm flex-col items-center gap-3 text-[hsl(var(--muted-foreground))]">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--muted))]">
+                                            <Search className="h-4 w-4" />
+                                        </div>
+                                        <div className="text-sm font-medium">{emptyText}</div>
+                                    </div>
                                 </td>
                             </tr>
                         )}
                         {rows.map((row) => (
-                            <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/60">
+                            <tr key={row.id} className="border-b border-[hsl(var(--border))] transition-colors last:border-0 hover:bg-[hsl(var(--accent))]/50">
                                 {columns.map((column) => (
-                                    <td key={column.key} className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                                    <td key={column.key} className="px-4 py-3 text-sm text-[hsl(var(--foreground))]">
                                         <div className={column.truncate === false ? '' : 'truncate'} title={column.title ? column.title(row) : (typeof row[column.key] === 'string' ? row[column.key] : undefined)}>
                                             {column.render ? column.render(row) : row[column.key]}
                                         </div>
@@ -87,7 +92,7 @@ export default function DataTable({
                 </table>
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-[hsl(var(--border))] p-4 text-sm text-[hsl(var(--muted-foreground))] sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     Menampilkan {data?.from ?? 0}-{data?.to ?? 0} dari {data?.total ?? 0}
                 </div>
@@ -98,7 +103,7 @@ export default function DataTable({
                             href={link.url ?? currentUrl}
                             preserveScroll
                             preserveState
-                            className={`rounded-md px-3 py-1.5 ${link.active ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'} ${!link.url ? 'pointer-events-none opacity-40' : ''}`}
+                            className={`rounded-md px-3 py-1.5 transition-colors ${link.active ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]' : 'hover:bg-[hsl(var(--accent))]'} ${!link.url ? 'pointer-events-none opacity-40' : ''}`}
                             dangerouslySetInnerHTML={{ __html: link.label }}
                         />
                     ))}

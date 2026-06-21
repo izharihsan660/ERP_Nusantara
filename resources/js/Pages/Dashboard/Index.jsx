@@ -8,20 +8,20 @@ import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Too
 import { Eye } from 'lucide-react';
 
 const badgeStyles = {
-    DRAFT: 'bg-slate-100 text-slate-700 ring-slate-200',
-    OPEN: 'bg-blue-50 text-blue-700 ring-blue-200',
-    PENDING_APPROVAL: 'bg-amber-50 text-amber-700 ring-amber-200',
-    BELUM: 'bg-amber-50 text-amber-700 ring-amber-200',
-    SEBAGIAN: 'bg-orange-50 text-orange-700 ring-orange-200',
-    APPROVED: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    LUNAS: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    PAID: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    VOID: 'bg-zinc-800 text-white ring-zinc-800',
+    DRAFT: 'bg-slate-100 text-slate-700',
+    OPEN: 'bg-sky-100 text-sky-700',
+    PENDING_APPROVAL: 'bg-amber-100 text-amber-700',
+    BELUM: 'bg-red-100 text-red-700',
+    SEBAGIAN: 'bg-amber-100 text-amber-700',
+    APPROVED: 'bg-green-100 text-green-700',
+    LUNAS: 'bg-green-100 text-green-700',
+    PAID: 'bg-emerald-100 text-emerald-700',
+    VOID: 'bg-slate-100 text-slate-500 line-through',
 };
 
 function StatusPill({ value, children }) {
     return (
-        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${badgeStyles[value] ?? 'bg-slate-100 text-slate-700 ring-slate-200'}`}>
+        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${badgeStyles[value] ?? 'bg-slate-100 text-slate-700'}`}>
             {children ?? value}
         </span>
     );
@@ -29,28 +29,28 @@ function StatusPill({ value, children }) {
 
 function Table({ columns, rows, emptyText = 'Data belum tersedia.' }) {
     return (
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+        <div className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
             <div className="overflow-x-auto">
-                <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                    <thead className="bg-slate-50 dark:bg-slate-900">
+                <table className="min-w-full table-fixed text-sm">
+                    <thead className="bg-[hsl(var(--muted))]">
                         <tr>
                             {columns.map((column) => (
-                                <th key={column.key} className="whitespace-nowrap px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-300">
+                                <th key={column.key} className="whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
                                     {column.label}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                    <tbody className="divide-y divide-[hsl(var(--border))]">
                         {rows.length === 0 && (
                             <tr>
-                                <td colSpan={columns.length} className="px-4 py-10 text-center text-slate-500">{emptyText}</td>
+                                <td colSpan={columns.length} className="px-4 py-10 text-center text-[hsl(var(--muted-foreground))]">{emptyText}</td>
                             </tr>
                         )}
                         {rows.map((row) => (
-                            <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/60">
+                            <tr key={row.id} className="hover:bg-[hsl(var(--accent))]/50">
                                 {columns.map((column) => (
-                                    <td key={column.key} className="whitespace-nowrap px-4 py-3 text-slate-700 dark:text-slate-200">
+                                    <td key={column.key} className="whitespace-nowrap px-4 py-3 text-[hsl(var(--foreground))]">
                                         {column.render ? column.render(row) : row[column.key]}
                                     </td>
                                 ))}
@@ -65,8 +65,8 @@ function Table({ columns, rows, emptyText = 'Data belum tersedia.' }) {
 
 function ChartPanel({ title, children }) {
     return (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <h2 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
+        <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6">
+            <h2 className="mb-4 text-sm font-semibold text-[hsl(var(--foreground))]">{title}</h2>
             <div className="h-72">{children}</div>
         </div>
     );
@@ -175,10 +175,10 @@ function ManagerDashboard({ dashboard }) {
                 <ChartPanel title="Tren Penjualan per Bulan">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={dashboard.sales_trend ?? []}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis tickFormatter={(value) => `${Number(value) / 1000000}jt`} />
-                            <Tooltip formatter={(value) => [formatRupiah(value), 'Total Quotation']} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                            <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                            <YAxis tickFormatter={(value) => `${Number(value) / 1000000}jt`} axisLine={false} tickLine={false} />
+                            <Tooltip formatter={(value) => [formatRupiah(value), 'Total Quotation']} contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))' }} />
                             <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} />
                         </LineChart>
                     </ResponsiveContainer>
@@ -186,10 +186,10 @@ function ManagerDashboard({ dashboard }) {
                 <ChartPanel title="Profit per Bulan">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={dashboard.profit_trend ?? []}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis tickFormatter={(value) => `${Number(value) / 1000000}jt`} />
-                            <Tooltip formatter={(value) => [formatRupiah(value), 'Profit']} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                            <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                            <YAxis tickFormatter={(value) => `${Number(value) / 1000000}jt`} axisLine={false} tickLine={false} />
+                            <Tooltip formatter={(value) => [formatRupiah(value), 'Profit']} contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))' }} />
                             <Bar dataKey="value" fill="#0f766e" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
@@ -209,6 +209,10 @@ function ManagerDashboard({ dashboard }) {
     );
 }
 
+function todayLabel() {
+    return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+}
+
 export default function Dashboard({ dashboard }) {
     const components = {
         superadmin: SuperadminDashboard,
@@ -223,7 +227,7 @@ export default function Dashboard({ dashboard }) {
     return (
         <AppLayout title="Dashboard">
             <Head title="Dashboard" />
-            <PageHeader title="Dashboard" description="Ringkasan operasional sesuai jabatan aktif." />
+            <PageHeader title="Dashboard" description={`Ringkasan operasional hari ini, ${todayLabel()}.`} />
             <RoleDashboard dashboard={dashboard} />
         </AppLayout>
     );

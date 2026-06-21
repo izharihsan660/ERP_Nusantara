@@ -8,9 +8,9 @@ export default function ConfirmDialog({
     onConfirm,
     onCancel,
     title = 'Konfirmasi',
-    message = 'Apakah Anda yakin?',
+    message,
     description, // Backward compatibility
-    confirmLabel = 'Ya, Lanjutkan',
+    confirmLabel,
     confirmText, // Backward compatibility
     cancelLabel = 'Batal',
     variant = 'danger', // 'danger' | 'warning' | 'success'
@@ -45,21 +45,21 @@ export default function ConfirmDialog({
     const variantConfig = {
         danger: {
             icon: XCircle,
-            iconClass: 'text-red-600',
-            bgClass: 'bg-red-50',
-            buttonClass: 'bg-red-600 hover:bg-red-700 text-white',
+            iconClass: 'text-red-600 dark:text-red-400',
+            bgClass: 'bg-red-50 dark:bg-red-950',
+            buttonClass: 'bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:opacity-90',
         },
         warning: {
             icon: AlertTriangle,
-            iconClass: 'text-yellow-600',
-            bgClass: 'bg-yellow-50',
-            buttonClass: 'bg-yellow-600 hover:bg-yellow-700 text-white',
+            iconClass: 'text-amber-600 dark:text-amber-400',
+            bgClass: 'bg-amber-50 dark:bg-amber-950',
+            buttonClass: 'bg-amber-500 text-white hover:bg-amber-600',
         },
         success: {
             icon: CheckCircle,
-            iconClass: 'text-green-600',
-            bgClass: 'bg-green-50',
-            buttonClass: 'bg-green-600 hover:bg-green-700 text-white',
+            iconClass: 'text-green-600 dark:text-green-400',
+            bgClass: 'bg-green-50 dark:bg-green-950',
+            buttonClass: 'bg-green-600 text-white hover:bg-green-700',
         },
     };
 
@@ -75,18 +75,18 @@ export default function ConfirmDialog({
         >
             {/* Overlay */}
             <div
-                className="absolute inset-0 bg-black/50"
+                className="absolute inset-0 bg-slate-950/50"
                 onClick={onCancel}
                 aria-label="Tutup dialog"
             />
 
             {/* Dialog */}
-            <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-slate-900 animate-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-md rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 text-[hsl(var(--card-foreground))] shadow-xl animate-in zoom-in-95 duration-200">
                 {/* Close button */}
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="absolute right-4 top-4 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-500 dark:hover:bg-slate-800"
+                    className="absolute right-4 top-4 rounded-md p-1 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))]"
                     aria-label="Tutup"
                 >
                     <X className="h-4 w-4" />
@@ -101,11 +101,11 @@ export default function ConfirmDialog({
                 <div className="mt-4 text-center">
                     <h3
                         id="dialog-title"
-                        className="text-lg font-semibold text-slate-900 dark:text-white"
+                        className="text-lg font-semibold text-[hsl(var(--foreground))]"
                     >
                         {title}
                     </h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                    <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
                         {dialogMessage}
                     </p>
                 </div>
