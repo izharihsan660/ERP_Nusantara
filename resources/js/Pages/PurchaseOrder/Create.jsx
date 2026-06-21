@@ -137,17 +137,16 @@ export default function Create({ customers, vendors }) {
                         <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
                     </div>
                     <div className="overflow-x-auto rounded-lg border border-[hsl(var(--border))]">
-                        <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                        <table className="min-w-[1040px] table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                             <thead className="bg-slate-50 dark:bg-slate-900">
                                 <tr>
-                                    <th className="px-3 py-3 text-left">Katalog</th>
-                                    <th className="px-3 py-3 text-left">Part No</th>
-                                    <th className="px-3 py-3 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
-                                    <th className="px-3 py-3 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
-                                    <th className="px-3 py-3 text-left">Satuan</th>
-                                    <th className="px-3 py-3 text-left"><InputLabel label="Harga Satuan" required className="text-xs" /></th>
-                                    <th className="px-3 py-3 text-right">Jumlah</th>
-                                    <th className="px-3 py-3" />
+                                    <th className="w-56 px-3 py-2 text-left">No. Part</th>
+                                    <th className="w-72 px-3 py-2 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
+                                    <th className="w-24 px-3 py-2 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
+                                    <th className="w-28 px-3 py-2 text-left">Satuan</th>
+                                    <th className="w-40 px-3 py-2 text-left"><InputLabel label="Harga" required className="text-xs" /></th>
+                                    <th className="w-40 px-3 py-2 text-right">Jumlah</th>
+                                    <th className="w-20 px-3 py-2 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
@@ -156,28 +155,28 @@ export default function Create({ customers, vendors }) {
 
                                     return (
                                         <tr key={index}>
-                                            <td className="min-w-64 px-3 py-3">
+                                            <td className="px-3 py-2 align-top">
                                                 <KatalogAutocomplete value={item} onSelect={(selected) => setKatalog(index, selected)} />
+                                                <Input value={item.part_no ?? ''} readOnly className="mt-2" />
                                             </td>
-                                            <td className="min-w-40 px-3 py-3"><Input value={item.part_no ?? ''} readOnly /></td>
-                                            <td className="min-w-64 px-3 py-3">
+                                            <td className="px-3 py-2 align-top">
                                                 <Input value={item.deskripsi} readOnly />
                                                 <InputError message={errors[`items.${index}.deskripsi`]} className="mt-2" />
                                             </td>
-                                            <td className="w-24 px-3 py-3">
+                                            <td className="px-3 py-2 align-top">
                                                 <Input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', e.target.value)} />
                                                 <InputError message={errors[`items.${index}.qty`]} className="mt-2" />
                                             </td>
-                                            <td className="w-28 px-3 py-3">
+                                            <td className="px-3 py-2 align-top">
                                                 <Input value={item.satuan ?? ''} readOnly />
                                                 <InputError message={errors[`items.${index}.satuan`]} className="mt-2" />
                                             </td>
-                                            <td className="w-40 px-3 py-3">
+                                            <td className="px-3 py-2 align-top">
                                                 <Input inputMode="numeric" value={formatRupiahInput(item.harga_satuan)} onChange={(e) => updateItem(index, 'harga_satuan', parseRupiah(e.target.value))} />
                                                 <InputError message={errors[`items.${index}.harga_satuan`]} className="mt-2" />
                                             </td>
-                                            <td className="whitespace-nowrap px-3 py-3 text-right">{formatRupiah(jumlah)}</td>
-                                            <td className="px-3 py-3">
+                                            <td className="whitespace-nowrap px-3 py-2 text-right align-top">{formatRupiah(jumlah)}</td>
+                                            <td className="px-3 py-2 text-center align-top">
                                                 <Button type="button" size="icon" variant="ghost" onClick={() => removeItem(index)} disabled={data.items.length === 1}>
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>

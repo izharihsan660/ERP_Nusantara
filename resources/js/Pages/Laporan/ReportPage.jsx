@@ -9,13 +9,13 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Download, Eye } from 'lucide-react';
 
 const reportTabs = [
-    { label: 'Rekapan PO', routeName: 'laporan.rekapan-po' },
-    { label: 'WIP', routeName: 'laporan.rekapan-wip' },
-    { label: 'SPB', routeName: 'laporan.rekapan-spb' },
-    { label: 'Invoice', routeName: 'laporan.rekapan-invoice' },
-    { label: 'PD', routeName: 'laporan.rekapan-pd' },
-    { label: 'Profit', routeName: 'laporan.profit' },
-    { label: 'Outstanding', routeName: 'laporan.outstanding' },
+    { label: 'Rekapan PO', routeName: 'laporan.rekapan-po', tab: 'rekapan-po' },
+    { label: 'WIP', routeName: 'laporan.rekapan-wip', tab: 'rekapan-wip' },
+    { label: 'SPB', routeName: 'laporan.rekapan-spb', tab: 'rekapan-spb' },
+    { label: 'Invoice', routeName: 'laporan.rekapan-invoice', tab: 'rekapan-invoice' },
+    { label: 'PD', routeName: 'laporan.rekapan-pd', tab: 'rekapan-pd' },
+    { label: 'Profit', routeName: 'laporan.profit', tab: 'profit' },
+    { label: 'Outstanding', routeName: 'laporan.outstanding', tab: 'outstanding' },
 ];
 
 export function money(value) {
@@ -70,7 +70,8 @@ export default function ReportPage({
     chart,
 }) {
     const rows = data?.data ?? [];
-    const exportQuery = new URLSearchParams(clean(filters)).toString();
+    const isConsolidated = routeName === 'laporan.index';
+    const exportQuery = new URLSearchParams(clean({ ...filters, tab: isConsolidated ? exportType : undefined })).toString();
     const exportUrl = `${route('laporan.export', exportType)}${exportQuery ? `?${exportQuery}` : ''}`;
     const currentUrl = usePage().url;
 
@@ -90,12 +91,12 @@ export default function ReportPage({
             <div className="mb-6 overflow-x-auto border-b border-[hsl(var(--border))]">
                 <div className="flex min-w-max gap-6">
                     {reportTabs.map((tab) => {
-                        const isActive = tab.routeName === routeName;
+                        const isActive = isConsolidated ? tab.tab === exportType : tab.routeName === routeName;
 
                         return (
                             <Link
                                 key={tab.routeName}
-                                href={route(tab.routeName)}
+                                href={isConsolidated ? route('laporan.index', { tab: tab.tab }) : route(tab.routeName)}
                                 className={`border-b-2 px-1 pb-3 text-sm font-medium transition ${isActive ? 'border-[hsl(var(--primary))] text-[hsl(var(--foreground))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
                             >
                                 {tab.label}

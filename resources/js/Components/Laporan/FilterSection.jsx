@@ -21,7 +21,7 @@ export default function FilterSection({ routeName, filters = {}, fields = [] }) 
     };
 
     const reset = () => {
-        router.get(route(routeName), {}, { preserveState: true, replace: true });
+        router.get(route(routeName), values.tab ? { tab: values.tab } : {}, { preserveState: true, replace: true });
     };
 
     return (

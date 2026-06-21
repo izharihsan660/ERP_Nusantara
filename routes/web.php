@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::redirect('/laporan', '/laporan/rekapan-po')->middleware('permission:laporan_rekapan_po')->name('laporan.index');
+    Route::get('/laporan', [LaporanController::class, 'index'])->middleware('permission:laporan_rekapan_po|laporan_rekapan_wip|laporan_rekapan_spb|laporan_rekapan_invoice|laporan_rekapan_pd|laporan_profit|laporan_outstanding')->name('laporan.index');
     Route::get('/laporan/rekapan-po', [LaporanController::class, 'rekapanPo'])->middleware('permission:laporan_rekapan_po')->name('laporan.rekapan-po');
     Route::get('/laporan/rekapan-wip', [LaporanController::class, 'rekapanWip'])->middleware('permission:laporan_rekapan_wip')->name('laporan.rekapan-wip');
     Route::get('/laporan/rekapan-spb', [LaporanController::class, 'rekapanSpb'])->middleware('permission:laporan_rekapan_spb')->name('laporan.rekapan-spb');

@@ -169,7 +169,15 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
         e.preventDefault();
         const items = selectedItems
             .filter(item => item.selected && item.qty > 0)
-            .map(({ quotation_item_id, qty }) => ({ quotation_item_id, qty }));
+            .map(({ quotation_item_id, qty }) => {
+                const sourceItem = source_items.find((item) => item.id === quotation_item_id);
+
+                return {
+                    katalog_id: sourceItem?.katalog_id ?? null,
+                    part_no: sourceItem?.part_no ?? '',
+                    qty,
+                };
+            });
         
         if (items.length === 0) {
             alert('Pilih minimal 1 item dengan qty > 0');

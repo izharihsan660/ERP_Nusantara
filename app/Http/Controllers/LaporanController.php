@@ -36,6 +36,21 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LaporanController extends Controller
 {
+    public function index(Request $request): Response
+    {
+        $tab = $request->string('tab', 'rekapan-po')->value();
+
+        return match ($tab) {
+            'rekapan-wip' => $this->indexRekapanWip($request, $tab),
+            'rekapan-spb' => $this->indexRekapanSpb($request, $tab),
+            'rekapan-invoice' => $this->indexRekapanInvoice($request, $tab),
+            'rekapan-pd' => $this->indexRekapanPd($request, $tab),
+            'profit' => $this->indexProfit($request, $tab),
+            'outstanding' => $this->indexOutstanding($request, $tab),
+            default => $this->indexRekapanPo($request, 'rekapan-po'),
+        };
+    }
+
     public function rekapanPo(Request $request): Response
     {
         $this->authorizeReport($request, 'laporan_rekapan_po');
@@ -168,6 +183,114 @@ class LaporanController extends Controller
             'outstanding' => $this->downloadOutstanding($request),
             default => abort(404),
         };
+    }
+
+    private function renderIndex(Request $request, string $activeTab, array $props): Response
+    {
+        return Inertia::render('Laporan/Index', [
+            ...$props,
+            ...$this->baseProps($request, 'laporan.index', $activeTab),
+            'activeTab' => $activeTab,
+        ]);
+    }
+
+    private function indexRekapanPo(Request $request, string $tab): Response
+    {
+        $this->authorizeReport($request, 'laporan_rekapan_po');
+        $query = $this->rekapanPoQuery($request);
+        $rows = $this->rekapanPoRows((clone $query)->get());
+
+        return $this->renderIndex($request, $tab, [
+            'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (SalesOrder $salesOrder): array => $this->rekapanPoRow($salesOrder)),
+            'summary' => $this->rekapanPoSummary($rows),
+            'customers' => $this->customers(),
+            'statuses' => SalesOrderStatus::options(),
+        ]);
+    }
+
+    private function indexRekapanWip(Request $request, string $tab): Response
+    {
+        $this->authorizeReport($request, 'laporan_rekapan_wip');
+        $query = $this->rekapanWipQuery($request);
+        $rows = $this->rekapanWipRows((clone $query)->get());
+
+        return $this->renderIndex($request, $tab, [
+            'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (WipOrder $wip): array => $this->rekapanWipRow($wip)),
+            'summary' => $this->rekapanWipSummary($rows),
+            'tipeOptions' => TipeOrder::options(),
+            'statusSupplyOptions' => StatusSupply::options(),
+        ]);
+    }
+
+    private function indexRekapanSpb(Request $request, string $tab): Response
+    {
+        $this->authorizeReport($request, 'laporan_rekapan_spb');
+        $query = $this->rekapanSpbQuery($request);
+        $rows = $this->rekapanSpbRows((clone $query)->get());
+
+        return $this->renderIndex($request, $tab, [
+            'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (Spb $spb): array => $this->rekapanSpbRow($spb)),
+            'summary' => $this->rekapanSpbSummary($rows),
+            'customers' => $this->customers(),
+            'statuses' => SpbStatus::options(),
+        ]);
+    }
+
+    private function indexRekapanInvoice(Request $request, string $tab): Response
+    {
+        $this->authorizeReport($request, 'laporan_rekapan_invoice');
+        $query = $this->rekapanInvoiceQuery($request);
+        $rows = $this->rekapanInvoiceRows((clone $query)->get());
+
+        return $this->renderIndex($request, $tab, [
+            'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (Invoice $invoice): array => $this->rekapanInvoiceRow($invoice)),
+            'summary' => $this->rekapanInvoiceSummary($rows),
+            'customers' => $this->customers(),
+            'tipeDokumenOptions' => TipeDokumen::options(),
+            'statusPembayaranOptions' => StatusPembayaran::options(),
+            'metodeOptions' => MetodePembayaran::options(),
+        ]);
+    }
+
+    private function indexRekapanPd(Request $request, string $tab): Response
+    {
+        $this->authorizeReport($request, 'laporan_rekapan_pd');
+        $query = $this->rekapanPdQuery($request);
+        $rows = $this->rekapanPdRows((clone $query)->get());
+
+        return $this->renderIndex($request, $tab, [
+            'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (PermintaanDana $pd): array => $this->rekapanPdRow($pd)),
+            'summary' => $this->rekapanPdSummary($rows),
+            'statuses' => PDStatus::options(),
+        ]);
+    }
+
+    private function indexProfit(Request $request, string $tab): Response
+    {
+        $this->authorizeReport($request, 'laporan_profit');
+        $query = $this->profitQuery($request);
+        $rows = $this->profitRows((clone $query)->get());
+
+        return $this->renderIndex($request, $tab, [
+            'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (Quotation $quotation): array => $this->profitRow($quotation)),
+            'summary' => $this->profitSummary($rows),
+            'customers' => $this->customers(),
+            'chart' => $this->profitChart($rows),
+        ]);
+    }
+
+    private function indexOutstanding(Request $request, string $tab): Response
+    {
+        $this->authorizeReport($request, 'laporan_outstanding');
+        $query = $this->outstandingQuery($request);
+        $rows = $this->outstandingRows((clone $query)->get());
+
+        return $this->renderIndex($request, $tab, [
+            'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (Invoice $invoice): array => $this->outstandingRow($invoice)),
+            'summary' => $this->outstandingSummary($rows),
+            'customers' => $this->customers(),
+            'metodeOptions' => MetodePembayaran::options(),
+        ]);
     }
 
     private function downloadRekapanPo(Request $request): BinaryFileResponse
