@@ -134,15 +134,20 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
             return;
         }
 
-        paymentForm.post(route('invoices.pembayaran', selectedInvoice.id), {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                paymentForm.reset();
-                setSelectedInvoice(null);
-                setModal(null);
-            },
-        });
+        paymentForm
+            .transform((payload) => ({
+                ...payload,
+                jumlah_bayar: parseRupiah(payload.jumlah_bayar),
+            }))
+            .post(route('invoices.pembayaran', selectedInvoice.id), {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    paymentForm.reset();
+                    setSelectedInvoice(null);
+                    setModal(null);
+                },
+            });
     };
 
     const updatePaymentDocument = (index, field, value) => {

@@ -178,13 +178,18 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
 
     const submitUploadBukti = (event) => {
         event.preventDefault();
-        uploadForm.post(route('permintaan-dana.upload-bukti', permintaanDana.id), {
-            forceFormData: true,
-            onSuccess: () => {
-                uploadForm.reset();
-                setModal(null);
-            },
-        });
+        uploadForm
+            .transform((payload) => ({
+                ...payload,
+                jumlah_realisasi: parseRupiah(payload.jumlah_realisasi),
+            }))
+            .post(route('permintaan-dana.upload-bukti', permintaanDana.id), {
+                forceFormData: true,
+                onSuccess: () => {
+                    uploadForm.reset();
+                    setModal(null);
+                },
+            });
     };
 
     return (

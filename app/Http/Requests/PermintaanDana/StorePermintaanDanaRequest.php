@@ -3,14 +3,22 @@
 namespace App\Http\Requests\PermintaanDana;
 
 use App\Enums\KategoriPD;
+use App\Http\Requests\Concerns\NormalizesMoneyInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StorePermintaanDanaRequest extends FormRequest
 {
+    use NormalizesMoneyInput;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeMoneyInput(['nominal']);
     }
 
     /**

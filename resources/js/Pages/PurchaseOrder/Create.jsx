@@ -63,7 +63,14 @@ export default function Create({ customers, vendors, katalog }) {
 
     const submit = (event, submitToManager = false) => {
         event.preventDefault();
-        transform((payload) => ({ ...payload, submit: submitToManager }));
+        transform((payload) => ({
+            ...payload,
+            submit: submitToManager,
+            items: payload.items.map((item) => ({
+                ...item,
+                harga_satuan: parseRupiah(item.harga_satuan),
+            })),
+        }));
         post(route('purchase-orders.store'));
     };
 

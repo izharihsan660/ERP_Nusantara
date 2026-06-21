@@ -26,7 +26,11 @@ export default function Create({ categories }) {
 
     const submit = (event, submitToManager = false) => {
         event.preventDefault();
-        transform((payload) => ({ ...payload, submit: submitToManager }));
+        transform((payload) => ({
+            ...payload,
+            nominal: parseRupiah(payload.nominal),
+            submit: submitToManager,
+        }));
         post(route('permintaan-dana.store'));
     };
 

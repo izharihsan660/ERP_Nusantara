@@ -6,12 +6,9 @@ use App\Enums\DocumentType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocumentTemplate extends Model
 {
-    use SoftDeletes;
-
     protected $fillable = [
         'nama_template',
         'kode_template',

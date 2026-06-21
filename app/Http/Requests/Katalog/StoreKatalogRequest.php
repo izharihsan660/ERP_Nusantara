@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests\Katalog;
 
+use App\Http\Requests\Concerns\NormalizesMoneyInput;
 use App\Http\Requests\Concerns\SanitizesRequestInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreKatalogRequest extends FormRequest
 {
+    use NormalizesMoneyInput;
     use SanitizesRequestInput;
 
     public function authorize(): bool
@@ -37,5 +39,7 @@ class StoreKatalogRequest extends FormRequest
             'satuan',
             'kategori',
         ]));
+
+        $this->normalizeMoneyInput(['hpp', 'harga_jual_default']);
     }
 }

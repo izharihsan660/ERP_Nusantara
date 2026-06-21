@@ -3,14 +3,22 @@
 namespace App\Http\Requests\Invoice;
 
 use App\Enums\InvoicePaymentDocumentType;
+use App\Http\Requests\Concerns\NormalizesMoneyInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePembayaranRequest extends FormRequest
 {
+    use NormalizesMoneyInput;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeMoneyInput(['jumlah_bayar']);
     }
 
     /**

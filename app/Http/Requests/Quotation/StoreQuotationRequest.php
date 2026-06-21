@@ -2,14 +2,22 @@
 
 namespace App\Http\Requests\Quotation;
 
+use App\Http\Requests\Concerns\NormalizesMoneyInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreQuotationRequest extends FormRequest
 {
+    use NormalizesMoneyInput;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeMoneyInput(['items.*.harga_satuan']);
     }
 
     /**
