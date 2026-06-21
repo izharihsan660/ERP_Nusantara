@@ -51,7 +51,7 @@ class SpbController extends Controller
     {
         $spb = $this->spbService->void($spb, $request->validated('alasan_void'), $request->user());
 
-        return $this->redirectToParent($spb)->with('success', 'SPB berhasil divoid.');
+        return $this->redirectToParent($spb)->with('success', 'SPB berhasil di-void.');
     }
 
     public function download(Spb $spb): BinaryFileResponse

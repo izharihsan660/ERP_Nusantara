@@ -27,6 +27,6 @@ class WipOrderController extends Controller
     {
         $this->wipOrderService->void($wipOrder, $request->validated('alasan_void'), $request->user());
 
-        return to_route('quotations.show', $wipOrder->salesOrder->quotation)->with('success', 'WIP berhasil divoid.');
+        return to_route('quotations.show', $wipOrder->salesOrder->quotation)->with('success', 'WIP berhasil di-void.');
     }
 }

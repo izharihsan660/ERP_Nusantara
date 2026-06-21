@@ -55,7 +55,7 @@ class InvoiceController extends Controller
     {
         $invoice = $this->invoiceService->void($invoice, $request->validated('alasan_void'), $request->user());
 
-        return $this->redirectToParent($invoice->spb)->with('success', 'Invoice/Nota berhasil divoid.');
+        return $this->redirectToParent($invoice->spb)->with('success', 'Invoice/Nota berhasil di-void.');
     }
 
     public function download(Invoice $invoice, string $tipe): BinaryFileResponse

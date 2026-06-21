@@ -190,7 +190,7 @@ class PurchaseOrderController extends Controller
     {
         $this->purchaseOrderService->void($purchaseOrder, $request->validated('alasan_void'), $request->user());
 
-        return to_route('purchase-orders.show', $purchaseOrder)->with('success', 'Purchase Order berhasil divoid.');
+        return to_route('purchase-orders.show', $purchaseOrder)->with('success', 'Purchase Order berhasil di-void.');
     }
 
     public function download(PurchaseOrder $purchaseOrder): BinaryFileResponse

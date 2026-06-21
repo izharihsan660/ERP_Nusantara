@@ -1,4 +1,5 @@
 import Dropdown from '@/Components/Dropdown';
+import FlashMessage from '@/Components/FlashMessage';
 import { Button } from '@/Components/ui/button';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
@@ -174,19 +175,10 @@ export default function AppLayout({ title, children }) {
                 </header>
 
                 <main className="p-4 sm:p-6">
-                    {flash.success && (
-                        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
-                            {flash.success}
-                        </div>
-                    )}
-                    {flash.error && (
-                        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-                            {flash.error}
-                        </div>
-                    )}
                     {children}
                 </main>
             </div>
+            <FlashMessage />
         </div>
     );
 }

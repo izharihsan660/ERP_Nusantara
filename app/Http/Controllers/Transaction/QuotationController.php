@@ -236,7 +236,7 @@ class QuotationController extends Controller
     {
         $this->quotationService->void($quotation, $request->validated('alasan_void'), $request->user());
 
-        return to_route('quotations.show', $quotation)->with('success', 'Quotation berhasil divoid.');
+        return to_route('quotations.show', $quotation)->with('success', 'Quotation berhasil di-void.');
     }
 
     public function download(Quotation $quotation): BinaryFileResponse

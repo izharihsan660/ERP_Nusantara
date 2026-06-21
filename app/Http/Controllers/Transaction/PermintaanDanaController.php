@@ -144,7 +144,7 @@ class PermintaanDanaController extends Controller
     {
         $this->permintaanDanaService->void($permintaanDana, $request->validated('alasan_void'), $request->user());
 
-        return to_route('permintaan-dana.show', $permintaanDana)->with('success', 'Permintaan Dana berhasil divoid.');
+        return to_route('permintaan-dana.show', $permintaanDana)->with('success', 'Permintaan Dana berhasil di-void.');
     }
 
     public function download(Request $request, PermintaanDana $permintaanDana): BinaryFileResponse

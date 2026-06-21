@@ -32,7 +32,7 @@ class SalesOrderController extends Controller
     {
         $this->salesOrderService->void($salesOrder, $request->validated('alasan_void'), $request->user());
 
-        return to_route('quotations.show', $salesOrder->quotation)->with('success', 'Sales Order berhasil divoid.');
+        return to_route('quotations.show', $salesOrder->quotation)->with('success', 'Sales Order berhasil di-void.');
     }
 
     public function uploadDokumen(Request $request, SalesOrder $salesOrder): RedirectResponse
