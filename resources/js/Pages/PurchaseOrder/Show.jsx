@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
@@ -85,6 +86,7 @@ function ReferensiModal({ show, form, onClose, onSubmit }) {
 export default function Show({ purchaseOrder, sites }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
+    const [confirm, setConfirm] = useState({ isOpen: false, title: '', message: '', variant: 'danger', onConfirm: () => {} });
     const submitForm = useForm({});
     const rejectForm = useForm({ catatan: '' });
     const voidForm = useForm({ alasan_void: '' });
@@ -108,12 +110,26 @@ export default function Show({ purchaseOrder, sites }) {
 
     const submitReject = (event) => {
         event.preventDefault();
-        rejectForm.post(route('purchase-orders.reject', purchaseOrder.id), { onSuccess: () => setModal(null) });
+        setConfirm({
+            isOpen: true,
+            title: 'Tolak Purchase Order',
+            message: 'Purchase Order akan dikembalikan ke status Draft. Lanjutkan?',
+            variant: 'warning',
+            confirmLabel: 'Ya, Tolak',
+            onConfirm: () => rejectForm.post(route('purchase-orders.reject', purchaseOrder.id), { onSuccess: () => setModal(null) }),
+        });
     };
 
     const submitVoid = (event) => {
         event.preventDefault();
-        voidForm.post(route('purchase-orders.void', purchaseOrder.id), { onSuccess: () => setModal(null) });
+        setConfirm({
+            isOpen: true,
+            title: 'Void Purchase Order',
+            message: 'Purchase Order akan di-void permanen. Lanjutkan?',
+            variant: 'danger',
+            confirmLabel: 'Ya, Void',
+            onConfirm: () => voidForm.post(route('purchase-orders.void', purchaseOrder.id), { onSuccess: () => setModal(null) }),
+        });
     };
 
     const submitToManager = () => {
@@ -149,11 +165,11 @@ export default function Show({ purchaseOrder, sites }) {
                     <>
                         <Button asChild variant="outline"><Link href={route('purchase-orders.index')}>Kembali</Link></Button>
                         {purchaseOrder.status === 'DRAFT' && canCreate && (
-                            <Button type="button" disabled={submitForm.processing} onClick={submitToManager}><Send className="h-4 w-4" />Submit ke Manager</Button>
+                            <Button type="button" disabled={submitForm.processing} onClick={() => setConfirm({ isOpen: true, title: 'Submit Purchase Order', message: 'Purchase Order akan dikirim ke Manager untuk disetujui. Lanjutkan?', variant: 'warning', confirmLabel: 'Ya, Submit', onConfirm: submitToManager })}><Send className="h-4 w-4" />Submit ke Manager</Button>
                         )}
                         {purchaseOrder.status === 'PENDING_APPROVAL' && canApprove && (
                             <>
-                                <Button type="button" onClick={() => router.post(route('purchase-orders.approve', purchaseOrder.id))}><Check className="h-4 w-4" />Approve</Button>
+                                <Button type="button" onClick={() => setConfirm({ isOpen: true, title: 'Approve Purchase Order', message: 'Kamu akan menyetujui Purchase Order ini. PDF dan QR Code akan di-generate. Lanjutkan?', variant: 'success', confirmLabel: 'Ya, Approve', onConfirm: () => router.post(route('purchase-orders.approve', purchaseOrder.id)) })}><Check className="h-4 w-4" />Approve</Button>
                                 <Button type="button" variant="destructive" onClick={() => setModal('reject')}><X className="h-4 w-4" />Reject</Button>
                             </>
                         )}
@@ -277,6 +293,10 @@ export default function Show({ purchaseOrder, sites }) {
                 form={referensiForm}
                 onClose={() => setModal(null)}
                 onSubmit={submitReferensi}
+            />
+            <ConfirmDialog
+                {...confirm}
+                onCancel={() => setConfirm((prev) => ({ ...prev, isOpen: false }))}
             />
         </AppLayout>
     );

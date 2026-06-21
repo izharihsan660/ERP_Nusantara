@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
@@ -289,6 +290,7 @@ export default function Show({ quotation, sites }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
     const [selectedWip, setSelectedWip] = useState(null);
+    const [confirm, setConfirm] = useState({ isOpen: false, title: '', message: '', variant: 'danger', onConfirm: () => {} });
     const rejectForm = useForm({ catatan_rejection: '' });
     const voidForm = useForm({ alasan_void: '' });
     const salesOrderForm = useForm({
@@ -308,12 +310,26 @@ export default function Show({ quotation, sites }) {
 
     const submitReject = (event) => {
         event.preventDefault();
-        rejectForm.post(route('quotations.reject', quotation.id), { onSuccess: () => setModal(null) });
+        setConfirm({
+            isOpen: true,
+            title: 'Tolak Quotation',
+            message: 'Kamu akan menolak quotation ini. Pembuat akan mendapat notifikasi. Lanjutkan?',
+            variant: 'warning',
+            confirmLabel: 'Ya, Tolak',
+            onConfirm: () => rejectForm.post(route('quotations.reject', quotation.id), { onSuccess: () => setModal(null) }),
+        });
     };
 
     const submitVoid = (event) => {
         event.preventDefault();
-        voidForm.post(route('quotations.void', quotation.id), { onSuccess: () => setModal(null) });
+        setConfirm({
+            isOpen: true,
+            title: 'Void Quotation',
+            message: 'Quotation akan di-void dan tidak bisa diaktifkan kembali. Aksi ini permanen. Lanjutkan?',
+            variant: 'danger',
+            confirmLabel: 'Ya, Void',
+            onConfirm: () => voidForm.post(route('quotations.void', quotation.id), { onSuccess: () => setModal(null) }),
+        });
     };
 
     const submitSalesOrder = (event) => {
@@ -338,11 +354,18 @@ export default function Show({ quotation, sites }) {
 
     const submitVoidSalesOrder = (event) => {
         event.preventDefault();
-        voidSalesOrderForm.post(route('sales-orders.void', quotation.sales_order.id), {
-            onSuccess: () => {
-                voidSalesOrderForm.reset();
-                setModal(null);
-            },
+        setConfirm({
+            isOpen: true,
+            title: 'Void PO Customer',
+            message: 'PO Customer akan di-void. Lanjutkan?',
+            variant: 'danger',
+            confirmLabel: 'Ya, Void',
+            onConfirm: () => voidSalesOrderForm.post(route('sales-orders.void', quotation.sales_order.id), {
+                onSuccess: () => {
+                    voidSalesOrderForm.reset();
+                    setModal(null);
+                },
+            }),
         });
     };
 
@@ -352,12 +375,19 @@ export default function Show({ quotation, sites }) {
             return;
         }
 
-        voidWipOrderForm.post(route('wip-orders.void', selectedWip.id), {
-            onSuccess: () => {
-                voidWipOrderForm.reset();
-                setSelectedWip(null);
-                setModal(null);
-            },
+        setConfirm({
+            isOpen: true,
+            title: 'Void WIP',
+            message: 'WIP akan di-void. Lanjutkan?',
+            variant: 'danger',
+            confirmLabel: 'Ya, Void',
+            onConfirm: () => voidWipOrderForm.post(route('wip-orders.void', selectedWip.id), {
+                onSuccess: () => {
+                    voidWipOrderForm.reset();
+                    setSelectedWip(null);
+                    setModal(null);
+                },
+            }),
         });
     };
 
@@ -389,11 +419,11 @@ export default function Show({ quotation, sites }) {
                     <>
                         <Button asChild variant="outline"><Link href={route('quotations.index')}>Kembali</Link></Button>
                         {quotation.status === 'DRAFT' && canCreate && (
-                            <Button type="button" onClick={() => router.post(route('quotations.submit', quotation.id))}><Send className="h-4 w-4" />Submit ke Manager</Button>
+                            <Button type="button" onClick={() => setConfirm({ isOpen: true, title: 'Submit Quotation', message: 'Quotation akan dikirim ke Manager untuk disetujui. Lanjutkan?', variant: 'warning', confirmLabel: 'Ya, Submit', onConfirm: () => router.post(route('quotations.submit', quotation.id)) })}><Send className="h-4 w-4" />Submit ke Manager</Button>
                         )}
                         {quotation.status === 'PENDING_APPROVAL' && canApprove && (
                             <>
-                                <Button type="button" onClick={() => router.post(route('quotations.approve', quotation.id))}><Check className="h-4 w-4" />Approve</Button>
+                                <Button type="button" onClick={() => setConfirm({ isOpen: true, title: 'Approve Quotation', message: 'Kamu akan menyetujui quotation ini. Dokumen akan di-generate dan dikirim. Lanjutkan?', variant: 'success', confirmLabel: 'Ya, Approve', onConfirm: () => router.post(route('quotations.approve', quotation.id)) })}><Check className="h-4 w-4" />Approve</Button>
                                 <Button type="button" variant="destructive" onClick={() => setModal('reject')}><X className="h-4 w-4" />Reject</Button>
                             </>
                         )}
@@ -654,6 +684,10 @@ export default function Show({ quotation, sites }) {
                     setModal(null);
                 }}
                 onSubmit={submitVoidWipOrder}
+            />
+            <ConfirmDialog
+                {...confirm}
+                onCancel={() => setConfirm((prev) => ({ ...prev, isOpen: false }))}
             />
         </AppLayout>
     );

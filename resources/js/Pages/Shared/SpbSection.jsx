@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import InputLabel from '@/Components/Form/InputLabel';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -86,6 +87,7 @@ export default function SpbSection({
     const canDownload = permissions.includes('download_pdf_spb');
     const canVoid = permissions.includes('void_spb');
     const [modal, setModal] = useState(null);
+    const [confirm, setConfirm] = useState({ isOpen: false, title: '', message: '', variant: 'danger', onConfirm: () => {} });
     const [siteSearch, setSiteSearch] = useState('');
     const [selectedSpb, setSelectedSpb] = useState(null);
     const initialSourceItems = sourceOptions[0]?.source_items ?? sourceItems;
@@ -179,13 +181,20 @@ export default function SpbSection({
             return;
         }
 
-        voidForm.post(route('spb.void', selectedSpb.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                voidForm.reset();
-                setSelectedSpb(null);
-                setModal(null);
-            },
+        setConfirm({
+            isOpen: true,
+            title: 'Void SPB',
+            message: 'SPB akan di-void. Status WIP akan dikembalikan ke Belum Tersupply. Lanjutkan?',
+            variant: 'danger',
+            confirmLabel: 'Ya, Void',
+            onConfirm: () => voidForm.post(route('spb.void', selectedSpb.id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    voidForm.reset();
+                    setSelectedSpb(null);
+                    setModal(null);
+                },
+            }),
         });
     };
 
@@ -398,6 +407,10 @@ export default function SpbSection({
                     </div>
                 </form>
             </Modal>
+            <ConfirmDialog
+                {...confirm}
+                onCancel={() => setConfirm((prev) => ({ ...prev, isOpen: false }))}
+            />
         </section>
     );
 }

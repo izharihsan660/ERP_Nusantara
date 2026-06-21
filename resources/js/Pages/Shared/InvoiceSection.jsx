@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import InputLabel from '@/Components/Form/InputLabel';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -59,6 +60,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
     const [modal, setModal] = useState(null);
     const [selectedSpb, setSelectedSpb] = useState(null);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
+    const [confirm, setConfirm] = useState({ isOpen: false, title: '', message: '', variant: 'danger', onConfirm: () => {} });
 
     const canCreate = permissions.includes('buat_invoice');
     const canView = permissions.includes('lihat_invoice');
@@ -193,13 +195,20 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
             return;
         }
 
-        voidForm.post(route('invoices.void', selectedInvoice.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                voidForm.reset();
-                setSelectedInvoice(null);
-                setModal(null);
-            },
+        setConfirm({
+            isOpen: true,
+            title: 'Void Invoice/Nota',
+            message: 'Invoice/Nota akan di-void permanen. Pastikan belum ada pembayaran. Lanjutkan?',
+            variant: 'danger',
+            confirmLabel: 'Ya, Void',
+            onConfirm: () => voidForm.post(route('invoices.void', selectedInvoice.id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    voidForm.reset();
+                    setSelectedInvoice(null);
+                    setModal(null);
+                },
+            }),
         });
     };
 
@@ -437,6 +446,10 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                     </div>
                 </form>
             </Modal>
+            <ConfirmDialog
+                {...confirm}
+                onCancel={() => setConfirm((prev) => ({ ...prev, isOpen: false }))}
+            />
         </section>
     );
 }

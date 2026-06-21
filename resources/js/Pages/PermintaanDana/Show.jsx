@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/Form/InputLabel';
 import Modal from '@/Components/Modal';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -143,6 +144,7 @@ function UploadBuktiModal({ show, form, documentCategories, onClose, onSubmit })
 export default function Show({ permintaanDana, documentCategories = [] }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
+    const [confirm, setConfirm] = useState({ isOpen: false, title: '', message: '', variant: 'danger', onConfirm: () => {} });
     const defaultDocumentCategory = documentCategories[0]?.value ?? 'BUKTI_PEMBELIAN';
     const rejectForm = useForm({ catatan_rejection: '' });
     const voidForm = useForm({ alasan_void: '' });
@@ -159,12 +161,26 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
 
     const submitReject = (event) => {
         event.preventDefault();
-        rejectForm.post(route('permintaan-dana.reject', permintaanDana.id), { onSuccess: () => setModal(null) });
+        setConfirm({
+            isOpen: true,
+            title: 'Tolak Permintaan Dana',
+            message: 'Permintaan Dana akan ditolak dan dikembalikan ke pembuat. Lanjutkan?',
+            variant: 'warning',
+            confirmLabel: 'Ya, Tolak',
+            onConfirm: () => rejectForm.post(route('permintaan-dana.reject', permintaanDana.id), { onSuccess: () => setModal(null) }),
+        });
     };
 
     const submitVoid = (event) => {
         event.preventDefault();
-        voidForm.post(route('permintaan-dana.void', permintaanDana.id), { onSuccess: () => setModal(null) });
+        setConfirm({
+            isOpen: true,
+            title: 'Void Permintaan Dana',
+            message: 'Permintaan Dana akan di-void permanen. Lanjutkan?',
+            variant: 'danger',
+            confirmLabel: 'Ya, Void',
+            onConfirm: () => voidForm.post(route('permintaan-dana.void', permintaanDana.id), { onSuccess: () => setModal(null) }),
+        });
     };
 
     const openUploadBukti = () => {
@@ -202,11 +218,11 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                     <>
                         <Button asChild variant="outline"><Link href={route('permintaan-dana.index')}>Kembali</Link></Button>
                         {permintaanDana.status === 'DRAFT' && canCreate && (
-                            <Button type="button" onClick={() => router.post(route('permintaan-dana.submit', permintaanDana.id))}><Send className="h-4 w-4" />Submit ke Manager</Button>
+                            <Button type="button" onClick={() => setConfirm({ isOpen: true, title: 'Submit Permintaan Dana', message: 'Permintaan Dana akan dikirim ke Manager untuk disetujui. Lanjutkan?', variant: 'warning', confirmLabel: 'Ya, Submit', onConfirm: () => router.post(route('permintaan-dana.submit', permintaanDana.id)) })}><Send className="h-4 w-4" />Submit ke Manager</Button>
                         )}
                         {permintaanDana.status === 'PENDING_APPROVAL' && canApprove && (
                             <>
-                                <Button type="button" onClick={() => router.post(route('permintaan-dana.approve', permintaanDana.id))}><Check className="h-4 w-4" />Approve</Button>
+                                <Button type="button" onClick={() => setConfirm({ isOpen: true, title: 'Approve Permintaan Dana', message: 'Kamu akan menyetujui Permintaan Dana ini. Dana bisa dicairkan setelah ini. Lanjutkan?', variant: 'success', confirmLabel: 'Ya, Approve', onConfirm: () => router.post(route('permintaan-dana.approve', permintaanDana.id)) })}><Check className="h-4 w-4" />Approve</Button>
                                 <Button type="button" variant="destructive" onClick={() => setModal('reject')}><X className="h-4 w-4" />Reject</Button>
                             </>
                         )}
@@ -322,6 +338,10 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                 onChange={(value) => voidForm.setData('alasan_void', value)}
                 onClose={() => setModal(null)}
                 onSubmit={submitVoid}
+            />
+            <ConfirmDialog
+                {...confirm}
+                onCancel={() => setConfirm((prev) => ({ ...prev, isOpen: false }))}
             />
         </AppLayout>
     );
