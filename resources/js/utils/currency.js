@@ -4,17 +4,14 @@ const numberOrZero = (amount) => {
     return Number.isFinite(number) ? number : 0;
 };
 
-export const formatRupiah = (amount, options = {}) => new Intl.NumberFormat('id-ID', {
+export const formatRupiah = (amount) => new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
-    minimumFractionDigits: options.minimumFractionDigits ?? 2,
-    maximumFractionDigits: options.maximumFractionDigits ?? 2,
-}).format(numberOrZero(amount)).replace(/\u00a0/g, ' ');
-
-export const formatRupiahInput = (amount) => formatRupiah(amount, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-});
+}).format(numberOrZero(amount)).replace(/\u00a0/g, ' ');
+
+export const formatRupiahInput = (amount) => formatRupiah(amount);
 
 export const parseRupiah = (rupiahString) => {
     if (typeof rupiahString === 'number') {

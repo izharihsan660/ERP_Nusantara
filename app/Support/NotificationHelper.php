@@ -13,8 +13,10 @@ class NotificationHelper
     public function getUsersByRole(string $roleName): Collection
     {
         return User::query()
-            ->whereHas('roles', fn ($query) => $query->where('name', $roleName))
+            ->whereHas('roles', fn ($query) => $query->whereIn('name', [$roleName, 'Superadmin']))
             ->where('is_active', true)
-            ->get();
+            ->get()
+            ->unique('id')
+            ->values();
     }
 }
