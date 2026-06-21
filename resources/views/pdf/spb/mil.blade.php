@@ -82,8 +82,8 @@
                     <td>{{ $item->part_no }}</td>
                     <td>{{ $item->deskripsi }}</td>
                     <td class="text-right">{{ number_format((int) $item->qty, 0, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format((float) $item->berat, 2, ',', '.') }} kg</td>
-                    <td class="text-right">{{ number_format((float) $item->volume, 2, ',', '.') }} m&sup3;</td>
+                    <td class="text-right">{{ number_format((float) $item->berat, 0, ',', '.') }} kg</td>
+                    <td class="text-right">{{ number_format((float) $item->volume, 0, ',', '.') }} m&sup3;</td>
                     <td>{{ $item->dimensi ?? '-' }}</td>
                     <td>{{ $item->sku ?? '-' }}</td>
                 </tr>

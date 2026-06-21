@@ -39,7 +39,7 @@
         </tr>
         <tr>
             <td>Total Tagihan</td>
-            <td>: Rp {{ number_format((float) $invoice->total_nilai, 2, ',', '.') }}</td>
+            <td>: Rp {{ number_format((float) $invoice->total_nilai, 0, ',', '.') }}</td>
         </tr>
     </table>
 

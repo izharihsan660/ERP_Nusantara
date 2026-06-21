@@ -7,6 +7,7 @@ use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
 use App\Observers\PurchaseOrderObserver;
 use App\Observers\SalesOrderObserver;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -52,6 +53,11 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Exception $e) {
             // If database not available (e.g., during migration), use default config
         }
+
+        // Blade directive for Rupiah formatting without decimals
+        Blade::directive('rupiah', function ($expression) {
+            return "<?php echo 'Rp ' . number_format($expression, 0, ',', '.'); ?>";
+        });
 
         SalesOrder::observe(SalesOrderObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);

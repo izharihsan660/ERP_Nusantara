@@ -6,6 +6,7 @@ use App\Enums\DocumentType;
 use App\Enums\PDStatus;
 use App\Enums\QuotationStatus;
 use App\Enums\SpbStatus;
+use App\Enums\WIPStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotation\RejectQuotationRequest;
 use App\Http\Requests\Quotation\StoreQuotationRequest;
@@ -121,12 +122,45 @@ class QuotationController extends Controller
             'createdBy:id,name',
             'approvedBy:id,name',
             'voidedBy:id,name',
+            'salesOrder.wipOrders.items',
             'salesOrder.wipOrders.createdBy:id,name',
             'salesOrder.wipOrders.spb.customer:id,nama_customer',
             'salesOrder.wipOrders.spb.site:id,nama_site,alamat',
             'salesOrder.wipOrders.spb.items:id,spb_id,qty',
             'salesOrder.wipOrders.spb.invoice.paymentDocuments',
         ]);
+
+        // Calculate qty remaining for WIP modal (quotation items not yet added to WIP)
+        $sourceItems = [];
+        if ($quotation->salesOrder) {
+            // Sum qty used per part_no across all active WIPs
+            $wipQtyUsed = collect();
+            foreach ($quotation->salesOrder->wipOrders as $wip) {
+                if ($wip->status !== WIPStatus::Active) {
+                    continue;
+                }
+                foreach ($wip->items as $wipItem) {
+                    $partNo = $wipItem->part_no;
+                    $wipQtyUsed[$partNo] = ($wipQtyUsed[$partNo] ?? 0) + $wipItem->qty;
+                }
+            }
+
+            $sourceItems = $quotation->items->map(function ($item) use ($wipQtyUsed) {
+                $qtyUsed = $wipQtyUsed[$item->part_no] ?? 0;
+                $qtyRemaining = max(0, $item->qty - $qtyUsed);
+
+                return [
+                    'id' => $item->id,
+                    'katalog_id' => $item->katalog_id,
+                    'part_no' => $item->part_no,
+                    'deskripsi' => $item->deskripsi,
+                    'qty' => $item->qty,
+                    'qty_used' => $qtyUsed,
+                    'qty_remaining' => $qtyRemaining,
+                    'satuan' => $item->satuan,
+                ];
+            })->values()->toArray();
+        }
 
         return Inertia::render('Quotation/Show', [
             'quotation' => [
@@ -160,6 +194,7 @@ class QuotationController extends Controller
                 'total' => $quotation->total,
                 'total_hpp' => $quotation->total_hpp,
                 'total_profit' => $quotation->total_profit,
+                'source_items' => $sourceItems,
                 'sales_order' => $quotation->salesOrder ? $this->salesOrderData($quotation->salesOrder) : null,
             ],
             'sites' => $quotation->customer

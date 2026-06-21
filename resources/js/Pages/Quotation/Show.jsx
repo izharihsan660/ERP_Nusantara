@@ -197,8 +197,9 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
     };
 
     return (
-        <Modal show={show} onClose={onClose} maxWidth="4xl">
-            <form onSubmit={handleSubmit} className="p-6">
+        <Modal show={show} onClose={onClose} maxWidth="3xl">
+            <div className="max-h-[90vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input WIP</h2>
                 
                 <div className="mt-5 grid gap-4">
@@ -249,9 +250,9 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
                                                 <input type="checkbox" checked={selected?.selected || false} onChange={() => handleItemToggle(sourceItem.id)} disabled={isDisabled} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed" />
                                             </td>
                                             <td className="px-3 py-2 text-slate-900 dark:text-white font-mono text-xs">{sourceItem.part_no}</td>
-                                            <td className="px-3 py-2 text-slate-900 dark:text-white">{sourceItem.nama_barang}</td>
+                                            <td className="px-3 py-2 text-slate-900 dark:text-white">{sourceItem.deskripsi}</td>
                                             <td className="px-3 py-2 text-right text-slate-900 dark:text-white">{sourceItem.qty}</td>
-                                            <td className="px-3 py-2 text-right text-slate-600 dark:text-slate-400">{sourceItem.qty_in_wip || 0}</td>
+                                            <td className="px-3 py-2 text-right text-slate-600 dark:text-slate-400">{sourceItem.qty_used || 0}</td>
                                             <td className="px-3 py-2 text-right font-semibold text-slate-900 dark:text-white">{sourceItem.qty_remaining}</td>
                                             <td className="px-3 py-2">
                                                 <Input type="number" min="0" max={sourceItem.qty_remaining} value={selected?.qty || 0} onChange={(e) => handleQtyChange(sourceItem.id, e.target.value)} disabled={isDisabled || !selected?.selected} className="text-right text-sm" />
@@ -270,6 +271,7 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
                     <Button type="submit" disabled={form.processing}>Simpan</Button>
                 </div>
             </form>
+            </div>
         </Modal>
     );
 }

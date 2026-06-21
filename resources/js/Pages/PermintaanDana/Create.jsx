@@ -4,7 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { formatRupiah } from '@/utils/currency';
+import { formatRupiah, parseRupiah } from '@/utils/currency';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -33,12 +33,21 @@ export default function Create() {
 
     const updateItem = (index, field, value) => {
         const newItems = [...items];
-        newItems[index][field] = value;
         
         if (field === 'qty' || field === 'harga') {
-            const qty = parseFloat(newItems[index].qty) || 0;
-            const harga = parseFloat(newItems[index].harga) || 0;
-            newItems[index].total = qty * harga;
+            if (field === 'harga') {
+                newItems[index][field] = value;
+                const qty = parseFloat(newItems[index].qty) || 0;
+                const harga = parseRupiah(value);
+                newItems[index].total = qty * harga;
+            } else {
+                newItems[index][field] = value;
+                const qty = parseFloat(value) || 0;
+                const harga = parseRupiah(newItems[index].harga) || 0;
+                newItems[index].total = qty * harga;
+            }
+        } else {
+            newItems[index][field] = value;
         }
         
         setItems(newItems);
@@ -51,7 +60,12 @@ export default function Create() {
         
         const data = {
             ...form.data,
-            items: items.filter(item => item.description),
+            items: items
+                .filter(item => item.description)
+                .map(item => ({
+                    ...item,
+                    harga: parseRupiah(item.harga),
+                })),
         };
         
         router.post(route('permintaan-dana.store'), data, {
@@ -162,12 +176,25 @@ export default function Create() {
                                             </td>
                                             <td className="px-3 py-2">
                                                 <Input
-                                                    type="number"
-                                                    min="0"
+                                                    type="text"
                                                     value={item.harga}
-                                                    onChange={(e) => updateItem(index, 'harga', e.target.value)}
+                                                    onChange={(e) => {
+                                                        const rawValue = e.target.value;
+                                                        // Allow typing numbers and formatting characters
+                                                        if (/^[0-9.,\s]*$/.test(rawValue)) {
+                                                            updateItem(index, 'harga', rawValue);
+                                                        }
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        // Format on blur
+                                                        const parsed = parseRupiah(e.target.value);
+                                                        if (parsed > 0) {
+                                                            updateItem(index, 'harga', formatRupiah(parsed).replace('Rp', '').trim());
+                                                        }
+                                                    }}
                                                     required
                                                     className="text-right text-sm"
+                                                    placeholder="0"
                                                 />
                                             </td>
                                             <td className="px-3 py-2 text-right text-sm font-semibold text-slate-900 dark:text-white">

@@ -70,8 +70,8 @@
                     <td>{{ $item->deskripsi }}</td>
                     <td class="right">{{ number_format($item->qty, 0, ',', '.') }}</td>
                     <td>{{ $item->satuan }}</td>
-                    <td class="right">{{ number_format((float) $item->harga_satuan, 2, ',', '.') }}</td>
-                    <td class="right">{{ number_format((float) $item->jumlah, 2, ',', '.') }}</td>
+                    <td class="right">{{ number_format((float) $item->harga_satuan, 0, ',', '.') }}</td>
+                    <td class="right">{{ number_format((float) $item->jumlah, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -80,7 +80,7 @@
     <table class="summary">
         <tr class="grand">
             <td>Grand Total</td>
-            <td class="right">{{ number_format($quotation->total, 2, ',', '.') }}</td>
+            <td class="right">{{ number_format($quotation->total, 0, ',', '.') }}</td>
         </tr>
     </table>
 

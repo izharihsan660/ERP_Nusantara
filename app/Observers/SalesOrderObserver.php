@@ -7,11 +7,13 @@ use App\Enums\ReferensiTipe;
 use App\Models\SalesOrder;
 use App\Models\Spb;
 use App\Models\WipOrder;
+use App\Services\SpbPDFService;
 
 class SalesOrderObserver
 {
     public function __construct(
         private readonly RecordActivity $recordActivity,
+        private readonly SpbPDFService $spbPDFService,
     ) {}
 
     public function updated(SalesOrder $salesOrder): void
@@ -36,6 +38,9 @@ class SalesOrderObserver
                     'referensi_tipe' => ReferensiTipe::PO,
                     'no_referensi' => $salesOrder->no_po_customer,
                 ]);
+
+                // Regenerate PDF SPB dengan referensi baru
+                $this->spbPDFService->generate($spb);
 
                 $this->recordActivity->handle('updated_referensi_spb', $spb, "Referensi SPB {$spb->no_spb} otomatis berubah ke PO {$salesOrder->no_po_customer}");
             });
