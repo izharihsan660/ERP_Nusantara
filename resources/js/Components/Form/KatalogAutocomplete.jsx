@@ -1,6 +1,7 @@
 import { Input } from '@/Components/ui/input';
 import { formatRupiah } from '@/utils/currency';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { computePosition, flip, size, offset } from '@floating-ui/dom';
 
 export default function KatalogAutocomplete({ value, onSelect, placeholder = 'Cari katalog...' }) {
     const [query, setQuery] = useState(value?.part_no ? `${value.part_no} — ${value.deskripsi ?? value.nama_barang ?? ''}` : '');
@@ -9,6 +10,39 @@ export default function KatalogAutocomplete({ value, onSelect, placeholder = 'Ca
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const wrapperRef = useRef(null);
+    const inputRef = useRef(null);
+    const dropdownRef = useRef(null);
+
+    const updatePosition = useCallback(() => {
+        if (!inputRef.current || !dropdownRef.current || !open) return;
+
+        computePosition(inputRef.current, dropdownRef.current, {
+            placement: 'bottom-start',
+            middleware: [
+                offset(4),
+                flip(),
+                size({
+                    apply({ availableWidth, availableHeight, elements }) {
+                        Object.assign(elements.floating.style, {
+                            maxHeight: `${Math.min(300, availableHeight)}px`,
+                            minWidth: `${Math.max(400, inputRef.current?.offsetWidth || 0)}px`,
+                        });
+                    },
+                }),
+            ],
+        }).then(({ x, y }) => {
+            Object.assign(dropdownRef.current.style, {
+                left: `${x}px`,
+                top: `${y}px`,
+            });
+        });
+    }, [open]);
+
+    useEffect(() => {
+        if (open) {
+            updatePosition();
+        }
+    }, [open, updatePosition]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -75,6 +109,7 @@ export default function KatalogAutocomplete({ value, onSelect, placeholder = 'Ca
     return (
         <div ref={wrapperRef} className="relative">
             <Input
+                ref={inputRef}
                 value={query}
                 onChange={(event) => {
                     setQuery(event.target.value);
@@ -85,21 +120,32 @@ export default function KatalogAutocomplete({ value, onSelect, placeholder = 'Ca
                 placeholder={placeholder}
             />
             {open && (
-                <div className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <div
+                    ref={dropdownRef}
+                    className="fixed z-50 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900"
+                    style={{ maxHeight: '300px', minWidth: '400px' }}
+                >
                     {loading && <div className="px-3 py-2 text-sm text-slate-500">Memuat...</div>}
-                    {!loading && items.length === 0 && <div className="px-3 py-2 text-sm text-slate-500">Tidak ada hasil</div>}
-                    {!loading && items.map((item, index) => (
-                        <button
-                            key={item.id}
-                            type="button"
-                            className={`block w-full px-3 py-2 text-left text-sm ${index === activeIndex ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                            onMouseEnter={() => setActiveIndex(index)}
-                            onClick={() => choose(item)}
-                        >
-                            <div className="font-medium">{item.part_no} — {item.nama_barang}</div>
-                            <div className="text-xs text-slate-500">{formatRupiah(item.harga_jual_default)}</div>
-                        </button>
-                    ))}
+                    {!loading && items.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-slate-500">Tidak ada hasil</div>
+                    )}
+                    {!loading &&
+                        items.map((item, index) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                className={`block w-full px-3 py-2.5 text-left transition-colors ${index === activeIndex ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                onMouseEnter={() => setActiveIndex(index)}
+                                onClick={() => choose(item)}
+                            >
+                                <div className="font-medium text-slate-900 dark:text-slate-100">
+                                    {item.part_no} — {item.nama_barang}
+                                </div>
+                                <div className="mt-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                    {formatRupiah(item.harga_jual_default)}
+                                </div>
+                            </button>
+                        ))}
                 </div>
             )}
         </div>

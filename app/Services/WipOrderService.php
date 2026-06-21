@@ -29,7 +29,9 @@ class WipOrderService
             throw ValidationException::withMessages(['nama_ekspedisi' => 'Nama ekspedisi wajib diisi untuk tipe VOR.']);
         }
 
-        return DB::transaction(function () use ($data, $salesOrder, $user): WipOrder {
+        $itemsToCreate = $this->validateItems($data['items'] ?? [], $salesOrder);
+
+        return DB::transaction(function () use ($data, $itemsToCreate, $salesOrder, $user): WipOrder {
             $wip = WipOrder::create([
                 'sales_order_id' => $salesOrder->id,
                 'no_wip' => $data['no_wip'],
@@ -40,9 +42,13 @@ class WipOrderService
                 'created_by' => $user->id,
             ]);
 
+            foreach ($itemsToCreate as $item) {
+                $wip->items()->create($item);
+            }
+
             $this->recordActivity->handle('created_wip', $wip, "{$user->name} input WIP {$wip->no_wip}");
 
-            return $wip->load('salesOrder');
+            return $wip->load(['salesOrder', 'items']);
         });
     }
 
@@ -60,5 +66,57 @@ class WipOrderService
         $this->recordActivity->handle('voided_wip', $wip, "{$user->name} void WIP {$wip->no_wip}");
 
         return $wip->refresh();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function validateItems(array $items, SalesOrder $salesOrder): array
+    {
+        $salesOrder->loadMissing(['quotation.items', 'wipOrders.items']);
+        $quotationItems = $salesOrder->quotation->items->keyBy('part_no');
+        $usedQty = [];
+
+        foreach ($salesOrder->wipOrders as $wipOrder) {
+            if ($wipOrder->status === WIPStatus::Void) {
+                continue;
+            }
+
+            foreach ($wipOrder->items as $wipItem) {
+                $usedQty[$wipItem->part_no] = ($usedQty[$wipItem->part_no] ?? 0) + (int) $wipItem->qty;
+            }
+        }
+
+        $itemsToCreate = [];
+
+        foreach ($items as $index => $item) {
+            $partNo = $item['part_no'] ?? '';
+            $qty = (int) ($item['qty'] ?? 0);
+            $quotationItem = $quotationItems->get($partNo);
+
+            if (! $quotationItem) {
+                throw ValidationException::withMessages(["items.{$index}.part_no" => 'Item tidak ada di quotation terkait.']);
+            }
+
+            $remainingQty = max(0, (int) $quotationItem->qty - ($usedQty[$partNo] ?? 0));
+
+            if ($qty > $remainingQty) {
+                throw ValidationException::withMessages(["items.{$index}.qty" => "Qty WIP tidak boleh melebihi sisa ({$remainingQty})."]);
+            }
+
+            $itemsToCreate[] = [
+                'katalog_id' => $item['katalog_id'] ?? $quotationItem->katalog_id,
+                'part_no' => $partNo,
+                'deskripsi' => $quotationItem->deskripsi,
+                'qty' => $qty,
+            ];
+        }
+
+        if ($itemsToCreate === []) {
+            throw ValidationException::withMessages(['items' => 'Minimal 1 item harus dipilih untuk WIP.']);
+        }
+
+        return $itemsToCreate;
     }
 }

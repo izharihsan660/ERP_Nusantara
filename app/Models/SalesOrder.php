@@ -50,6 +50,11 @@ class SalesOrder extends Model
         return $this->hasMany(WipOrder::class);
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(SalesOrderDocument::class);
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

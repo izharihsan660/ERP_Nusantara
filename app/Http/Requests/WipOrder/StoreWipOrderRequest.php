@@ -22,6 +22,10 @@ class StoreWipOrderRequest extends FormRequest
             'no_wip' => ['required', 'string', 'max:30'],
             'tipe_order' => ['required', Rule::enum(TipeOrder::class)],
             'nama_ekspedisi' => ['nullable', 'required_if:tipe_order,VOR', 'string', 'max:100'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.katalog_id' => ['nullable', 'integer', 'exists:katalog,id'],
+            'items.*.part_no' => ['required', 'string', 'max:50'],
+            'items.*.qty' => ['required', 'integer', 'min:1'],
         ];
     }
 }

@@ -49,6 +49,11 @@ class WipOrder extends Model
             ->where('spb_able_type', WipOrder::class);
     }
 
+    public function items(): HasMany
+    {
+        return $this->hasMany(WipItem::class);
+    }
+
     public function isVoidable(): bool
     {
         return $this->status === WIPStatus::Active && $this->status_supply !== StatusSupply::Tersupply;

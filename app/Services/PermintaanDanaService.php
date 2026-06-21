@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Actions\ActivityLog\RecordActivity;
-use App\Enums\KategoriPD;
+use App\Enums\PdDocumentKategori;
 use App\Enums\PDStatus;
 use App\Helpers\FileCompressionHelper;
 use App\Models\PermintaanDana;
@@ -55,22 +55,62 @@ class PermintaanDanaService
 
     public function create(array $data, User $user): PermintaanDana
     {
+        $totalNominal = collect($data['items'] ?? [])->sum(fn ($item): float => ($item['qty'] ?? 0) * ($item['harga'] ?? 0));
+
         return DB::transaction(function () use ($data, $user): PermintaanDana {
             $date = Carbon::parse($data['tgl_pd']);
             $permintaanDana = PermintaanDana::create([
                 'no_pd' => $this->documentNumberService->generatePermintaanDanaNumber($date),
                 'tgl_pd' => $date,
-                'kategori' => $data['kategori'],
-                'nominal' => $data['nominal'],
+                'tujuan' => $data['tujuan'],
+                'rekening_tujuan' => $data['rekening_tujuan'],
+                'bank_tujuan' => $data['bank_tujuan'] ?? null,
+                'plan_pembayaran' => Carbon::parse($data['plan_pembayaran']),
+                'nominal' => $totalNominal,
                 'keterangan' => $data['keterangan'],
                 'referensi_dokumen' => $data['referensi_dokumen'] ?? null,
                 'status' => PDStatus::Draft,
                 'created_by' => $user->id,
             ]);
 
+            foreach ($data['items'] as $item) {
+                $permintaanDana->items()->create([
+                    'no_po' => $item['no_po'] ?? null,
+                    'no_part' => $item['no_part'] ?? null,
+                    'description' => $item['description'],
+                    'qty' => $item['qty'],
+                    'harga' => $item['harga'],
+                    'total' => ($item['qty'] * $item['harga']),
+                ]);
+            }
+
+            if (! empty($data['attachments'])) {
+                $tipeLabels = ['NOTA', 'FOTO_BARANG'];
+
+                foreach ($data['attachments'] as $index => $file) {
+                    if (! $file instanceof UploadedFile) {
+                        continue;
+                    }
+
+                    $path = $file->store('pd-attachments', 'local');
+                    FileCompressionHelper::compress(Storage::disk('local')->path($path));
+
+                    $permintaanDana->documents()->create([
+                        'tipe' => $tipeLabels[$index] ?? 'NOTA',
+                        'kategori' => PdDocumentKategori::BuktiTransfer,
+                        'file_path' => $path,
+                        'nama_file' => str($file->getClientOriginalName())->limit(100, '')->toString(),
+                    ]);
+                }
+            }
+
             $this->recordActivity->handle('created_pd', $permintaanDana, "{$user->name} membuat Permintaan Dana {$permintaanDana->no_pd}");
 
-            return $permintaanDana->refresh()->load(['createdBy']);
+            if ($data['submit'] ?? false) {
+                return $this->submit($permintaanDana, $user);
+            }
+
+            return $permintaanDana->refresh()->load(['createdBy', 'items', 'documents']);
         });
     }
 

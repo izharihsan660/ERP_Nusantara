@@ -302,10 +302,10 @@ class SpbService
     private function sourceItemsByPartNo(Model $spbAble): array
     {
         if ($spbAble instanceof WipOrder) {
-            $spbAble->loadMissing('salesOrder.quotation.items');
+            $spbAble->loadMissing('items');
             $qtyTerkirim = Spb::getQtyTerkirimGrouped(WipOrder::class, $spbAble->id);
 
-            return $spbAble->salesOrder->quotation->items
+            return $spbAble->items
                 ->mapWithKeys(fn ($item): array => [
                     $item->part_no => [
                         'deskripsi' => $item->deskripsi,

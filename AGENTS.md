@@ -526,3 +526,68 @@ Sistem jabatan dinamis — Superadmin bisa buat jabatan baru.
 
 ## 🚧 PHASE BERIKUTNYA
 - ⏳ UI polish
+
+---
+
+## 🆕 PERUBAHAN TERBARU (2026-06-21)
+
+### Tabel Baru
+- `sales_order_documents` — Upload dokumen PO asli dari customer (maks 3 file per Sales Order)
+- `wip_items` — Item detail per WIP (split item dari quotation; 1 WIP bisa pilih subset item)
+- `pd_items` — Tabel item per Permintaan Dana (pengganti field kategori)
+- `app_settings` — Konfigurasi sistem (SMTP, email approval, company info)
+
+### Model Baru
+- `SalesOrderDocument`
+- `WipItem`
+- `PdItem`
+- `AppSetting`
+
+### Perubahan Struktur `permintaan_dana`
+- Hapus kolom: `kategori`
+- Tambah kolom: `tujuan`, `rekening_tujuan`, `bank_tujuan`, `plan_pembayaran`
+- Struktur baru: PD punya multiple items (tabel `pd_items`) + optional attachments (maks 2)
+
+### Perubahan WIP Flow
+- WIP sekarang bisa pilih item spesifik dari quotation (tidak semua item otomatis)
+- Validasi: total qty per item di semua WIP tidak boleh melebihi qty di quotation
+- SPB source items untuk WipOrder diambil dari `wip_items` (bukan dari `quotation_items`)
+
+### Controller Baru
+- `ApprovalController` — One-click approval via signed URL (basic skeleton)
+- `SettingsController` — Halaman konfigurasi sistem (Superadmin only)
+
+### Frontend Baru
+- `KatalogAutocomplete.jsx` — Fixed position dropdown (tidak terpotong container)
+- `Settings/Index.jsx` — Halaman pengaturan sistem
+- `ApprovalConfirm.jsx` — Halaman konfirmasi setelah approve dokumen via email
+
+### Route Baru
+- `POST /sales-orders/{salesOrder}/upload-dokumen` — Upload dokumen PO customer
+- `GET /sales-order-documents/{document}/download` — Download dokumen PO customer
+- `GET /approve/{type}/{id}` — One-click approval via signed URL
+- `GET /settings` — Halaman konfigurasi sistem
+- `POST /settings` — Update konfigurasi sistem
+- `POST /settings/test-email` — Test kirim email SMTP
+
+---
+
+## ✅ VERIFICATION CHECKLIST PASSED
+- ✅ File migration baru dibuat
+- ✅ Model baru + relasi sudah ada
+- ✅ Service logic WIP split per item sudah divalidasi
+- ✅ PermintaanDana service sudah pakai items array
+- ✅ npm run build: PASS
+- ✅ ./vendor/bin/pint --dirty: PASS (auto-fixed)
+- ✅ php -l syntax check semua file baru: PASS
+
+## ⏳ TODO / NOT YET IMPLEMENTED
+- [ ] Full email approval flow (send email + Mailable class)
+- [ ] Badge counter di sidebar per role
+- [ ] PDF template PD yang update sesuai format asli NAJ
+- [ ] Frontend modal WIP split item picker (UI form)
+- [ ] Frontend PD form dengan items table + attachment upload
+- [ ] Migration test (DB connection not available saat implementasi)
+- [ ] Unit test untuk WipItem validation
+
+---

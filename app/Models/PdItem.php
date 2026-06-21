@@ -2,26 +2,29 @@
 
 namespace App\Models;
 
-use App\Enums\PdDocumentKategori;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PdDocument extends Model
+class PdItem extends Model
 {
     public const UPDATED_AT = null;
 
     protected $fillable = [
         'permintaan_dana_id',
-        'tipe',
-        'kategori',
-        'file_path',
-        'nama_file',
+        'no_po',
+        'no_part',
+        'description',
+        'qty',
+        'harga',
+        'total',
     ];
 
     protected function casts(): array
     {
         return [
-            'kategori' => PdDocumentKategori::class,
+            'qty' => 'integer',
+            'harga' => 'decimal:2',
+            'total' => 'decimal:2',
         ];
     }
 

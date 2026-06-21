@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\KategoriPD;
 use App\Enums\PDStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +15,10 @@ class PermintaanDana extends Model
     protected $fillable = [
         'no_pd',
         'tgl_pd',
-        'kategori',
+        'tujuan',
+        'rekening_tujuan',
+        'bank_tujuan',
+        'plan_pembayaran',
         'nominal',
         'keterangan',
         'referensi_dokumen',
@@ -38,7 +40,7 @@ class PermintaanDana extends Model
     {
         return [
             'tgl_pd' => 'date',
-            'kategori' => KategoriPD::class,
+            'plan_pembayaran' => 'date',
             'nominal' => 'decimal:2',
             'status' => PDStatus::class,
             'submitted_at' => 'datetime',
@@ -67,6 +69,11 @@ class PermintaanDana extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(PdDocument::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(PdItem::class);
     }
 
     public function scopeApproved(Builder $query): Builder

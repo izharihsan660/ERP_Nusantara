@@ -11,8 +11,6 @@ use App\Http\Controllers\MasterData\SiteController;
 use App\Http\Controllers\MasterData\VendorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\Transaction\ApprovalController;
 use App\Http\Controllers\Transaction\InvoiceController;
 use App\Http\Controllers\Transaction\PermintaanDanaController;
 use App\Http\Controllers\Transaction\PurchaseOrderController;
@@ -20,7 +18,6 @@ use App\Http\Controllers\Transaction\QuotationController;
 use App\Http\Controllers\Transaction\SalesOrderController;
 use App\Http\Controllers\Transaction\SpbController;
 use App\Http\Controllers\Transaction\WipOrderController;
-use App\Http\Controllers\VerifyController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -64,8 +61,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->middleware('permission:buat_quotation')->name('quotations.duplicate');
     Route::post('/quotations/{quotation}/sales-orders', [SalesOrderController::class, 'store'])->middleware('permission:input_sales_order')->name('quotations.sales-orders.store');
     Route::post('/sales-orders/{salesOrder}/void', [SalesOrderController::class, 'void'])->middleware('permission:void_sales_order')->name('sales-orders.void');
-    Route::post('/sales-orders/{salesOrder}/upload-dokumen', [SalesOrderController::class, 'uploadDokumen'])->middleware('permission:input_sales_order')->name('sales-orders.upload-dokumen');
-    Route::get('/sales-order-documents/{document}/download', [SalesOrderController::class, 'downloadDokumen'])->middleware('permission:lihat_sales_order')->name('sales-order-documents.download');
     Route::post('/sales-orders/{salesOrder}/wip-orders', [WipOrderController::class, 'store'])->middleware('permission:buat_wip')->name('sales-orders.wip-orders.store');
     Route::post('/wip-orders/{wipOrder}/void', [WipOrderController::class, 'void'])->middleware('permission:void_wip')->name('wip-orders.void');
     Route::post('/wip-orders/{wipOrder}/spb', [SpbController::class, 'storeFromWip'])->middleware('permission:buat_spb')->name('wip-orders.spb.store');
@@ -162,11 +157,11 @@ Route::get('/verify/{token}', [QuotationController::class, 'verify'])->name('ver
 
 require __DIR__.'/auth.php';
 
-Route::get('/verify/{qr_token}', [VerifyController::class, 'show'])->name('verify.show');
-Route::get('/approve/{type}/{id}', [ApprovalController::class, 'approve'])->name('approve.document');
+Route::get('/verify/{qr_token}', [\App\Http\Controllers\VerifyController::class, 'show'])->name('verify.show');
+Route::get('/approve/{type}/{id}', [\App\Http\Controllers\Transaction\ApprovalController::class, 'approve'])->name('approve.document');
 
 Route::middleware(['auth', 'permission:lihat_jabatan'])->group(function () {
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-    Route::post('/settings', [SettingsController::class, 'update'])->middleware('permission:ubah_jabatan')->name('settings.update');
-    Route::post('/settings/test-email', [SettingsController::class, 'testEmail'])->name('settings.test-email');
+    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->middleware('permission:ubah_jabatan')->name('settings.update');
+    Route::post('/settings/test-email', [\App\Http\Controllers\SettingsController::class, 'testEmail'])->name('settings.test-email');
 });
