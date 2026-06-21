@@ -8,7 +8,6 @@ use App\Enums\PurchaseOrderStatus;
 use App\Enums\QuotationStatus;
 use App\Enums\SpbStatus;
 use App\Enums\StatusSupply;
-use App\Models\Invoice;
 use App\Models\PermintaanDana;
 use App\Models\PurchaseOrder;
 use App\Models\Quotation;
@@ -28,29 +27,29 @@ class SidebarBadgeService
 
         // Manager & Superadmin — pending approvals
         if ($user->hasAnyRole(['Manager', 'Superadmin'])) {
-            $badges['quotation'] = Quotation::where('status', QuotationStatus::PENDING_APPROVAL)->count();
-            $badges['purchase_order'] = PurchaseOrder::where('status', PurchaseOrderStatus::PENDING_APPROVAL)->count();
-            $badges['permintaan_dana'] = PermintaanDana::where('status', PDStatus::PENDING_APPROVAL)->count();
+            $badges['quotation'] = Quotation::where('status', QuotationStatus::PendingApproval)->count();
+            $badges['purchase_order'] = PurchaseOrder::where('status', PurchaseOrderStatus::PendingApproval)->count();
+            $badges['permintaan_dana'] = PermintaanDana::where('status', PDStatus::PendingApproval)->count();
         }
 
         // Gudang — WIP tersupply belum dibuat SPB
         if ($user->hasAnyRole(['Gudang', 'Superadmin'])) {
-            $badges['spb'] = WipOrder::where('status_supply', StatusSupply::TERSUPPLY)
-                ->whereDoesntHave('spb', fn ($q) => $q->where('status', '!=', SpbStatus::VOID))
+            $badges['spb'] = WipOrder::where('status_supply', StatusSupply::Tersupply)
+                ->whereDoesntHave('spb', fn ($q) => $q->where('status', '!=', SpbStatus::Void))
                 ->count();
         }
 
         // Finance — SPB shipped belum dibuat Invoice
         if ($user->hasAnyRole(['Finance', 'Superadmin'])) {
-            $badges['invoice'] = Spb::where('status', SpbStatus::SHIPPED)
-                ->whereDoesntHave('invoice', fn ($q) => $q->where('status', '!=', InvoiceStatus::VOID))
+            $badges['invoice'] = Spb::where('status', SpbStatus::Shipped)
+                ->whereDoesntHave('invoice', fn ($q) => $q->where('status', '!=', InvoiceStatus::Void))
                 ->count();
         }
 
         // Procurement — PD approved belum upload bukti
         if ($user->hasAnyRole(['Procurement', 'Superadmin'])) {
-            $badges['permintaan_dana_procurement'] = PermintaanDana::where('status', PDStatus::APPROVED)
-                ->whereNull('file_bukti')
+            $badges['permintaan_dana_procurement'] = PermintaanDana::where('status', PDStatus::Approved)
+                ->whereDoesntHave('documents')
                 ->count();
         }
 

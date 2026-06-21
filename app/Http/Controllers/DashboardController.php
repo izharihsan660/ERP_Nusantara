@@ -193,17 +193,18 @@ class DashboardController extends Controller
             'cards' => [
                 ['label' => 'PD pending approval', 'value' => PermintaanDana::query()->where('status', PDStatus::PendingApproval)->count(), 'type' => 'number'],
                 ['label' => 'PD approved belum dibayar', 'value' => PermintaanDana::query()->where('status', PDStatus::Approved)->count(), 'type' => 'number'],
-                ['label' => 'Total PD bulan ini', 'value' => (float) PermintaanDana::query()->whereBetween('tgl_pd', [$start, $end])->sum('nominal'), 'type' => 'money'],
+                ['label' => 'Total PD bulan ini', 'value' => (float) PermintaanDana::query()->with('items')->whereBetween('plan_pembayaran', [$start, $end])->get()->sum(fn (PermintaanDana $pd): float => (float) $pd->items->sum('total')), 'type' => 'money'],
             ],
             'pd' => PermintaanDana::query()
-                ->latest('tgl_pd')
+                ->with('items')
+                ->latest('plan_pembayaran')
                 ->limit(10)
                 ->get()
                 ->map(fn (PermintaanDana $pd): array => [
                     'id' => $pd->id,
                     'no_pd' => $pd->no_pd,
-                    'kategori' => $pd->kategori->label(),
-                    'nominal' => (float) $pd->nominal,
+                    'kategori' => $pd->tujuan,
+                    'nominal' => (float) $pd->items->sum('total'),
                     'status' => $pd->status->value,
                     'status_label' => $pd->status->label(),
                 ]),
@@ -228,16 +229,16 @@ class DashboardController extends Controller
             'sales_trend' => $this->quotationMonthlySeries('total'),
             'profit_trend' => $this->quotationMonthlySeries('profit'),
             'pd_pending' => PermintaanDana::query()
-                ->with('createdBy:id,name')
+                ->with(['createdBy:id,name', 'items'])
                 ->where('status', PDStatus::PendingApproval)
-                ->latest('tgl_pd')
+                ->latest('plan_pembayaran')
                 ->limit(10)
                 ->get()
                 ->map(fn (PermintaanDana $pd): array => [
                     'id' => $pd->id,
                     'no_pd' => $pd->no_pd,
-                    'kategori' => $pd->kategori->label(),
-                    'nominal' => (float) $pd->nominal,
+                    'kategori' => $pd->tujuan,
+                    'nominal' => (float) $pd->items->sum('total'),
                     'dibuat_oleh' => $pd->createdBy?->name ?? '-',
                 ]),
         ];

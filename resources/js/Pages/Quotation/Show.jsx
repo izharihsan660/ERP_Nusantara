@@ -51,7 +51,7 @@ function ActionModal({ show, title, label, value, error, processing, onChange, o
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onClose} disabled={processing}>Batal</Button>
                     <Button type="submit" variant="destructive" disabled={processing}>Proses</Button>
                 </div>
@@ -114,7 +114,7 @@ function SalesOrderModal({ show, form, onClose, onSubmit }) {
                         </FormRow>
                     )}
                 </div>
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
                     <Button type="submit" disabled={form.processing}>Simpan</Button>
                 </div>
@@ -265,7 +265,7 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
                     {form.errors.items && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.items}</p>}
                 </div>
 
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
                     <Button type="submit" disabled={form.processing}>Simpan</Button>
                 </div>

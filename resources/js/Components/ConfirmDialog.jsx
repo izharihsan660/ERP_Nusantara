@@ -12,10 +12,10 @@ export default function ConfirmDialog({
 }) {
     return (
         <Modal show={show} onClose={onCancel} maxWidth="md">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{title}</h2>
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{description}</p>
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onCancel} disabled={processing}>
                         Batal
                     </Button>

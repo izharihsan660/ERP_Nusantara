@@ -31,7 +31,7 @@ export default function DataTable({
     return (
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <div className="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
-                <form onSubmit={submit} className="flex w-full gap-2 lg:max-w-md">
+                <form onSubmit={submit} className="flex w-full flex-col gap-2 sm:flex-row lg:max-w-md">
                     <div className="relative flex-1">
                         <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                         <Input
@@ -43,7 +43,7 @@ export default function DataTable({
                     </div>
                     <Button type="submit" variant="secondary">Cari</Button>
                 </form>
-                {filterSlot && <div className="flex flex-wrap gap-2">{filterSlot}</div>}
+                {filterSlot && <div className="flex w-full flex-col gap-2 [&>*]:w-full sm:w-auto sm:flex-row sm:flex-wrap sm:[&>*]:w-auto">{filterSlot}</div>}
             </div>
 
             <div className="overflow-x-auto">

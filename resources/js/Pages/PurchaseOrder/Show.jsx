@@ -44,7 +44,7 @@ function ActionModal({ show, title, label, value, error, processing, variant = '
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onClose} disabled={processing}>Batal</Button>
                     <Button type="submit" variant={variant} disabled={processing}>Proses</Button>
                 </div>
@@ -73,7 +73,7 @@ function ReferensiModal({ show, form, onClose, onSubmit }) {
                         Setelah No. PO Customer diisi, referensi di SPB terkait akan otomatis diperbarui dari PR ke PO
                     </div>
                 </div>
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
                     <Button type="submit" disabled={form.processing}>Simpan</Button>
                 </div>

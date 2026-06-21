@@ -31,12 +31,12 @@ class PermintaanDanaService
 
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $sort = in_array($filters['sort'] ?? null, ['no_pd', 'tgl_pd', 'kategori', 'nominal', 'status', 'created_at'], true)
+        $sort = in_array($filters['sort'] ?? null, ['no_pd', 'plan_pembayaran', 'tujuan', 'status', 'created_at'], true)
             ? $filters['sort']
             : 'created_at';
 
         return PermintaanDana::query()
-            ->with(['createdBy:id,name'])
+            ->with(['createdBy:id,name', 'items'])
             ->when($filters['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('no_pd', 'like', "%{$search}%")
@@ -44,10 +44,9 @@ class PermintaanDanaService
                         ->orWhere('keterangan', 'like', "%{$search}%");
                 });
             })
-            ->when($filters['kategori'] ?? null, fn ($query, string $kategori) => $query->where('kategori', $kategori))
             ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
-            ->when($filters['date_from'] ?? null, fn ($query, string $date) => $query->whereDate('tgl_pd', '>=', $date))
-            ->when($filters['date_to'] ?? null, fn ($query, string $date) => $query->whereDate('tgl_pd', '<=', $date))
+            ->when($filters['date_from'] ?? null, fn ($query, string $date) => $query->whereDate('plan_pembayaran', '>=', $date))
+            ->when($filters['date_to'] ?? null, fn ($query, string $date) => $query->whereDate('plan_pembayaran', '<=', $date))
             ->orderBy($sort, ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc')
             ->paginate((int) ($filters['per_page'] ?? 10))
             ->withQueryString();
@@ -55,19 +54,15 @@ class PermintaanDanaService
 
     public function create(array $data, User $user): PermintaanDana
     {
-        $totalNominal = collect($data['items'] ?? [])->sum(fn ($item): float => ($item['qty'] ?? 0) * ($item['harga'] ?? 0));
-
         return DB::transaction(function () use ($data, $user): PermintaanDana {
-            $date = Carbon::parse($data['tgl_pd']);
+            $date = now();
             $permintaanDana = PermintaanDana::create([
                 'no_pd' => $this->documentNumberService->generatePermintaanDanaNumber($date),
-                'tgl_pd' => $date,
                 'tujuan' => $data['tujuan'],
                 'rekening_tujuan' => $data['rekening_tujuan'],
                 'bank_tujuan' => $data['bank_tujuan'] ?? null,
                 'plan_pembayaran' => Carbon::parse($data['plan_pembayaran']),
-                'nominal' => $totalNominal,
-                'keterangan' => $data['keterangan'],
+                'keterangan' => $data['keterangan'] ?? null,
                 'referensi_dokumen' => $data['referensi_dokumen'] ?? null,
                 'status' => PDStatus::Draft,
                 'created_by' => $user->id,
@@ -81,6 +76,7 @@ class PermintaanDanaService
                     'qty' => $item['qty'],
                     'harga' => $item['harga'],
                     'total' => ($item['qty'] * $item['harga']),
+                    'remarks' => $item['remarks'] ?? null,
                 ]);
             }
 
@@ -97,7 +93,7 @@ class PermintaanDanaService
 
                     $permintaanDana->documents()->create([
                         'tipe' => $tipeLabels[$index] ?? 'NOTA',
-                        'kategori' => PdDocumentKategori::BuktiTransfer,
+                        'kategori' => PdDocumentKategori::BuktiPembelian,
                         'file_path' => $path,
                         'nama_file' => str($file->getClientOriginalName())->limit(100, '')->toString(),
                     ]);
@@ -105,10 +101,6 @@ class PermintaanDanaService
             }
 
             $this->recordActivity->handle('created_pd', $permintaanDana, "{$user->name} membuat Permintaan Dana {$permintaanDana->no_pd}");
-
-            if ($data['submit'] ?? false) {
-                return $this->submit($permintaanDana, $user);
-            }
 
             return $permintaanDana->refresh()->load(['createdBy', 'items', 'documents']);
         });
@@ -146,14 +138,6 @@ class PermintaanDanaService
             $this->permintaanDanaPDFService->generate($permintaanDana->refresh());
             $this->recordActivity->handle('approved_pd', $permintaanDana, "{$user->name} approve Permintaan Dana {$permintaanDana->no_pd}");
             $this->notificationHelper->getUsersByRole('Procurement')->each->notify(new PdApprovedNotification($permintaanDana));
-
-            if ($permintaanDana->kategori === KategoriPD::BiayaPengiriman) {
-                $this->notificationHelper->getUsersByRole('Sales')->each->notify(new PdApprovedNotification($permintaanDana));
-            }
-
-            if ($permintaanDana->kategori === KategoriPD::BayarRma) {
-                $this->notificationHelper->getUsersByRole('Finance')->each->notify(new PdApprovedNotification($permintaanDana));
-            }
 
             return $permintaanDana->refresh();
         });

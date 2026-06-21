@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\DocumentType;
 use App\Enums\InvoiceStatus;
-use App\Enums\KategoriPD;
 use App\Enums\MetodePembayaran;
 use App\Enums\PdDocumentKategori;
 use App\Enums\PDStatus;
@@ -103,6 +102,13 @@ class FullBusinessFlowTest extends TestCase
             'no_wip' => 'WIP-QUOT-001',
             'tipe_order' => TipeOrder::VOR->value,
             'nama_ekspedisi' => 'JNE Trucking',
+            'items' => [
+                [
+                    'katalog_id' => $data['katalog']->id,
+                    'part_no' => $data['katalog']->part_no,
+                    'qty' => 2,
+                ],
+            ],
         ])->assertRedirect();
 
         $wip = $salesOrder->wipOrders()->firstOrFail();
@@ -224,11 +230,21 @@ class FullBusinessFlowTest extends TestCase
         $this->get(route('permintaan-dana.create'))->assertOk();
 
         $this->post(route('permintaan-dana.store'), [
-            'tgl_pd' => '2026-06-15',
-            'kategori' => KategoriPD::OperasionalKantor->value,
-            'nominal' => 2500000,
+            'tujuan' => 'Operasional Kantor',
+            'rekening_tujuan' => '1234567890',
+            'bank_tujuan' => 'BCA',
+            'plan_pembayaran' => '2026-06-15',
             'keterangan' => 'Biaya operasional kantor',
             'referensi_dokumen' => 'REF-PD-001',
+            'items' => [
+                [
+                    'no_part' => 'OPS-001',
+                    'description' => 'Biaya operasional kantor',
+                    'qty' => 1,
+                    'harga' => 2500000,
+                    'remarks' => 'UAT',
+                ],
+            ],
         ])->assertRedirect();
 
         $permintaanDana = PermintaanDana::query()->latest('id')->firstOrFail();
@@ -264,12 +280,20 @@ class FullBusinessFlowTest extends TestCase
 
         $rejected = PermintaanDana::query()->create([
             'no_pd' => app(DocumentNumberService::class)->generatePermintaanDanaNumber(now()),
-            'tgl_pd' => '2026-06-15',
-            'kategori' => KategoriPD::BayarRma,
-            'nominal' => 100000,
+            'tujuan' => 'PD untuk reject',
+            'rekening_tujuan' => '1234567890',
+            'bank_tujuan' => 'BCA',
+            'plan_pembayaran' => '2026-06-15',
             'keterangan' => 'PD untuk reject',
             'status' => PDStatus::PendingApproval,
             'created_by' => auth()->id(),
+        ]);
+        $rejected->items()->create([
+            'no_part' => 'REJ-001',
+            'description' => 'PD untuk reject',
+            'qty' => 1,
+            'harga' => 100000,
+            'total' => 100000,
         ]);
 
         $this->post(route('permintaan-dana.reject', $rejected), [

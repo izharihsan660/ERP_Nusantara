@@ -77,30 +77,31 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 15%;">NO. PO</th>
                 <th style="width: 15%;">NO. PART</th>
                 <th style="width: 35%;">DESCRIPTION</th>
                 <th style="width: 10%;" class="right">QTY</th>
                 <th style="width: 15%;" class="right">HARGA</th>
                 <th style="width: 15%;" class="right">TOTAL</th>
+                <th style="width: 15%;">REMARKS</th>
             </tr>
         </thead>
         <tbody>
             @foreach($pd->items as $item)
             <tr>
-                <td>{{ $item->no_po ?? '-' }}</td>
                 <td>{{ $item->no_part ?? '-' }}</td>
                 <td>{{ $item->description }}</td>
                 <td class="right">{{ $item->qty }}</td>
                 <td class="right">{{ number_format($item->harga, 0, ',', '.') }}</td>
                 <td class="right">{{ number_format($item->total, 0, ',', '.') }}</td>
+                <td>{{ $item->remarks ?? '-' }}</td>
             </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" class="right">TOTAL</td>
-                <td class="right">Rp {{ number_format($pd->total, 0, ',', '.') }}</td>
+                <td colspan="4" class="right">TOTAL</td>
+                <td class="right">Rp {{ number_format($pd->items->sum('total'), 0, ',', '.') }}</td>
+                <td></td>
             </tr>
         </tfoot>
     </table>
@@ -129,35 +130,25 @@
 
     @if($pd->qr_token)
     <div class="qr-code">
-        {!! QrCode::size(80)->generate(route('verify', ['token' => $pd->qr_token])) !!}
+        <img src="{{ $qrCode }}" alt="QR Code">
     </div>
     @endif
 
-    @if($pd->foto_nota || $pd->foto_barang)
+    @if($pd->documents->isNotEmpty())
     <div class="attachment-page">
         <h3>Lampiran</h3>
-        
-        @if($pd->foto_nota && file_exists(storage_path('app/' . $pd->foto_nota)))
+        @foreach($pd->documents as $document)
+        @if(file_exists(storage_path('app/' . $document->file_path)))
             <div>
-                <h4>Foto Nota:</h4>
-                @if(Str::endsWith($pd->foto_nota, '.pdf'))
-                    <p>Lihat file PDF terlampir: {{ basename($pd->foto_nota) }}</p>
+                <h4>{{ $document->tipe ?? $document->kategori?->label() }}:</h4>
+                @if(Str::endsWith($document->file_path, '.pdf'))
+                    <p>Lihat file PDF terlampir: {{ basename($document->file_path) }}</p>
                 @else
-                    <img src="{{ storage_path('app/' . $pd->foto_nota) }}" alt="Foto Nota">
+                    <img src="{{ storage_path('app/' . $document->file_path) }}" alt="Lampiran">
                 @endif
             </div>
         @endif
-
-        @if($pd->foto_barang && file_exists(storage_path('app/' . $pd->foto_barang)))
-            <div>
-                <h4>Foto Barang:</h4>
-                @if(Str::endsWith($pd->foto_barang, '.pdf'))
-                    <p>Lihat file PDF terlampir: {{ basename($pd->foto_barang) }}</p>
-                @else
-                    <img src="{{ storage_path('app/' . $pd->foto_barang) }}" alt="Foto Barang">
-                @endif
-            </div>
-        @endif
+        @endforeach
     </div>
     @endif
 </body>

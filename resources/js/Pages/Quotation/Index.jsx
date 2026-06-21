@@ -70,16 +70,16 @@ export default function Index({ quotations, filters, customers, statuses }) {
                 routeName="quotations.index"
                 filterSlot={(
                     <>
-                        <Select value={filters.customer_id ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, customer_id: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-48">
+                        <Select value={filters.customer_id ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, customer_id: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-48">
                             <option value="">Semua Customer</option>
                             {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.label}</option>)}
                         </Select>
-                        <Select value={filters.status ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, status: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-48">
+                        <Select value={filters.status ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, status: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-48">
                             <option value="">Semua Status</option>
                             {statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
                         </Select>
-                        <Input type="date" value={filters.date_from ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, date_from: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-40" />
-                        <Input type="date" value={filters.date_to ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, date_to: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-40" />
+                        <Input type="date" value={filters.date_from ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, date_from: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-40" />
+                        <Input type="date" value={filters.date_to ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, date_to: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-40" />
                     </>
                 )}
             />

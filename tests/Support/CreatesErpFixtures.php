@@ -4,7 +4,6 @@ namespace Tests\Support;
 
 use App\Enums\DocumentType;
 use App\Enums\InvoiceStatus;
-use App\Enums\KategoriPD;
 use App\Enums\MetodePembayaran;
 use App\Enums\PDStatus;
 use App\Enums\PurchaseOrderStatus;
@@ -229,11 +228,21 @@ trait CreatesErpFixtures
     protected function permintaanDanaPayload(array $overrides = []): array
     {
         return array_replace([
-            'tgl_pd' => '2026-06-15',
-            'kategori' => KategoriPD::OperasionalKantor->value,
-            'nominal' => 2500000,
+            'tujuan' => 'Operasional Kantor',
+            'rekening_tujuan' => '1234567890',
+            'bank_tujuan' => 'BCA',
+            'plan_pembayaran' => '2026-06-15',
             'keterangan' => 'Biaya operasional kantor',
             'referensi_dokumen' => 'REF-PD-001',
+            'items' => [
+                [
+                    'no_part' => 'OPS-001',
+                    'description' => 'Biaya operasional kantor',
+                    'qty' => 1,
+                    'harga' => 2500000,
+                    'remarks' => null,
+                ],
+            ],
         ], $overrides);
     }
 
@@ -270,11 +279,19 @@ trait CreatesErpFixtures
     protected function createWipOrder(SalesOrder $salesOrder, array $overrides = []): WipOrder
     {
         $user = User::query()->first() ?? User::factory()->create(['is_active' => true]);
+        $quotationItem = $salesOrder->quotation->items()->firstOrFail();
 
         return app(WipOrderService::class)->create(array_replace([
             'no_wip' => 'WIP-001',
             'tipe_order' => TipeOrder::VOR->value,
             'nama_ekspedisi' => 'JNE Trucking',
+            'items' => [
+                [
+                    'katalog_id' => $quotationItem->katalog_id,
+                    'part_no' => $quotationItem->part_no,
+                    'qty' => $quotationItem->qty,
+                ],
+            ],
         ], $overrides), $salesOrder, $user);
     }
 
@@ -413,14 +430,25 @@ trait CreatesErpFixtures
 
     protected function createPersistedPermintaanDana(array $overrides = []): PermintaanDana
     {
-        return PermintaanDana::query()->create(array_replace([
+        $permintaanDana = PermintaanDana::query()->create(array_replace([
             'no_pd' => '001/PD-NAJ/VI/2026',
-            'tgl_pd' => '2026-06-15',
-            'kategori' => KategoriPD::OperasionalKantor,
-            'nominal' => 2500000,
+            'tujuan' => 'Operasional Kantor',
+            'rekening_tujuan' => '1234567890',
+            'bank_tujuan' => 'BCA',
+            'plan_pembayaran' => '2026-06-15',
             'keterangan' => 'Biaya operasional kantor',
             'status' => PDStatus::Draft,
             'created_by' => User::query()->first()?->id ?? User::factory()->create(['is_active' => true])->id,
         ], $overrides));
+
+        $permintaanDana->items()->create([
+            'no_part' => 'OPS-001',
+            'description' => 'Biaya operasional kantor',
+            'qty' => 1,
+            'harga' => 2500000,
+            'total' => 2500000,
+        ]);
+
+        return $permintaanDana;
     }
 }

@@ -11,7 +11,7 @@ export default function PageHeader({ title, description, actions, className }) {
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</p>
                 )}
             </div>
-            {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+            {actions && <div className="flex w-full flex-col gap-2 [&>*]:w-full sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:[&>*]:w-auto">{actions}</div>}
         </div>
     );
 }

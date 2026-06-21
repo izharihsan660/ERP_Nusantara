@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
-use App\Enums\KategoriPD;
 use App\Enums\MetodePembayaran;
 use App\Enums\PDStatus;
 use App\Enums\SalesOrderStatus;
@@ -118,9 +117,8 @@ class LaporanController extends Controller
             ...$this->baseProps($request, 'laporan.rekapan-pd', 'rekapan-pd'),
             'data' => $query->paginate($this->perPage($request))->withQueryString()->through(fn (PermintaanDana $pd): array => $this->rekapanPdRow($pd)),
             'summary' => $this->rekapanPdSummary($rows),
-            'kategoriOptions' => KategoriPD::options(),
             'statuses' => PDStatus::options(),
-            'filterConfig' => ['kategori', 'status', 'periode'],
+            'filterConfig' => ['status', 'periode'],
         ]);
     }
 
@@ -322,12 +320,11 @@ class LaporanController extends Controller
     private function rekapanPdQuery(Request $request): Builder
     {
         $query = PermintaanDana::query()
-            ->with(['createdBy:id,name', 'approvedBy:id,name'])
-            ->latest('tgl_pd');
+            ->with(['createdBy:id,name', 'approvedBy:id,name', 'items'])
+            ->latest('plan_pembayaran');
 
         $this->scopeCreatedBy($query, $request, 'permintaan_dana.created_by');
-        $this->applyDateRange($query, $request, 'tgl_pd');
-        $query->when($request->filled('kategori'), fn (Builder $builder) => $builder->where('kategori', $request->string('kategori')->value()));
+        $this->applyDateRange($query, $request, 'plan_pembayaran');
         $query->when($request->filled('status'), fn (Builder $builder) => $builder->where('status', $request->string('status')->value()));
         $query->when($request->filled('search'), function (Builder $builder) use ($request): void {
             $search = '%'.$request->string('search')->value().'%';
@@ -527,15 +524,14 @@ class LaporanController extends Controller
         return [
             'id' => $pd->id,
             'no_pd' => $pd->no_pd,
-            'kategori' => $pd->kategori->value,
-            'kategori_label' => $pd->kategori->label(),
-            'nominal' => (float) $pd->nominal,
+            'tujuan' => $pd->tujuan,
+            'nominal' => (float) $pd->items->sum('total'),
             'jumlah_realisasi' => (float) ($pd->jumlah_realisasi ?? 0),
             'status' => $pd->status->value,
             'status_label' => $pd->status->label(),
             'dibuat_oleh' => $pd->createdBy?->name ?? '-',
             'diapprove_oleh' => $pd->approvedBy?->name ?? '-',
-            'tanggal' => $pd->tgl_pd?->format('Y-m-d'),
+            'tanggal' => $pd->plan_pembayaran?->format('Y-m-d'),
         ];
     }
 

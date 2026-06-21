@@ -46,12 +46,12 @@ export default function AppLayout({ title, children }) {
 
     return (
         <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
-            <aside className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white transition-transform dark:border-slate-800 dark:bg-slate-950 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white transition-transform dark:border-slate-800 dark:bg-slate-950 md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5 dark:border-slate-800">
                     <Link href={route('dashboard')} className="font-semibold tracking-normal">
                         PT. Nusantara Abadi Jaya
                     </Link>
-                    <Button type="button" variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(false)}>
+                    <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(false)}>
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
@@ -70,13 +70,12 @@ export default function AppLayout({ title, children }) {
                         
                         // Get badge count for this route
                         let badgeCount = 0;
-                        if (item.route === 'quotations.index') badgeCount = sidebar_badges.quotation || 0;
+                        if (item.route === 'quotations.index') badgeCount = (sidebar_badges.quotation || 0) + (sidebar_badges.invoice || 0);
                         else if (item.route === 'purchase-orders.index') badgeCount = sidebar_badges.purchase_order || 0;
                         else if (item.route === 'permintaan-dana.index') {
                             badgeCount = (sidebar_badges.permintaan_dana || 0) + (sidebar_badges.permintaan_dana_procurement || 0);
                         }
-                        else if (item.route.includes('spb')) badgeCount = sidebar_badges.spb || 0;
-                        else if (item.route.includes('invoice')) badgeCount = sidebar_badges.invoice || 0;
+                        else if (item.route === 'spb.index') badgeCount = sidebar_badges.spb || 0;
 
                         return (
                             <Link
@@ -99,12 +98,12 @@ export default function AppLayout({ title, children }) {
                 </nav>
             </aside>
 
-            {open && <button type="button" aria-label="Tutup menu" className="fixed inset-0 z-30 bg-slate-950/40 lg:hidden" onClick={() => setOpen(false)} />}
+            {open && <button type="button" aria-label="Tutup menu" className="fixed inset-0 z-30 bg-slate-950/40 md:hidden" onClick={() => setOpen(false)} />}
 
-            <div className="lg:pl-72">
+            <div className="md:pl-72">
                 <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 sm:px-6">
                     <div className="flex items-center gap-3">
-                        <Button type="button" variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)}>
+                        <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(true)}>
                             <Menu className="h-5 w-5" />
                         </Button>
                         <div>

@@ -20,7 +20,7 @@ class RekapanPdExport implements FromArray, ShouldAutoSize
     {
         $data = [[
             'No. PD',
-            'Kategori',
+            'Tujuan',
             'Nominal',
             'Jumlah Realisasi',
             'Status',
@@ -32,7 +32,7 @@ class RekapanPdExport implements FromArray, ShouldAutoSize
         foreach ($this->rows as $row) {
             $data[] = [
                 $row['no_pd'],
-                $row['kategori_label'],
+                $row['tujuan'],
                 $row['nominal'],
                 $row['jumlah_realisasi'],
                 $row['status_label'],

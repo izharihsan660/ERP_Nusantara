@@ -14,12 +14,10 @@ class PermintaanDana extends Model
 
     protected $fillable = [
         'no_pd',
-        'tgl_pd',
         'tujuan',
         'rekening_tujuan',
         'bank_tujuan',
         'plan_pembayaran',
-        'nominal',
         'keterangan',
         'referensi_dokumen',
         'status',
@@ -39,9 +37,7 @@ class PermintaanDana extends Model
     protected function casts(): array
     {
         return [
-            'tgl_pd' => 'date',
             'plan_pembayaran' => 'date',
-            'nominal' => 'decimal:2',
             'status' => PDStatus::class,
             'submitted_at' => 'datetime',
             'approved_at' => 'datetime',

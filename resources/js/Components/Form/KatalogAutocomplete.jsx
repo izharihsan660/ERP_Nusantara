@@ -23,9 +23,12 @@ export default function KatalogAutocomplete({ value, onSelect, placeholder = 'Ca
                 flip(),
                 size({
                     apply({ availableWidth, availableHeight, elements }) {
+                        const inputWidth = inputRef.current?.offsetWidth || 0;
+                        const viewportWidth = window.innerWidth || availableWidth;
                         Object.assign(elements.floating.style, {
                             maxHeight: `${Math.min(300, availableHeight)}px`,
-                            minWidth: `${Math.max(400, inputRef.current?.offsetWidth || 0)}px`,
+                            width: `${Math.min(Math.max(inputWidth, 320), viewportWidth - 24, availableWidth)}px`,
+                            minWidth: `${Math.min(inputWidth || 320, viewportWidth - 24)}px`,
                         });
                     },
                 }),
@@ -107,7 +110,7 @@ export default function KatalogAutocomplete({ value, onSelect, placeholder = 'Ca
     };
 
     return (
-        <div ref={wrapperRef} className="relative">
+        <div ref={wrapperRef} className="relative w-full">
             <Input
                 ref={inputRef}
                 value={query}
@@ -123,7 +126,7 @@ export default function KatalogAutocomplete({ value, onSelect, placeholder = 'Ca
                 <div
                     ref={dropdownRef}
                     className="fixed z-50 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900"
-                    style={{ maxHeight: '300px', minWidth: '400px' }}
+                    style={{ maxHeight: '300px' }}
                 >
                     {loading && <div className="px-3 py-2 text-sm text-slate-500">Memuat...</div>}
                     {!loading && items.length === 0 && (

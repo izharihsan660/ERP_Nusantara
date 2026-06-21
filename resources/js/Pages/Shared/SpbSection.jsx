@@ -235,7 +235,7 @@ export default function SpbSection({
                                 </td>
                                 <td className="px-4 py-3"><StatusBadge status={spb.status} label={spb.status_label} /></td>
                                 <td className="px-4 py-3">
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex flex-col justify-end gap-2 sm:flex-row">
                                         {canDownload && spb.status !== 'VOID' && (
                                             <Button asChild size="sm" variant="secondary">
                                                 <a href={route('spb.download', spb.id)}><Download className="h-4 w-4" />PDF</a>
@@ -377,7 +377,7 @@ export default function SpbSection({
                         </div>
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => setModal(null)} disabled={form.processing}>Batal</Button>
                         <Button type="submit" disabled={form.processing || !selectedSource || allItemsSent || totalQtyKirim === 0}>
                             Simpan SPB
@@ -392,7 +392,7 @@ export default function SpbSection({
                     <FormRow label="Alasan void" required error={voidForm.errors.alasan_void}>
                         <Textarea value={voidForm.data.alasan_void} onChange={(e) => voidForm.setData('alasan_void', e.target.value)} />
                     </FormRow>
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => setModal(null)} disabled={voidForm.processing}>Batal</Button>
                         <Button type="submit" variant="destructive" disabled={voidForm.processing}>Proses</Button>
                     </div>

@@ -341,7 +341,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                             </FormRow>
                         )}
                     </div>
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => setModal(null)} disabled={invoiceForm.processing}>Batal</Button>
                         <Button type="submit" disabled={invoiceForm.processing}>Buat Invoice/Nota</Button>
                     </div>
@@ -394,7 +394,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                             ))}
                         </div>
                     </div>
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => setModal(null)} disabled={paymentForm.processing}>Batal</Button>
                         <Button type="submit" disabled={paymentForm.processing}>Simpan</Button>
                     </div>
@@ -418,7 +418,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                             Sistem akan menggabungkan ketiga file menjadi 1 PDF otomatis.
                         </div>
                     </div>
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => setModal(null)} disabled={uploadForm.processing}>Batal</Button>
                         <Button type="submit" disabled={uploadForm.processing}>Upload & Gabung</Button>
                     </div>
@@ -431,7 +431,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                     <FormRow label="Alasan void" required error={voidForm.errors.alasan_void}>
                         <Textarea value={voidForm.data.alasan_void} onChange={(e) => voidForm.setData('alasan_void', e.target.value)} />
                     </FormRow>
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => setModal(null)} disabled={voidForm.processing}>Batal</Button>
                         <Button type="submit" variant="destructive" disabled={voidForm.processing}>Proses</Button>
                     </div>

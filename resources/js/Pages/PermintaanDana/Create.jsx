@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 export default function Create() {
     const [items, setItems] = useState([
-        { no_po: '', no_part: '', description: '', qty: '', harga: '', total: 0 }
+        { no_part: '', description: '', qty: '', harga: '', total: 0, remarks: '' }
     ]);
     
     const form = useForm({
@@ -20,12 +20,11 @@ export default function Create() {
         bank_tujuan: '',
         plan_pembayaran: '',
         keterangan: '',
-        foto_nota: null,
-        foto_barang: null,
+        attachments: [],
     });
 
     const addItem = () => {
-        setItems([...items, { no_po: '', no_part: '', description: '', qty: '', harga: '', total: 0 }]);
+        setItems([...items, { no_part: '', description: '', qty: '', harga: '', total: 0, remarks: '' }]);
     };
 
     const removeItem = (index) => {
@@ -124,25 +123,18 @@ export default function Create() {
                             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
                                 <thead className="bg-slate-50 dark:bg-slate-800">
                                     <tr>
-                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 w-32">NO. PO</th>
                                         <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 w-40">NO. PART</th>
                                         <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">DESCRIPTION *</th>
                                         <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-24">QTY *</th>
                                         <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-32">HARGA *</th>
                                         <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-32">TOTAL</th>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 w-40">REMARKS</th>
                                         <th className="px-3 py-2 w-12"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
                                     {items.map((item, index) => (
                                         <tr key={index}>
-                                            <td className="px-3 py-2">
-                                                <Input
-                                                    value={item.no_po}
-                                                    onChange={(e) => updateItem(index, 'no_po', e.target.value)}
-                                                    className="text-sm"
-                                                />
-                                            </td>
                                             <td className="px-3 py-2">
                                                 <Input
                                                     value={item.no_part}
@@ -181,6 +173,13 @@ export default function Create() {
                                             <td className="px-3 py-2 text-right text-sm font-semibold text-slate-900 dark:text-white">
                                                 {formatRupiah(item.total)}
                                             </td>
+                                            <td className="px-3 py-2">
+                                                <Input
+                                                    value={item.remarks}
+                                                    onChange={(e) => updateItem(index, 'remarks', e.target.value)}
+                                                    className="text-sm"
+                                                />
+                                            </td>
                                             <td className="px-3 py-2 text-center">
                                                 {items.length > 1 && (
                                                     <Button
@@ -198,12 +197,13 @@ export default function Create() {
                                 </tbody>
                                 <tfoot className="bg-slate-50 dark:bg-slate-800">
                                     <tr>
-                                        <td colSpan="5" className="px-3 py-2 text-right text-sm font-semibold text-slate-900 dark:text-white">
+                                        <td colSpan="4" className="px-3 py-2 text-right text-sm font-semibold text-slate-900 dark:text-white">
                                             GRAND TOTAL
                                         </td>
                                         <td className="px-3 py-2 text-right text-sm font-bold text-slate-900 dark:text-white">
                                             {formatRupiah(grandTotal)}
                                         </td>
+                                        <td></td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -216,23 +216,23 @@ export default function Create() {
 
                     {/* Attachments */}
                     <div className="grid gap-4 md:grid-cols-2">
-                        <FormRow label="Foto Nota" conditionalNote="JPG/PNG/PDF, maks 10MB" error={form.errors.foto_nota}>
+                        <FormRow label="Foto Nota" conditionalNote="JPG/PNG/PDF, maks 5MB" error={form.errors['attachments.0']}>
                             <Input
                                 type="file"
                                 accept="image/jpeg,image/png,application/pdf"
-                                onChange={(e) => form.setData('foto_nota', e.target.files[0])}
+                                onChange={(e) => form.setData('attachments', [e.target.files[0], form.data.attachments[1]].filter(Boolean))}
                             />
                         </FormRow>
-                        <FormRow label="Foto Barang" conditionalNote="JPG/PNG/PDF, maks 10MB" error={form.errors.foto_barang}>
+                        <FormRow label="Foto Barang" conditionalNote="JPG/PNG/PDF, maks 5MB" error={form.errors['attachments.1']}>
                             <Input
                                 type="file"
                                 accept="image/jpeg,image/png,application/pdf"
-                                onChange={(e) => form.setData('foto_barang', e.target.files[0])}
+                                onChange={(e) => form.setData('attachments', [form.data.attachments[0], e.target.files[0]].filter(Boolean))}
                             />
                         </FormRow>
                     </div>
 
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-col justify-end gap-2 sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => router.visit(route('permintaan-dana.index'))}>
                             Batal
                         </Button>

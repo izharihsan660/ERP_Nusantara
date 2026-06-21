@@ -10,7 +10,9 @@ return new class extends Migration
     {
         if (Schema::hasColumn('permintaan_dana', 'kategori')) {
             Schema::table('permintaan_dana', function (Blueprint $table): void {
-                $table->dropIndex(['kategori']);
+                if (Schema::hasIndex('permintaan_dana', 'permintaan_dana_kategori_index')) {
+                    $table->dropIndex('permintaan_dana_kategori_index');
+                }
             });
         }
     }

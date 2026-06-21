@@ -1,6 +1,6 @@
 import ReportPage, { money, StatusPill } from './ReportPage';
 
-export default function RekapanPd({ data, filters, routeName, exportType, summary, kategoriOptions, statuses }) {
+export default function RekapanPd({ data, filters, routeName, exportType, summary, statuses }) {
     return (
         <ReportPage
             title="Rekapan PD"
@@ -10,7 +10,6 @@ export default function RekapanPd({ data, filters, routeName, exportType, summar
             routeName={routeName}
             exportType={exportType}
             fields={[
-                { key: 'kategori', label: 'Kategori', type: 'select', options: kategoriOptions, placeholder: 'Semua Kategori' },
                 { key: 'status', label: 'Status', type: 'select', options: statuses, placeholder: 'Semua Status' },
                 { key: 'date_from', label: 'Dari Tanggal', type: 'date' },
                 { key: 'date_to', label: 'Sampai Tanggal', type: 'date' },
@@ -22,7 +21,7 @@ export default function RekapanPd({ data, filters, routeName, exportType, summar
             ]}
             columns={[
                 { key: 'no_pd', label: 'No. PD' },
-                { key: 'kategori_label', label: 'Kategori' },
+                { key: 'tujuan', label: 'Tujuan' },
                 { key: 'nominal', label: 'Nominal', render: (row) => money(row.nominal) },
                 { key: 'jumlah_realisasi', label: 'Jumlah Realisasi', render: (row) => money(row.jumlah_realisasi) },
                 { key: 'status', label: 'Status', render: (row) => <StatusPill value={row.status}>{row.status_label}</StatusPill> },

@@ -195,7 +195,7 @@ export default function Create({ customers, vendors }) {
                     </div>
                 </section>
 
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="submit" variant="secondary" disabled={processing}><Save className="h-4 w-4" />Simpan Draft</Button>
                     <Button type="button" disabled={processing} onClick={(event) => submit(event, true)}><Send className="h-4 w-4" />Submit ke Manager</Button>
                 </div>

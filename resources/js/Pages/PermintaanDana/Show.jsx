@@ -50,7 +50,7 @@ function TextActionModal({ show, title, label, value, error, processing, submitL
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 <InputError message={error} className="mt-2" />
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onClose} disabled={processing}>Batal</Button>
                     <Button type="submit" variant={variant} disabled={processing}>{submitLabel}</Button>
                 </div>
@@ -131,7 +131,7 @@ function UploadBuktiModal({ show, form, documentCategories, onClose, onSubmit })
                         ))}
                     </div>
                 </div>
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex flex-col justify-end gap-2 sm:flex-row">
                     <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
                     <Button type="submit" disabled={form.processing}>Upload & Selesai</Button>
                 </div>
@@ -229,8 +229,10 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                     <StatusBadge status={permintaanDana.status} label={permintaanDana.status_label} />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Info label="Tanggal PD" value={permintaanDana.tgl_pd} />
-                    <Info label="Kategori" value={permintaanDana.kategori_label} />
+                    <Info label="Tujuan" value={permintaanDana.tujuan} />
+                    <Info label="Rekening Tujuan" value={permintaanDana.rekening_tujuan} />
+                    <Info label="Bank Tujuan" value={permintaanDana.bank_tujuan} />
+                    <Info label="Plan Pembayaran" value={permintaanDana.plan_pembayaran} />
                     <Info label="Nominal" value={formatRupiah(permintaanDana.nominal)} />
                     <Info label="Referensi" value={permintaanDana.referensi_dokumen} />
                     <Info label="Dibuat oleh" value={permintaanDana.created_by?.name} />

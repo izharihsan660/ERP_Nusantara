@@ -19,11 +19,11 @@ class PdSubmittedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        $nominal = 'Rp '.number_format((float) $this->permintaanDana->nominal, 0, ',', '.');
+        $nominal = 'Rp '.number_format((float) $this->permintaanDana->items()->sum('total'), 0, ',', '.');
 
         return [
             'title' => 'Permintaan Dana menunggu approval',
-            'message' => "Ada Permintaan Dana menunggu approval: {$this->permintaanDana->no_pd} — {$nominal}",
+            'message' => "Ada Permintaan Dana menunggu approval: {$this->permintaanDana->no_pd} — {$this->permintaanDana->tujuan} — {$nominal}",
             'type' => 'pd_submitted',
             'url' => route('permintaan-dana.show', $this->permintaanDana),
             'icon' => 'HandCoins',

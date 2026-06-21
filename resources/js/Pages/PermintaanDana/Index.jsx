@@ -25,15 +25,15 @@ function StatusBadge({ status, label }) {
     );
 }
 
-export default function Index({ permintaanDana, filters, categories, statuses }) {
+export default function Index({ permintaanDana, filters, statuses }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const columns = [
         { key: 'no_pd', label: 'No. PD', sortable: true },
-        { key: 'kategori', label: 'Kategori', sortable: true, render: (row) => row.kategori_label },
+        { key: 'tujuan', label: 'Tujuan', sortable: true },
         { key: 'nominal', label: 'Nominal', sortable: true, render: (row) => formatRupiah(row.nominal) },
         { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge status={row.status} label={row.status_label} /> },
         { key: 'created_by', label: 'Dibuat oleh' },
-        { key: 'tgl_pd', label: 'Tanggal', sortable: true },
+        { key: 'plan_pembayaran', label: 'Plan Pembayaran', sortable: true },
         {
             key: 'actions',
             label: 'Aksi',
@@ -64,16 +64,12 @@ export default function Index({ permintaanDana, filters, categories, statuses })
                 routeName="permintaan-dana.index"
                 filterSlot={(
                     <>
-                        <Select value={filters.kategori ?? ''} onChange={(e) => router.get(route('permintaan-dana.index'), { ...filters, kategori: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-52">
-                            <option value="">Semua Kategori</option>
-                            {categories.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
-                        </Select>
-                        <Select value={filters.status ?? ''} onChange={(e) => router.get(route('permintaan-dana.index'), { ...filters, status: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-48">
+                        <Select value={filters.status ?? ''} onChange={(e) => router.get(route('permintaan-dana.index'), { ...filters, status: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-48">
                             <option value="">Semua Status</option>
                             {statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
                         </Select>
-                        <Input type="date" value={filters.date_from ?? ''} onChange={(e) => router.get(route('permintaan-dana.index'), { ...filters, date_from: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-40" />
-                        <Input type="date" value={filters.date_to ?? ''} onChange={(e) => router.get(route('permintaan-dana.index'), { ...filters, date_to: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-40" />
+                        <Input type="date" value={filters.date_from ?? ''} onChange={(e) => router.get(route('permintaan-dana.index'), { ...filters, date_from: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-40" />
+                        <Input type="date" value={filters.date_to ?? ''} onChange={(e) => router.get(route('permintaan-dana.index'), { ...filters, date_to: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-40" />
                     </>
                 )}
             />

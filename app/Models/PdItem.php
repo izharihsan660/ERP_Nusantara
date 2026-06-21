@@ -17,6 +17,7 @@ class PdItem extends Model
         'qty',
         'harga',
         'total',
+        'remarks',
     ];
 
     protected function casts(): array

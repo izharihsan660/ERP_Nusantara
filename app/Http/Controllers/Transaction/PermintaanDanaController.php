@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Transaction;
 
-use App\Enums\KategoriPD;
 use App\Enums\PdDocumentKategori;
 use App\Enums\PDStatus;
 use App\Http\Controllers\Controller;
@@ -34,25 +33,21 @@ class PermintaanDanaController extends Controller
             'permintaanDana' => $this->permintaanDanaService->paginate($request->query())->through(fn (PermintaanDana $permintaanDana): array => [
                 'id' => $permintaanDana->id,
                 'no_pd' => $permintaanDana->no_pd,
-                'kategori' => $permintaanDana->kategori->value,
-                'kategori_label' => $permintaanDana->kategori->label(),
-                'nominal' => $permintaanDana->nominal,
+                'tujuan' => $permintaanDana->tujuan,
+                'nominal' => $permintaanDana->items->sum('total'),
                 'status' => $permintaanDana->status->value,
                 'status_label' => $permintaanDana->status->label(),
                 'created_by' => $permintaanDana->createdBy?->name,
-                'tgl_pd' => $permintaanDana->tgl_pd?->format('Y-m-d'),
+                'plan_pembayaran' => $permintaanDana->plan_pembayaran?->format('Y-m-d'),
             ]),
-            'filters' => $request->only(['search', 'kategori', 'status', 'date_from', 'date_to', 'sort', 'direction', 'per_page']),
-            'categories' => KategoriPD::options(),
+            'filters' => $request->only(['search', 'status', 'date_from', 'date_to', 'sort', 'direction', 'per_page']),
             'statuses' => PDStatus::options(),
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('PermintaanDana/Create', [
-            'categories' => KategoriPD::options(),
-        ]);
+        return Inertia::render('PermintaanDana/Create');
     }
 
     public function store(StorePermintaanDanaRequest $request): RedirectResponse
@@ -68,17 +63,18 @@ class PermintaanDanaController extends Controller
 
     public function show(PermintaanDana $permintaanDana): Response
     {
-        $permintaanDana->load(['createdBy:id,name', 'approvedBy:id,name', 'voidedBy:id,name', 'documents']);
+        $permintaanDana->load(['createdBy:id,name', 'approvedBy:id,name', 'voidedBy:id,name', 'documents', 'items']);
 
         return Inertia::render('PermintaanDana/Show', [
             'documentCategories' => PdDocumentKategori::options(),
             'permintaanDana' => [
                 'id' => $permintaanDana->id,
                 'no_pd' => $permintaanDana->no_pd,
-                'tgl_pd' => $permintaanDana->tgl_pd?->format('Y-m-d'),
-                'kategori' => $permintaanDana->kategori->value,
-                'kategori_label' => $permintaanDana->kategori->label(),
-                'nominal' => $permintaanDana->nominal,
+                'tujuan' => $permintaanDana->tujuan,
+                'rekening_tujuan' => $permintaanDana->rekening_tujuan,
+                'bank_tujuan' => $permintaanDana->bank_tujuan,
+                'plan_pembayaran' => $permintaanDana->plan_pembayaran?->format('Y-m-d'),
+                'nominal' => $permintaanDana->items->sum('total'),
                 'keterangan' => $permintaanDana->keterangan,
                 'referensi_dokumen' => $permintaanDana->referensi_dokumen,
                 'status' => $permintaanDana->status->value,
@@ -94,6 +90,15 @@ class PermintaanDanaController extends Controller
                     'kategori_label' => $document->kategori->label(),
                     'nama_file' => $document->nama_file,
                     'created_at' => $document->created_at?->format('Y-m-d H:i'),
+                ])->values(),
+                'items' => $permintaanDana->items->map(fn ($item): array => [
+                    'id' => $item->id,
+                    'no_part' => $item->no_part,
+                    'description' => $item->description,
+                    'qty' => $item->qty,
+                    'harga' => $item->harga,
+                    'total' => $item->total,
+                    'remarks' => $item->remarks,
                 ])->values(),
                 'voided_at' => $permintaanDana->voided_at?->format('Y-m-d H:i'),
                 'alasan_void' => $permintaanDana->alasan_void,
