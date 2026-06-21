@@ -1,70 +1,13 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #111827; }
-        h1 { margin: 0; font-size: 22px; text-align: center; letter-spacing: 0; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #d1d5db; padding: 7px; }
-        th { background: #f3f4f6; text-align: left; }
-        .meta td { border: 0; padding: 3px 0; }
-        .right { text-align: right; }
-        .total { font-weight: bold; background: #f9fafb; }
-        .box { border: 1px solid #d1d5db; padding: 10px; margin-top: 14px; }
-    </style>
-</head>
-<body>
-    <h1>FAKTUR PAJAK</h1>
-
-    <div class="box">
-        <table class="meta">
-            <tr>
-                <td style="width: 160px;">Kode dan Nomor Seri</td>
-                <td>: {{ $invoice->no_faktur_pajak ?: '-' }}</td>
-            </tr>
-            <tr>
-                <td>Pengusaha Kena Pajak</td>
-                <td>: PT. Nusantara Abadi Jaya</td>
-            </tr>
-            <tr>
-                <td>Pembeli BKP/JKP</td>
-                <td>: {{ $invoice->customer?->nama_customer }}</td>
-            </tr>
-            <tr>
-                <td>Tanggal Dokumen</td>
-                <td>: {{ $invoice->tgl_dokumen?->format('d/m/Y') }}</td>
-            </tr>
-        </table>
-    </div>
-
-    <table style="margin-top: 18px;">
-        <thead>
-            <tr>
-                <th>Nama Barang Kena Pajak</th>
-                <th class="right" style="width: 70px;">Qty</th>
-                <th class="right" style="width: 120px;">Harga Satuan</th>
-                <th class="right" style="width: 130px;">Harga Jual</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($items as $item)
-                <tr>
-                    <td>{{ $item['deskripsi'] }}</td>
-                    <td class="right">{{ number_format($item['qty'], 0, ',', '.') }}</td>
-                    <td class="right">{{ number_format($item['harga_satuan'], 0, ',', '.') }}</td>
-                    <td class="right">{{ number_format($item['jumlah'], 0, ',', '.') }}</td>
-                </tr>
-            @endforeach
-            <tr class="total">
-                <td colspan="3">Dasar Pengenaan Pajak</td>
-                <td class="right">{{ number_format((float) $invoice->total_nilai, 0, ',', '.') }}</td>
-            </tr>
-            <tr>
-                <td colspan="3">PPN</td>
-                <td class="right">-</td>
-            </tr>
-        </tbody>
-    </table>
-</body>
-</html>
+@php
+    $dpp = collect($items)->sum(fn ($item) => (float) $item['jumlah']);
+    $ppn = $dpp * 0.11;
+    $total = $dpp + $ppn;
+@endphp
+<!doctype html><html lang="id"><head><meta charset="utf-8"><style>
+@page{margin:1.5cm}body{font-family:Arial,sans-serif;font-size:11px;color:#111}.title{text-align:center;font-size:18px;font-weight:bold;margin-bottom:10px}table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;vertical-align:top}.box td,.box th{border:1px solid #ccc}.items th{background:#f5f5f5;text-align:center}.right{text-align:right}.center{text-align:center}.summary{width:42%;margin-left:auto;margin-top:8px}.summary td{border:1px solid #ccc}.label{background:#f5f5f5;font-weight:bold}
+</style></head><body>
+<div class="title">FAKTUR PAJAK</div><table class="box"><tr><td>No. Faktur: {{ $invoice->no_faktur_pajak ?: '-' }}</td><td>Tanggal: {{ $invoice->tgl_dokumen?->translatedFormat('d F Y') ?? '-' }}</td></tr></table>
+<table class="box" style="margin-top:10px"><tr><td style="width:50%"><strong>Penjual:</strong><br>PT. Nusantara Abadi Jaya<br>NPWP: {{ config('app.npwp_naj', '-') }}<br>JL.Wiyata No.81 RT23, Kalimantan Timur</td><td><strong>Pembeli:</strong><br>{{ $invoice->customer?->nama_customer ?? '-' }}<br>NPWP: {{ $invoice->customer?->npwp ?? '-' }}<br>{{ $invoice->customer?->alamat ?? '-' }}</td></tr></table>
+<table class="box items" style="margin-top:10px"><thead><tr><th style="width:28px">NO</th><th>NAMA BARANG</th><th style="width:50px">QTY</th><th style="width:95px">HARGA</th><th style="width:95px">DPP</th><th style="width:95px">PPN</th></tr></thead><tbody>@foreach($items as $item)<tr><td class="center">{{ $loop->iteration }}</td><td>{{ $item['deskripsi'] }}</td><td class="center">{{ number_format((float) $item['qty'],0,',','.') }}</td><td class="right">@rupiah($item['harga_satuan'])</td><td class="right">@rupiah($item['jumlah'])</td><td class="right">@rupiah(((float) $item['jumlah']) * 0.11)</td></tr>@endforeach</tbody></table>
+<table class="summary"><tr><td class="label">DPP Total</td><td class="right">@rupiah($dpp)</td></tr><tr><td class="label">PPN 11%</td><td class="right">@rupiah($ppn)</td></tr><tr><td class="label">Total</td><td class="right"><strong>@rupiah($total)</strong></td></tr></table>
+</body></html>

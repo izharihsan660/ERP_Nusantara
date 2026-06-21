@@ -1,81 +1,17 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #111827; }
-        h1 { margin: 0; font-size: 24px; letter-spacing: 0; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #d1d5db; padding: 7px; }
-        th { background: #f3f4f6; text-align: left; }
-        .header { margin-bottom: 24px; }
-        .company { font-size: 16px; font-weight: bold; }
-        .meta td { border: 0; padding: 3px 0; }
-        .right { text-align: right; }
-        .total { font-weight: bold; background: #f9fafb; }
-        .signature { margin-top: 36px; }
-        .signature td { height: 86px; vertical-align: bottom; text-align: center; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="company">PT. Nusantara Abadi Jaya</div>
-        <div>Distributor spare part & pallet</div>
-        <div>Makassar, Sulawesi Selatan</div>
-    </div>
-
-    <h1>NOTA PENJUALAN</h1>
-    <table class="meta" style="margin-top: 12px;">
-        <tr>
-            <td style="width: 120px;">No. Dokumen</td>
-            <td>: {{ $invoice->no_dokumen }}</td>
-            <td style="width: 120px;">Tanggal</td>
-            <td>: {{ $invoice->tgl_dokumen?->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td>Kepada</td>
-            <td>: {{ $invoice->customer?->nama_customer }}</td>
-            <td>Faktur Pajak</td>
-            <td>: {{ $invoice->no_faktur_pajak ?: '-' }}</td>
-        </tr>
-        <tr>
-            <td>Metode Bayar</td>
-            <td>: {{ $invoice->metode_pembayaran->label() }}</td>
-            <td>No. SPB</td>
-            <td>: {{ $invoice->spb?->no_spb }}</td>
-        </tr>
-    </table>
-
-    <table style="margin-top: 18px;">
-        <thead>
-            <tr>
-                <th>Deskripsi</th>
-                <th class="right" style="width: 70px;">Qty</th>
-                <th class="right" style="width: 120px;">Harga</th>
-                <th class="right" style="width: 130px;">Jumlah</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($items as $item)
-                <tr>
-                    <td>{{ $item['deskripsi'] }}</td>
-                    <td class="right">{{ number_format($item['qty'], 0, ',', '.') }}</td>
-                    <td class="right">{{ number_format($item['harga_satuan'], 0, ',', '.') }}</td>
-                    <td class="right">{{ number_format($item['jumlah'], 0, ',', '.') }}</td>
-                </tr>
-            @endforeach
-            <tr class="total">
-                <td colspan="3">Total</td>
-                <td class="right">{{ number_format((float) $invoice->total_nilai, 0, ',', '.') }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <table class="signature">
-        <tr>
-            <td>Finance<br><br><br>(________________)</td>
-            <td>Customer<br><br><br>(________________)</td>
-        </tr>
-    </table>
-</body>
-</html>
+@php
+    $subtotal = collect($items)->sum(fn ($item) => (float) $item['jumlah']);
+    $ppn = $subtotal * 0.11;
+    $total = $subtotal + $ppn;
+    $metode = $invoice->metode_pembayaran;
+    $metodeLabel = is_object($metode) && method_exists($metode, 'label') ? $metode->label() : ($metode?->value ?? $metode ?? '-');
+@endphp
+<!doctype html><html lang="id"><head><meta charset="utf-8"><style>
+@page{margin:1.5cm}body{font-family:Arial,sans-serif;font-size:11px;color:#111}table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;vertical-align:top}.box td,.box th{border:1px solid #ccc}.company{font-size:13px;font-weight:bold}.title{font-size:18px;font-weight:bold;text-align:center}.items th{background:#f5f5f5;text-align:center;font-weight:bold}.right{text-align:right}.center{text-align:center}.summary{width:42%;margin-left:auto;margin-top:8px}.summary td{border:1px solid #ccc}.label{background:#f5f5f5;font-weight:bold}
+</style></head><body>
+<table class="box"><tr><td style="width:55%"><div class="company">PT NUSANTARA ABADI JAYA</div><div>JL.Wiyata No.81 RT23</div><div>Kalimantan Timur</div></td><td><div class="title">NOTA PENJUALAN</div><table><tr><td style="border:0;width:70px">No</td><td style="border:0">: {{ $invoice->no_dokumen }}</td></tr><tr><td style="border:0">Tanggal</td><td style="border:0">: {{ $invoice->tgl_dokumen?->translatedFormat('d F Y') ?? '-' }}</td></tr></table></td></tr></table>
+<table class="box" style="margin-top:10px"><tr><td><strong>Kepada:</strong><br>{{ $invoice->customer?->nama_customer ?? '-' }}<br>{{ $invoice->customer?->alamat ?? '-' }}<br>No. Faktur Pajak: {{ $invoice->no_faktur_pajak ?: '-' }}</td></tr></table>
+<table class="box items" style="margin-top:10px"><thead><tr><th style="width:28px">NO</th><th>DESKRIPSI</th><th style="width:50px">QTY</th><th style="width:45px">SAT</th><th style="width:95px">HARGA</th><th style="width:105px">TOTAL</th></tr></thead><tbody>@foreach($items as $item)<tr><td class="center">{{ $loop->iteration }}</td><td>{{ $item['deskripsi'] }}</td><td class="center">{{ number_format((float) $item['qty'],0,',','.') }}</td><td class="center">{{ $item['satuan'] ?? 'PCS' }}</td><td class="right">@rupiah($item['harga_satuan'])</td><td class="right">@rupiah($item['jumlah'])</td></tr>@endforeach</tbody></table>
+<table class="summary"><tr><td class="label">SUBTOTAL</td><td class="right">@rupiah($subtotal)</td></tr><tr><td class="label">PPN 11%</td><td class="right">@rupiah($ppn)</td></tr><tr><td class="label">TOTAL</td><td class="right"><strong>@rupiah($total)</strong></td></tr></table>
+<table class="box" style="margin-top:12px"><tr><td>Metode Pembayaran: {{ $metodeLabel }}</td></tr></table>
+<table class="box" style="margin-top:10px"><tr><td><strong>Rekening:</strong><br>PT. Nusantara Abadi Jaya<br>Bank Mandiri No. 1700011777772</td></tr></table>
+</body></html>

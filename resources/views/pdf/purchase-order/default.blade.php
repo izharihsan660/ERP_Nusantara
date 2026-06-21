@@ -1,120 +1,15 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <title>{{ $purchaseOrder->no_purchase_order }}</title>
-    <style>
-        body { color: #0f172a; font-family: DejaVu Sans, sans-serif; font-size: 12px; line-height: 1.45; }
-        .header { border-bottom: 2px solid #0f172a; margin-bottom: 22px; padding-bottom: 12px; }
-        .company { font-size: 18px; font-weight: bold; letter-spacing: .4px; }
-        .muted { color: #475569; }
-        .title { font-size: 20px; font-weight: bold; margin: 18px 0 8px; text-align: center; }
-        .meta { margin-bottom: 18px; width: 100%; }
-        .meta td { padding: 3px 0; vertical-align: top; }
-        table.items { border-collapse: collapse; width: 100%; }
-        table.items th, table.items td { border: 1px solid #cbd5e1; padding: 7px; }
-        table.items th { background: #f1f5f9; text-align: left; }
-        .right { text-align: right; }
-        .summary { margin-left: auto; margin-top: 14px; width: 260px; }
-        .summary td { padding: 5px 0; }
-        .summary .grand td { border-top: 1px solid #0f172a; font-weight: bold; padding-top: 8px; }
-        .signature { margin-top: 34px; width: 100%; }
-        .signature td { text-align: center; width: 50%; }
-        .signature .space { height: 54px; }
-        .footer { bottom: 20px; color: #475569; font-size: 10px; position: fixed; right: 0; width: 170px; }
-        .qr { margin-left: auto; width: 96px; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="company">PT. Nusantara Abadi Jaya</div>
-        <div class="muted">Makassar - Dokumen Purchase Order</div>
-        <div class="muted">Jl. Nusantara Abadi Jaya, Makassar</div>
-    </div>
-
-    <div class="title">PURCHASE ORDER</div>
-
-    <table class="meta">
-        <tr>
-            <td width="130">No. PO</td>
-            <td width="10">:</td>
-            <td>{{ $purchaseOrder->no_purchase_order }}</td>
-            <td width="130">Tanggal</td>
-            <td width="10">:</td>
-            <td>{{ $purchaseOrder->tgl_po?->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td>Kepada</td>
-            <td>:</td>
-            <td>{{ $purchaseOrder->vendor?->nama_vendor }}</td>
-            <td>No. PR Customer</td>
-            <td>:</td>
-            <td>{{ $purchaseOrder->no_pr_customer ?: '-' }}</td>
-        </tr>
-        <tr>
-            <td>Alamat Vendor</td>
-            <td>:</td>
-            <td>{{ $purchaseOrder->vendor?->alamat ?: '-' }}</td>
-            <td>No. PO Customer</td>
-            <td>:</td>
-            <td>{{ $purchaseOrder->no_po_customer ?: '-' }}</td>
-        </tr>
-    </table>
-
-    <table class="items">
-        <thead>
-            <tr>
-                <th width="35">No</th>
-                <th>Deskripsi</th>
-                <th class="right">Qty</th>
-                <th>Satuan</th>
-                <th class="right">Harga Satuan</th>
-                <th class="right">Jumlah</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($purchaseOrder->items as $item)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $item->deskripsi }}</td>
-                    <td class="right">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                    <td>{{ $item->satuan }}</td>
-                    <td class="right">{{ number_format((float) $item->harga_satuan, 0, ',', '.') }}</td>
-                    <td class="right">{{ number_format((float) $item->jumlah, 0, ',', '.') }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <table class="summary">
-        <tr class="grand">
-            <td>Total</td>
-            <td class="right">{{ number_format($purchaseOrder->total, 0, ',', '.') }}</td>
-        </tr>
-    </table>
-
-    @if ($purchaseOrder->catatan)
-        <p><strong>Catatan:</strong> {{ $purchaseOrder->catatan }}</p>
-    @endif
-
-    <table class="signature">
-        <tr>
-            <td>Dibuat oleh,</td>
-            <td>Disetujui,</td>
-        </tr>
-        <tr>
-            <td class="space"></td>
-            <td class="space"></td>
-        </tr>
-        <tr>
-            <td>{{ $purchaseOrder->createdBy?->name ?: 'PT. Nusantara Abadi Jaya' }}</td>
-            <td>{{ $purchaseOrder->approvedBy?->name ?: 'Manager' }}</td>
-        </tr>
-    </table>
-
-    <div class="footer">
-        <img class="qr" src="{{ $qrCode }}" alt="QR Verifikasi">
-        <div>Scan untuk verifikasi dokumen.</div>
-    </div>
-</body>
-</html>
+@php
+    $tanggal = $purchaseOrder->tgl_po ? \Carbon\Carbon::parse($purchaseOrder->tgl_po) : null;
+    $total = (float) $purchaseOrder->items->sum(fn ($item) => (float) $item->jumlah);
+    $status = $purchaseOrder->status?->value ?? $purchaseOrder->status;
+@endphp
+<!doctype html><html lang="id"><head><meta charset="utf-8"><style>
+@page{margin:1.5cm}body{font-family:Arial,sans-serif;font-size:11px;color:#111}table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;vertical-align:top}.box td,.box th{border:1px solid #ccc}.company{font-size:13px;font-weight:bold}.title{font-size:18px;font-weight:bold;text-align:center}.items th{background:#f5f5f5;text-align:center;font-weight:bold}.right{text-align:right}.center{text-align:center}.summary{width:42%;margin-left:auto;margin-top:8px}.summary td{border:1px solid #ccc}.label{background:#f5f5f5;font-weight:bold}.sign td{height:92px;text-align:center;vertical-align:bottom}.qr{position:fixed;right:0;bottom:0;text-align:center;font-size:9px}
+</style></head><body>
+<table class="box"><tr><td style="width:55%"><div class="company">PT NUSANTARA ABADI JAYA</div><div>JL.Wiyata No.81 RT23</div><div>Kalimantan Timur</div></td><td><div class="title">PURCHASE ORDER</div><table><tr><td style="border:0;width:70px">No</td><td style="border:0">: {{ $purchaseOrder->no_purchase_order }}</td></tr><tr><td style="border:0">Tanggal</td><td style="border:0">: {{ $tanggal?->translatedFormat('d F Y') ?? '-' }}</td></tr></table></td></tr></table>
+<table class="box" style="margin-top:10px"><tr><td><strong>Kepada Yth:</strong><br>{{ $purchaseOrder->vendor?->nama_vendor ?? '-' }}<br>{{ $purchaseOrder->vendor?->alamat ?? '-' }}@if($purchaseOrder->no_pr_customer)<br>No. PR Customer: {{ $purchaseOrder->no_pr_customer }}@endif @if($purchaseOrder->no_po_customer)<br>No. PO Customer: {{ $purchaseOrder->no_po_customer }}@endif</td></tr></table>
+<table class="box items" style="margin-top:10px"><thead><tr><th style="width:28px">NO</th><th>DESKRIPSI</th><th style="width:50px">QTY</th><th style="width:45px">SAT</th><th style="width:95px">HARGA</th><th style="width:105px">JUMLAH</th></tr></thead><tbody>@foreach($purchaseOrder->items as $item)<tr><td class="center">{{ $loop->iteration }}</td><td>{{ $item->deskripsi }}</td><td class="center">{{ number_format((float) $item->qty,0,',','.') }}</td><td class="center">{{ $item->satuan }}</td><td class="right">@rupiah($item->harga_satuan)</td><td class="right">@rupiah($item->jumlah)</td></tr>@endforeach</tbody></table>
+<table class="summary"><tr><td class="label">TOTAL</td><td class="right"><strong>@rupiah($total)</strong></td></tr></table>
+<table class="box sign" style="margin-top:18px"><tr><td>Dibuat Oleh:<br>{{ $purchaseOrder->createdBy?->name ?? '-' }}<br><br>___________</td><td>Disetujui:<br>{{ $purchaseOrder->approvedBy?->name ?? '-' }}<br><br>___________</td></tr></table>
+@if (($purchaseOrder->qr_token || isset($qrCode)) && $status === 'APPROVED')<div class="qr">@isset($qrCode)<img src="{{ $qrCode }}" style="width:80px;height:80px" alt="QR Code">@else{!! QrCode::size(80)->generate(url('/verify/' . $purchaseOrder->qr_token)) !!}@endisset</div>@endif
+</body></html>

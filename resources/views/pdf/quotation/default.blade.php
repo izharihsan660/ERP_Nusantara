@@ -1,94 +1,124 @@
+@php
+    $customer = $quotation->customer;
+    $salesOrder = $quotation->salesOrder;
+    $site = $salesOrder?->site ?? null;
+    $tanggal = $quotation->tgl_quotation ? \Carbon\Carbon::parse($quotation->tgl_quotation) : null;
+    $masaBerlaku = $tanggal?->copy()->addMonths(6);
+    $subtotal = (float) $quotation->items->sum(fn ($item) => (float) $item->jumlah);
+    $ppn = $subtotal * 0.11;
+    $grandTotal = $subtotal + $ppn;
+    $metodePembayaran = $salesOrder?->metode_pembayaran;
+    $metodeLabel = is_object($metodePembayaran) && method_exists($metodePembayaran, 'label') ? $metodePembayaran->label() : ($metodePembayaran?->value ?? $metodePembayaran ?? 'Tempo N30/CASH');
+    $partType = $quotation->items->pluck('deskripsi')->filter()->first() ?? 'part';
+    $status = $quotation->status?->value ?? $quotation->status;
+@endphp
 <!doctype html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>{{ $quotation->no_quotation }}</title>
     <style>
-        body { color: #0f172a; font-family: DejaVu Sans, sans-serif; font-size: 12px; line-height: 1.45; }
-        .header { border-bottom: 2px solid #0f172a; margin-bottom: 22px; padding-bottom: 12px; }
-        .company { font-size: 18px; font-weight: bold; letter-spacing: .4px; }
-        .muted { color: #475569; }
-        .title { font-size: 20px; font-weight: bold; margin: 18px 0 8px; text-align: center; }
-        .meta { margin-bottom: 18px; width: 100%; }
-        .meta td { padding: 3px 0; vertical-align: top; }
-        table.items { border-collapse: collapse; width: 100%; }
-        table.items th, table.items td { border: 1px solid #cbd5e1; padding: 7px; }
-        table.items th { background: #f1f5f9; text-align: left; }
+        @page { margin: 1.5cm; }
+        body { font-family: Arial, sans-serif; font-size: 11px; color: #111; }
+        .title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 12px; letter-spacing: .5px; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 4px 8px; vertical-align: top; }
+        .box { border: 1px solid #ccc; margin-bottom: 10px; }
+        .box td { border: 0; }
+        .label { width: 86px; font-weight: bold; }
+        .sep { width: 8px; }
+        .items th, .items td { border: 1px solid #ccc; }
+        .items th { background: #f5f5f5; font-weight: bold; text-align: center; }
+        .center { text-align: center; }
         .right { text-align: right; }
-        .summary { margin-left: auto; margin-top: 14px; width: 260px; }
-        .summary td { padding: 5px 0; }
-        .summary .grand td { border-top: 1px solid #0f172a; font-weight: bold; padding-top: 8px; }
-        .footer { bottom: 20px; color: #475569; font-size: 10px; position: fixed; right: 0; width: 160px; }
-        .qr { margin-left: auto; width: 96px; }
+        .summary { width: 42%; margin-left: auto; margin-top: 8px; }
+        .summary td { border: 1px solid #ccc; }
+        .summary .label-total { background: #f5f5f5; font-weight: bold; }
+        .terms td { padding: 3px 8px; }
+        .qr { position: fixed; right: 0; bottom: 0; text-align: center; font-size: 9px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="company">PT. Nusantara Abadi Jaya</div>
-        <div class="muted">Makassar - Dokumen Quotation</div>
-    </div>
+    <div class="title">PENAWARAN</div>
 
-    <div class="title">QUOTATION</div>
-
-    <table class="meta">
+    <table class="box">
         <tr>
-            <td width="120">No. Quotation</td>
-            <td width="10">:</td>
-            <td>{{ $quotation->no_quotation }}</td>
-            <td width="120">Tanggal</td>
-            <td width="10">:</td>
-            <td>{{ $quotation->tgl_quotation?->format('d/m/Y') }}</td>
+            <td class="label">Tanggal</td><td class="sep">:</td><td>{{ $tanggal?->translatedFormat('d F Y') ?? '-' }}</td>
+            <td class="label">Penawaran No</td><td class="sep">:</td><td>{{ $quotation->no_quotation }}</td>
         </tr>
         <tr>
-            <td>Customer</td>
-            <td>:</td>
-            <td>{{ $quotation->customer?->nama_customer }}</td>
-            <td>Revisi</td>
-            <td>:</td>
-            <td>{{ $quotation->revisi }}</td>
+            <td class="label">Customer</td><td>:</td><td>{{ $customer?->nama_customer ?? '-' }}</td>
+            <td class="label">Revisi</td><td>:</td><td>{{ $quotation->revisi ?? 0 }}</td>
+        </tr>
+        <tr>
+            <td class="label">Alamat</td><td>:</td><td>{{ trim(($customer?->alamat ?? '').' '.($customer?->kota ?? '')) ?: '-' }}</td>
+            <td class="label">Masa berlaku</td><td>:</td><td>{{ $masaBerlaku?->translatedFormat('d F Y') ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Kepada</td><td>:</td><td>{{ $customer?->pic_name ?? '-' }}</td>
+            <td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td class="label">Site</td><td>:</td><td colspan="4">{{ $site?->nama_site ?? '-' }}</td>
         </tr>
     </table>
+
+    <div class="box" style="padding: 8px; line-height: 1.5;">
+        <div>Dengan Hormat,</div>
+        <div>Sehubungan dengan permintaan {{ strtoupper($partType) }}, berikut kami kirimkan daftar harga dan penawarannya :</div>
+    </div>
 
     <table class="items">
         <thead>
             <tr>
-                <th width="35">No</th>
-                <th>Part No</th>
-                <th>Deskripsi</th>
-                <th class="right">Qty</th>
-                <th>Satuan</th>
-                <th class="right">Harga</th>
-                <th class="right">Jumlah</th>
+                <th style="width: 28px;">NO</th>
+                <th>PART NUMBER</th>
+                <th>DESKRIPSI</th>
+                <th style="width: 42px;">QTY</th>
+                <th style="width: 42px;">Sat</th>
+                <th style="width: 82px;">HARGA</th>
+                <th style="width: 88px;">TOTAL</th>
+                <th style="width: 58px;">STATUS</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($quotation->items as $item)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
+                    <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->part_no }}</td>
                     <td>{{ $item->deskripsi }}</td>
-                    <td class="right">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                    <td>{{ $item->satuan }}</td>
-                    <td class="right">{{ number_format((float) $item->harga_satuan, 0, ',', '.') }}</td>
-                    <td class="right">{{ number_format((float) $item->jumlah, 0, ',', '.') }}</td>
+                    <td class="center">{{ number_format((float) $item->qty, 0, ',', '.') }}</td>
+                    <td class="center">{{ $item->satuan }}</td>
+                    <td class="right">@rupiah($item->harga_satuan)</td>
+                    <td class="right">@rupiah($item->jumlah)</td>
+                    <td class="center">{{ $item->status ?? 'PO' }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
     <table class="summary">
-        <tr class="grand">
-            <td>Total</td>
-            <td class="right">{{ number_format($quotation->total, 0, ',', '.') }}</td>
-        </tr>
+        <tr><td class="label-total">SUBTOTAL</td><td class="right">@rupiah($subtotal)</td></tr>
+        <tr><td class="label-total">PPN 11%</td><td class="right">@rupiah($ppn)</td></tr>
+        <tr><td class="label-total">Grand Total</td><td class="right"><strong>@rupiah($grandTotal)</strong></td></tr>
     </table>
 
-    <p style="margin-top: 28px;">Hormat kami,</p>
-    <p style="margin-top: 56px;">PT. Nusantara Abadi Jaya</p>
+    <table class="box terms" style="margin-top: 12px;">
+        <tr><td colspan="3"><strong>Ketentuan:</strong></td></tr>
+        <tr><td style="width: 90px;">Lokasi</td><td style="width: 8px;">:</td><td>{{ $site?->nama_site ?? $customer?->kota ?? 'Balikpapan' }}</td></tr>
+        <tr><td>Ppn 11%</td><td>:</td><td>Harga Grand Total termasuk Ppn 11%</td></tr>
+        <tr><td>Pembayaran</td><td>:</td><td>{{ $metodeLabel }}</td></tr>
+        <tr><td colspan="3">PT.Nusantara Abadi Jaya,<br>Bank Mandiri, Rek 1700011777772</td></tr>
+    </table>
 
-    <div class="footer">
-        <img class="qr" src="{{ $qrCode }}" alt="QR Verifikasi">
-        <div>Scan untuk verifikasi dokumen.</div>
-    </div>
+    @if (($quotation->qr_token || isset($qrCode)) && $status === 'APPROVED')
+        <div class="qr">
+            @isset($qrCode)
+                <img src="{{ $qrCode }}" style="width: 80px; height: 80px;" alt="QR Code">
+            @else
+                {!! QrCode::size(80)->generate(url('/verify/' . $quotation->qr_token)) !!}
+            @endisset
+            <div>Approved: {{ $quotation->approvedBy?->name ?? '-' }}</div>
+        </div>
+    @endif
 </body>
 </html>
