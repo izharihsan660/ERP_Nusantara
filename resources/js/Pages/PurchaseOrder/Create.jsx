@@ -1,5 +1,6 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/Form/InputLabel';
+import KatalogAutocomplete from '@/Components/Form/KatalogAutocomplete';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -15,12 +16,11 @@ function today() {
     return new Date().toISOString().slice(0, 10);
 }
 
-const emptyItem = { katalog_id: '', deskripsi: '', satuan: '', qty: 1, harga_satuan: 0 };
+const emptyItem = { katalog_id: '', part_no: '', deskripsi: '', satuan: '', qty: 1, harga_satuan: 0 };
 
-export default function Create({ customers, vendors, katalog }) {
+export default function Create({ customers, vendors }) {
     const [customerSearch, setCustomerSearch] = useState('');
     const [vendorSearch, setVendorSearch] = useState('');
-    const [katalogSearch, setKatalogSearch] = useState('');
     const { data, setData, post, transform, processing, errors } = useForm({
         customer_id: '',
         vendor_id: '',
@@ -34,7 +34,6 @@ export default function Create({ customers, vendors, katalog }) {
 
     const filteredCustomers = useMemo(() => customers.filter((customer) => customer.label.toLowerCase().includes(customerSearch.toLowerCase())), [customers, customerSearch]);
     const filteredVendors = useMemo(() => vendors.filter((vendor) => vendor.label.toLowerCase().includes(vendorSearch.toLowerCase())), [vendors, vendorSearch]);
-    const filteredKatalog = useMemo(() => katalog.filter((item) => item.label.toLowerCase().includes(katalogSearch.toLowerCase())), [katalog, katalogSearch]);
 
     const updateItem = (index, field, value) => {
         const items = [...data.items];
@@ -42,16 +41,16 @@ export default function Create({ customers, vendors, katalog }) {
         setData('items', items);
     };
 
-    const setKatalog = (index, katalogId) => {
-        const selected = katalog.find((item) => String(item.id) === String(katalogId));
+    const setKatalog = (index, selected) => {
         const items = [...data.items];
         items[index] = selected
             ? {
                 ...items[index],
                 katalog_id: selected.id,
-                deskripsi: selected.deskripsi,
+                part_no: selected.part_no,
+                deskripsi: selected.nama_barang,
                 satuan: selected.satuan,
-                harga_satuan: selected.harga_satuan,
+                harga_satuan: selected.harga_jual_default,
             }
             : { ...emptyItem };
         setData('items', items);
@@ -133,16 +132,14 @@ export default function Create({ customers, vendors, katalog }) {
                             <h2 className="font-semibold">Item <span className="text-red-600">*</span></h2>
                             <InputError message={errors.items} className="mt-1" />
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Input value={katalogSearch} onChange={(e) => setKatalogSearch(e.target.value)} placeholder="Cari katalog..." className="w-56" />
-                            <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
-                        </div>
+                        <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                             <thead className="bg-slate-50 dark:bg-slate-900">
                                 <tr>
                                     <th className="px-3 py-3 text-left">Katalog</th>
+                                    <th className="px-3 py-3 text-left">Part No</th>
                                     <th className="px-3 py-3 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
                                     <th className="px-3 py-3 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
                                     <th className="px-3 py-3 text-left">Satuan</th>
@@ -158,13 +155,11 @@ export default function Create({ customers, vendors, katalog }) {
                                     return (
                                         <tr key={index}>
                                             <td className="min-w-64 px-3 py-3">
-                                                <Select value={item.katalog_id} onChange={(e) => setKatalog(index, e.target.value)}>
-                                                    <option value="">Pilih katalog...</option>
-                                                    {filteredKatalog.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-                                                </Select>
+                                                <KatalogAutocomplete value={item} onSelect={(selected) => setKatalog(index, selected)} />
                                             </td>
+                                            <td className="min-w-40 px-3 py-3"><Input value={item.part_no ?? ''} readOnly /></td>
                                             <td className="min-w-64 px-3 py-3">
-                                                <Input value={item.deskripsi} onChange={(e) => updateItem(index, 'deskripsi', e.target.value)} />
+                                                <Input value={item.deskripsi} readOnly />
                                                 <InputError message={errors[`items.${index}.deskripsi`]} className="mt-2" />
                                             </td>
                                             <td className="w-24 px-3 py-3">
@@ -172,7 +167,7 @@ export default function Create({ customers, vendors, katalog }) {
                                                 <InputError message={errors[`items.${index}.qty`]} className="mt-2" />
                                             </td>
                                             <td className="w-28 px-3 py-3">
-                                                <Input value={item.satuan ?? ''} onChange={(e) => updateItem(index, 'satuan', e.target.value)} />
+                                                <Input value={item.satuan ?? ''} readOnly />
                                                 <InputError message={errors[`items.${index}.satuan`]} className="mt-2" />
                                             </td>
                                             <td className="w-40 px-3 py-3">

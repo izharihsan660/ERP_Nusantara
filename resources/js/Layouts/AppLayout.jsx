@@ -40,6 +40,9 @@ export default function AppLayout({ title, children }) {
     const readNotification = (notification) => {
         router.post(route('notifications.read', notification.id), {}, { preserveScroll: true });
     };
+    const readAllNotifications = () => {
+        router.post(route('notifications.read-all'), {}, { preserveScroll: true });
+    };
 
     return (
         <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
@@ -105,25 +108,37 @@ export default function AppLayout({ title, children }) {
                                 </Button>
                             </Dropdown.Trigger>
                             <Dropdown.Content contentClasses="w-80 py-2 bg-white dark:bg-gray-800">
-                                <div className="border-b border-slate-200 px-4 pb-2 text-sm font-semibold text-slate-950 dark:border-slate-700 dark:text-white">
-                                    Notifikasi
+                                <div className="flex items-center justify-between border-b border-slate-200 px-4 pb-2 text-sm dark:border-slate-700">
+                                    <span className="font-semibold text-slate-950 dark:text-white">Notifikasi</span>
+                                    {notifications.unread_count > 0 && (
+                                        <button type="button" className="text-xs font-medium text-blue-600 hover:text-blue-700" onClick={readAllNotifications}>
+                                            Tandai semua dibaca
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="max-h-96 overflow-y-auto py-1">
                                     {notifications.items.length === 0 && (
                                         <div className="px-4 py-3 text-sm text-slate-500">Belum ada notifikasi.</div>
                                     )}
-                                    {notifications.items.map((notification) => (
-                                        <button
-                                            key={notification.id}
-                                            type="button"
-                                            className={`block w-full px-4 py-3 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-900 ${notification.read_at ? 'text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}
-                                            onClick={() => readNotification(notification)}
-                                        >
-                                            <div className="font-medium">{notification.title}</div>
-                                            <div className="mt-1 line-clamp-2 text-xs text-slate-500">{notification.message}</div>
-                                            <div className="mt-1 text-xs text-slate-400">{notification.created_at}</div>
-                                        </button>
-                                    ))}
+                                    {notifications.items.map((notification) => {
+                                        const Icon = icons[notification.icon] ?? Bell;
+
+                                        return (
+                                            <button
+                                                key={notification.id}
+                                                type="button"
+                                                className={`flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-900 ${notification.read_at ? 'text-slate-500' : 'bg-blue-50 text-slate-900 dark:bg-blue-950/30 dark:text-slate-100'}`}
+                                                onClick={() => readNotification(notification)}
+                                            >
+                                                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                                                <span>
+                                                    <span className="block font-medium">{notification.title}</span>
+                                                    <span className="mt-1 line-clamp-2 block text-xs text-slate-500">{notification.message}</span>
+                                                    <span className="mt-1 block text-xs text-slate-400">{notification.created_at}</span>
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </Dropdown.Content>
                         </Dropdown>

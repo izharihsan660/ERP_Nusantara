@@ -2,13 +2,14 @@ import Modal from '@/Components/Modal';
 import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import InvoiceSection from '@/Pages/Shared/InvoiceSection';
 import SpbSection from '@/Pages/Shared/SpbSection';
 import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Ban, Check, Download, Send, X } from 'lucide-react';
+import { Ban, Check, Download, Pencil, Send, X } from 'lucide-react';
 import { useState } from 'react';
 
 const statusStyles = {
@@ -52,12 +53,45 @@ function ActionModal({ show, title, label, value, error, processing, variant = '
     );
 }
 
+function ReferensiModal({ show, form, onClose, onSubmit }) {
+    return (
+        <Modal show={show} onClose={onClose} maxWidth="md">
+            <form onSubmit={onSubmit} className="p-6">
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Edit Referensi</h2>
+                <div className="mt-4 space-y-4">
+                    <div>
+                        <InputLabel label="No. PR Customer" />
+                        <Input className="mt-2" value={form.data.no_pr_customer} onChange={(e) => form.setData('no_pr_customer', e.target.value)} />
+                        {form.errors.no_pr_customer && <div className="mt-2 text-sm text-red-600">{form.errors.no_pr_customer}</div>}
+                    </div>
+                    <div>
+                        <InputLabel label="No. PO Customer" />
+                        <Input className="mt-2" value={form.data.no_po_customer} onChange={(e) => form.setData('no_po_customer', e.target.value)} />
+                        {form.errors.no_po_customer && <div className="mt-2 text-sm text-red-600">{form.errors.no_po_customer}</div>}
+                    </div>
+                    <div className="rounded-md bg-sky-50 p-3 text-sm text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                        Setelah No. PO Customer diisi, referensi di SPB terkait akan otomatis diperbarui dari PR ke PO
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
+                    <Button type="submit" disabled={form.processing}>Simpan</Button>
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
 export default function Show({ purchaseOrder, sites }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const [modal, setModal] = useState(null);
     const submitForm = useForm({});
     const rejectForm = useForm({ catatan: '' });
     const voidForm = useForm({ alasan_void: '' });
+    const referensiForm = useForm({
+        no_pr_customer: purchaseOrder.no_pr_customer ?? '',
+        no_po_customer: purchaseOrder.no_po_customer ?? '',
+    });
 
     const canCreate = permissions.includes('buat_purchase_order');
     const canApprove = permissions.includes('approve_purchase_order');
@@ -85,6 +119,23 @@ export default function Show({ purchaseOrder, sites }) {
     const submitToManager = () => {
         submitForm.post(route('purchase-orders.submit', purchaseOrder.id), {
             preserveScroll: true,
+        });
+    };
+
+    const openReferensiModal = () => {
+        referensiForm.setData({
+            no_pr_customer: purchaseOrder.no_pr_customer ?? '',
+            no_po_customer: purchaseOrder.no_po_customer ?? '',
+        });
+        referensiForm.clearErrors();
+        setModal('referensi');
+    };
+
+    const submitReferensi = (event) => {
+        event.preventDefault();
+        referensiForm.patch(route('purchase-orders.referensi.update', purchaseOrder.id), {
+            preserveScroll: true,
+            onSuccess: () => setModal(null),
         });
     };
 
@@ -133,7 +184,16 @@ export default function Show({ purchaseOrder, sites }) {
                         <Info label="Tanggal" value={purchaseOrder.tgl_po} />
                         <Info label="Dibuat oleh" value={purchaseOrder.created_by?.name} />
                         <Info label="No. PR Customer" value={purchaseOrder.no_pr_customer} />
-                        <Info label="No. PO Customer" value={purchaseOrder.no_po_customer} />
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Info label="No. PO Customer" value={purchaseOrder.no_po_customer} />
+                                {purchaseOrder.status === 'APPROVED' && (
+                                    <Button type="button" size="sm" variant="outline" onClick={openReferensiModal}>
+                                        <Pencil className="h-4 w-4" />Edit Referensi
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
                         <Info label="Diapprove oleh" value={purchaseOrder.approved_by?.name} />
                         <Info label="Tanggal approve" value={purchaseOrder.approved_at} />
                         <Info label="Voided oleh" value={purchaseOrder.voided_by?.name} />
@@ -211,6 +271,12 @@ export default function Show({ purchaseOrder, sites }) {
                 onChange={(value) => voidForm.setData('alasan_void', value)}
                 onClose={() => setModal(null)}
                 onSubmit={submitVoid}
+            />
+            <ReferensiModal
+                show={modal === 'referensi'}
+                form={referensiForm}
+                onClose={() => setModal(null)}
+                onSubmit={submitReferensi}
             />
         </AppLayout>
     );

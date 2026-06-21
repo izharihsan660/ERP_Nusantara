@@ -130,6 +130,25 @@ routes/
 
 ---
 
+## 🔔 NOTIFICATION CLASSES
+- JatuhTempoInvoice
+- QuotationSubmittedNotification
+- PoNajSubmittedNotification
+- PdSubmittedNotification
+- PdApprovedNotification
+- PdRejectedNotification
+- WipTersupplyNotification
+- SpbCreatedNotification
+
+## 🔔 TRIGGER NOTIFIKASI PER ROLE
+- **Manager**: Quotation submit, Purchase Order NAJ submit, Permintaan Dana submit, Invoice TOP H-7.
+- **Sales**: WIP TERSUPPLY, Permintaan Dana kategori Biaya Pengiriman diapprove.
+- **Gudang**: WIP TERSUPPLY untuk segera dibuatkan SPB.
+- **Finance**: SPB dibuat, Invoice TOP H-7, Permintaan Dana kategori Bayar RMA diapprove.
+- **Procurement**: Permintaan Dana diapprove atau direject.
+
+---
+
 ## 📄 PAGES (REACT) YANG SUDAH ADA
 ```
 Pages/

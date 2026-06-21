@@ -20,6 +20,7 @@ class NotificationController extends Controller
                 'title' => $notification->data['title'] ?? 'Notifikasi',
                 'message' => $notification->data['message'] ?? '',
                 'url' => $notification->data['url'] ?? route('dashboard'),
+                'icon' => $notification->data['icon'] ?? 'Bell',
                 'read_at' => $notification->read_at?->format('Y-m-d H:i'),
                 'created_at' => $notification->created_at?->diffForHumans(),
             ]);
@@ -36,5 +37,12 @@ class NotificationController extends Controller
         $notification->markAsRead();
 
         return redirect($notification->data['url'] ?? route('dashboard'));
+    }
+
+    public function readAll(Request $request): RedirectResponse
+    {
+        $request->user()->unreadNotifications->markAsRead();
+
+        return back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }
 }

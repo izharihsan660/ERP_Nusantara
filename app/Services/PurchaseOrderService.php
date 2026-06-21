@@ -6,6 +6,8 @@ use App\Actions\ActivityLog\RecordActivity;
 use App\Enums\PurchaseOrderStatus;
 use App\Models\PurchaseOrder;
 use App\Models\User;
+use App\Notifications\PoNajSubmittedNotification;
+use App\Support\NotificationHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +20,7 @@ class PurchaseOrderService
         private readonly DocumentNumberService $documentNumberService,
         private readonly PurchaseOrderPDFService $purchaseOrderPDFService,
         private readonly RecordActivity $recordActivity,
+        private readonly NotificationHelper $notificationHelper,
     ) {}
 
     public function paginate(array $filters): LengthAwarePaginator
@@ -88,6 +91,21 @@ class PurchaseOrderService
 
         $purchaseOrder->update(['status' => PurchaseOrderStatus::PendingApproval]);
         $this->recordActivity->handle('submitted_purchase_order', $purchaseOrder, "{$user->name} submit Purchase Order {$purchaseOrder->no_purchase_order}");
+        $this->notificationHelper->getUsersByRole('Manager')->each->notify(new PoNajSubmittedNotification($purchaseOrder));
+
+        return $purchaseOrder->refresh();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateReferensi(PurchaseOrder $purchaseOrder, array $data, User $user): PurchaseOrder
+    {
+        $purchaseOrder->update([
+            'no_pr_customer' => $data['no_pr_customer'] ?? null,
+            'no_po_customer' => $data['no_po_customer'] ?? null,
+        ]);
+        $this->recordActivity->handle('updated_referensi_purchase_order', $purchaseOrder, "{$user->name} memperbarui referensi Purchase Order {$purchaseOrder->no_purchase_order}");
 
         return $purchaseOrder->refresh();
     }

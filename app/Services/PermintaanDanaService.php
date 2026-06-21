@@ -3,10 +3,15 @@
 namespace App\Services;
 
 use App\Actions\ActivityLog\RecordActivity;
+use App\Enums\KategoriPD;
 use App\Enums\PDStatus;
 use App\Helpers\FileCompressionHelper;
 use App\Models\PermintaanDana;
 use App\Models\User;
+use App\Notifications\PdApprovedNotification;
+use App\Notifications\PdRejectedNotification;
+use App\Notifications\PdSubmittedNotification;
+use App\Support\NotificationHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -21,6 +26,7 @@ class PermintaanDanaService
         private readonly DocumentNumberService $documentNumberService,
         private readonly PermintaanDanaPDFService $permintaanDanaPDFService,
         private readonly RecordActivity $recordActivity,
+        private readonly NotificationHelper $notificationHelper,
     ) {}
 
     public function paginate(array $filters): LengthAwarePaginator
@@ -77,6 +83,7 @@ class PermintaanDanaService
             'submitted_at' => now(),
         ]);
         $this->recordActivity->handle('submitted_pd', $permintaanDana, "{$user->name} submit Permintaan Dana {$permintaanDana->no_pd}");
+        $this->notificationHelper->getUsersByRole('Manager')->each->notify(new PdSubmittedNotification($permintaanDana));
 
         return $permintaanDana->refresh();
     }
@@ -95,6 +102,15 @@ class PermintaanDanaService
 
             $this->permintaanDanaPDFService->generate($permintaanDana->refresh());
             $this->recordActivity->handle('approved_pd', $permintaanDana, "{$user->name} approve Permintaan Dana {$permintaanDana->no_pd}");
+            $this->notificationHelper->getUsersByRole('Procurement')->each->notify(new PdApprovedNotification($permintaanDana));
+
+            if ($permintaanDana->kategori === KategoriPD::BiayaPengiriman) {
+                $this->notificationHelper->getUsersByRole('Sales')->each->notify(new PdApprovedNotification($permintaanDana));
+            }
+
+            if ($permintaanDana->kategori === KategoriPD::BayarRma) {
+                $this->notificationHelper->getUsersByRole('Finance')->each->notify(new PdApprovedNotification($permintaanDana));
+            }
 
             return $permintaanDana->refresh();
         });
@@ -109,6 +125,7 @@ class PermintaanDanaService
             'catatan_rejection' => $catatan,
         ]);
         $this->recordActivity->handle('rejected_pd', $permintaanDana, "{$user->name} reject Permintaan Dana {$permintaanDana->no_pd}");
+        $permintaanDana->createdBy?->notify(new PdRejectedNotification($permintaanDana));
 
         return $permintaanDana->refresh();
     }

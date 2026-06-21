@@ -1,5 +1,6 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/Form/InputLabel';
+import KatalogAutocomplete from '@/Components/Form/KatalogAutocomplete';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -9,7 +10,6 @@ import AppLayout from '@/Layouts/AppLayout';
 import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Plus, Save, Send, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
 
 function today() {
     return new Date().toISOString().slice(0, 10);
@@ -17,8 +17,7 @@ function today() {
 
 const emptyItem = { katalog_id: '', part_no: '', deskripsi: '', satuan: '', qty: 1, harga_satuan: 0, hpp_satuan: 0 };
 
-export default function Create({ customers, templates, katalog }) {
-    const [katalogSearch, setKatalogSearch] = useState('');
+export default function Create({ customers, templates }) {
     const { data, setData, post, transform, processing, errors } = useForm({
         customer_id: '',
         template_id: '',
@@ -30,11 +29,6 @@ export default function Create({ customers, templates, katalog }) {
 
     const selectedCustomer = customers.find((customer) => String(customer.id) === String(data.customer_id));
     const selectedTemplate = templates.find((template) => String(template.id) === String(data.template_id));
-    const filteredKatalog = useMemo(
-        () => katalog.filter((item) => item.label.toLowerCase().includes(katalogSearch.toLowerCase())),
-        [katalog, katalogSearch],
-    );
-
     const setCustomer = (customerId) => {
         const customer = customers.find((item) => String(item.id) === String(customerId));
         setData((values) => ({
@@ -50,15 +44,14 @@ export default function Create({ customers, templates, katalog }) {
         setData('items', items);
     };
 
-    const setKatalog = (index, katalogId) => {
-        const selected = katalog.find((item) => String(item.id) === String(katalogId));
+    const setKatalog = (index, selected) => {
         const items = [...data.items];
         items[index] = selected
             ? {
                 ...items[index],
                 katalog_id: selected.id,
                 part_no: selected.part_no,
-                deskripsi: selected.deskripsi,
+                deskripsi: selected.nama_barang,
                 satuan: selected.satuan,
                 harga_satuan: selected.harga_jual_default,
                 hpp_satuan: selected.hpp,
@@ -150,10 +143,7 @@ export default function Create({ customers, templates, katalog }) {
                             <h2 className="font-semibold">Item Barang <span className="text-red-600">*</span></h2>
                             <InputError message={errors.items} className="mt-1" />
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Input value={katalogSearch} onChange={(e) => setKatalogSearch(e.target.value)} placeholder="Cari katalog..." className="w-56" />
-                            <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
-                        </div>
+                        <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
@@ -179,10 +169,7 @@ export default function Create({ customers, templates, katalog }) {
                                     return (
                                         <tr key={index}>
                                             <td className="min-w-64 px-3 py-3">
-                                                <Select value={item.katalog_id} onChange={(e) => setKatalog(index, e.target.value)}>
-                                                    <option value="">Pilih katalog...</option>
-                                                    {filteredKatalog.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-                                                </Select>
+                                                <KatalogAutocomplete value={item} onSelect={(selected) => setKatalog(index, selected)} />
                                                 <InputError message={errors[`items.${index}.katalog_id`]} className="mt-2" />
                                             </td>
                                             <td className="px-3 py-3"><Input value={item.part_no} readOnly /></td>

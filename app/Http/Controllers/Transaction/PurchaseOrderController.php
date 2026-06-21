@@ -7,6 +7,7 @@ use App\Enums\SpbStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PurchaseOrder\RejectPurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\StorePurchaseOrderRequest;
+use App\Http\Requests\PurchaseOrder\UpdateReferensiPurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\VoidPurchaseOrderRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -162,6 +163,13 @@ class PurchaseOrderController extends Controller
         $this->purchaseOrderService->submit($purchaseOrder, $request->user());
 
         return back()->with('success', 'Purchase Order berhasil disubmit ke Manager.');
+    }
+
+    public function updateReferensi(UpdateReferensiPurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
+    {
+        $this->purchaseOrderService->updateReferensi($purchaseOrder, $request->validated(), $request->user());
+
+        return back()->with('success', 'Referensi Purchase Order berhasil diperbarui.');
     }
 
     public function approve(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse

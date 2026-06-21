@@ -7,6 +7,8 @@ use App\Enums\QuotationStatus;
 use App\Models\Katalog;
 use App\Models\Quotation;
 use App\Models\User;
+use App\Notifications\QuotationSubmittedNotification;
+use App\Support\NotificationHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +21,7 @@ class QuotationService
         private readonly DocumentNumberService $documentNumberService,
         private readonly QuotationPDFService $quotationPDFService,
         private readonly RecordActivity $recordActivity,
+        private readonly NotificationHelper $notificationHelper,
     ) {}
 
     public function paginate(array $filters): LengthAwarePaginator
@@ -72,6 +75,7 @@ class QuotationService
 
         $quotation->update(['status' => QuotationStatus::PendingApproval]);
         $this->recordActivity->handle('submitted_quotation', $quotation, "{$user->name} submit quotation {$quotation->no_quotation}");
+        $this->notificationHelper->getUsersByRole('Manager')->each->notify(new QuotationSubmittedNotification($quotation));
 
         return $quotation->refresh();
     }

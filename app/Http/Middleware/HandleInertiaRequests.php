@@ -57,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                         'title' => $notification->data['title'] ?? 'Notifikasi',
                         'message' => $notification->data['message'] ?? '',
                         'url' => $notification->data['url'] ?? route('dashboard'),
+                        'icon' => $notification->data['icon'] ?? 'Bell',
                         'read_at' => $notification->read_at?->format('Y-m-d H:i'),
                         'created_at' => $notification->created_at?->diffForHumans(),
                     ]),

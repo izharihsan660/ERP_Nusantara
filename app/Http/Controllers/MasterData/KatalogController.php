@@ -8,6 +8,7 @@ use App\Http\Requests\Katalog\StoreKatalogRequest;
 use App\Http\Requests\Katalog\UpdateKatalogRequest;
 use App\Models\Katalog;
 use App\Services\KatalogService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,6 +25,25 @@ class KatalogController extends Controller
             'categories' => $this->katalogService->categories(),
             'filters' => $request->only(['search', 'kategori', 'status', 'sort', 'direction', 'per_page']),
         ]);
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $query = trim((string) $request->query('q', ''));
+        $limit = min(max((int) $request->query('limit', 10), 1), 10);
+
+        $items = Katalog::query()
+            ->when($query !== '', function ($katalogQuery) use ($query): void {
+                $katalogQuery->where(function ($searchQuery) use ($query): void {
+                    $searchQuery->where('part_no', 'like', "%{$query}%")
+                        ->orWhere('nama_barang', 'like', "%{$query}%");
+                });
+            })
+            ->orderBy('part_no')
+            ->limit($limit)
+            ->get(['id', 'part_no', 'nama_barang', 'satuan', 'harga_jual_default', 'hpp']);
+
+        return response()->json($items);
     }
 
     public function create(): Response

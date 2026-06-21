@@ -16,6 +16,9 @@ use App\Models\Site;
 use App\Models\Spb;
 use App\Models\User;
 use App\Models\WipOrder;
+use App\Notifications\SpbCreatedNotification;
+use App\Notifications\WipTersupplyNotification;
+use App\Support\NotificationHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +30,7 @@ class SpbService
         private readonly DocumentNumberService $documentNumberService,
         private readonly SpbPDFService $spbPDFService,
         private readonly RecordActivity $recordActivity,
+        private readonly NotificationHelper $notificationHelper,
     ) {}
 
     public function create(array $data, Model $spbAble, User $user): Spb
@@ -77,10 +81,13 @@ class SpbService
                     'status_supply' => StatusSupply::Tersupply,
                     'tersupply_at' => $spbAble->tersupply_at ?? now(),
                 ]);
+                $this->notificationHelper->getUsersByRole('Sales')->each->notify(new WipTersupplyNotification($spbAble, 'Sales'));
+                $this->notificationHelper->getUsersByRole('Gudang')->each->notify(new WipTersupplyNotification($spbAble, 'Gudang'));
             }
 
             $this->spbPDFService->generate($spb->refresh());
             $this->recordActivity->handle('created_spb', $spb, "{$user->name} membuat SPB {$spb->no_spb}");
+            $this->notificationHelper->getUsersByRole('Finance')->each->notify(new SpbCreatedNotification($spb));
 
             return $spb->load(['customer', 'site', 'template', 'items', 'spbAble']);
         });

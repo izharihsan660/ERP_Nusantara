@@ -70,6 +70,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->middleware('permission:buat_purchase_order')->name('purchase-orders.store');
     Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->middleware('permission:lihat_purchase_order')->name('purchase-orders.show');
     Route::post('/purchase-orders/{purchaseOrder}/submit', [PurchaseOrderController::class, 'submit'])->middleware('permission:buat_purchase_order')->name('purchase-orders.submit');
+    Route::patch('/purchase-orders/{purchaseOrder}/referensi', [PurchaseOrderController::class, 'updateReferensi'])->middleware('permission:buat_purchase_order')->name('purchase-orders.referensi.update');
     Route::post('/purchase-orders/{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->middleware('permission:approve_purchase_order')->name('purchase-orders.approve');
     Route::post('/purchase-orders/{purchaseOrder}/reject', [PurchaseOrderController::class, 'reject'])->middleware('permission:approve_purchase_order')->name('purchase-orders.reject');
     Route::post('/purchase-orders/{purchaseOrder}/void', [PurchaseOrderController::class, 'void'])->middleware('permission:void_purchase_order')->name('purchase-orders.void');
@@ -98,6 +99,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/invoice-payment-documents/{document}/download', [InvoiceController::class, 'downloadPaymentDocument'])->middleware('permission:lihat_invoice')->name('invoices.payment-documents.download');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('permission:lihat_customer')->name('customers.index');
     Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:tambah_customer')->name('customers.create');
@@ -107,6 +109,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->middleware('permission:hapus_customer')->name('customers.destroy');
 
     Route::get('/katalog', [KatalogController::class, 'index'])->middleware('permission:lihat_katalog')->name('katalog.index');
+    Route::get('/katalog/search', [KatalogController::class, 'search'])->middleware('permission:lihat_katalog')->name('katalog.search');
     Route::get('/katalog/create', [KatalogController::class, 'create'])->middleware('permission:tambah_katalog')->name('katalog.create');
     Route::post('/katalog', [KatalogController::class, 'store'])->middleware('permission:tambah_katalog')->name('katalog.store');
     Route::post('/katalog/import', [KatalogController::class, 'import'])->middleware('permission:import_katalog')->name('katalog.import');
