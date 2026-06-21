@@ -2,6 +2,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/Form/InputLabel';
 import KatalogAutocomplete from '@/Components/Form/KatalogAutocomplete';
 import PageHeader from '@/Components/PageHeader';
+import { LoadingButtonContent } from '@/Components/UiPolish';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
@@ -83,8 +84,9 @@ export default function Create({ customers, vendors }) {
             />
 
             <form onSubmit={(event) => submit(event, false)} className="space-y-6">
-                <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div className="grid gap-4 lg:grid-cols-3">
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
+                    <h2 className="mb-4 text-base font-semibold text-[hsl(var(--foreground))]">Info Purchase Order</h2>
+                    <div className="grid gap-4 lg:grid-cols-2">
                         <div>
                             <InputLabel label="Customer" required />
                             <Input className="mt-1" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Cari customer..." />
@@ -126,15 +128,15 @@ export default function Create({ customers, vendors }) {
                     </div>
                 </section>
 
-                <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-slate-800">
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h2 className="font-semibold">Item <span className="text-red-600">*</span></h2>
+                            <h2 className="text-base font-semibold text-[hsl(var(--foreground))]">Item Barang <span className="text-red-600">*</span></h2>
                             <InputError message={errors.items} className="mt-1" />
                         </div>
                         <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto rounded-lg border border-[hsl(var(--border))]">
                         <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                             <thead className="bg-slate-50 dark:bg-slate-900">
                                 <tr>
@@ -184,9 +186,9 @@ export default function Create({ customers, vendors }) {
                                     );
                                 })}
                             </tbody>
-                            <tfoot className="bg-slate-50 font-semibold dark:bg-slate-900">
+                            <tfoot className="bg-[hsl(var(--muted))]/60 font-semibold">
                                 <tr>
-                                    <td className="px-3 py-3" colSpan="5">Total Keseluruhan</td>
+                                    <td className="px-3 py-3 text-right" colSpan="6">Total Keseluruhan</td>
                                     <td className="px-3 py-3 text-right">{formatRupiah(total)}</td>
                                     <td />
                                 </tr>
@@ -195,9 +197,9 @@ export default function Create({ customers, vendors }) {
                     </div>
                 </section>
 
-                <div className="flex flex-col justify-end gap-2 sm:flex-row">
+                <div className="sticky bottom-4 z-10 flex flex-col justify-end gap-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]/95 p-3 shadow-lg backdrop-blur sm:flex-row">
                     <Button type="submit" variant="secondary" disabled={processing}><Save className="h-4 w-4" />Simpan Draft</Button>
-                    <Button type="button" disabled={processing} onClick={(event) => submit(event, true)}><Send className="h-4 w-4" />Submit ke Manager</Button>
+                    <Button type="button" disabled={processing} onClick={(event) => submit(event, true)}><Send className="h-4 w-4" /><LoadingButtonContent loading={processing}>Submit ke Manager</LoadingButtonContent></Button>
                 </div>
             </form>
         </AppLayout>

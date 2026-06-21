@@ -37,7 +37,7 @@ function today() {
 function Info({ label, value }) {
     return (
         <div>
-            <div className="text-xs uppercase text-slate-500">{label}</div>
+            <div className="text-xs uppercase text-[hsl(var(--muted-foreground))]">{label}</div>
             <div className="mt-1 font-medium text-slate-900 dark:text-slate-100">{value ?? '-'}</div>
         </div>
     );
@@ -47,7 +47,7 @@ function TextActionModal({ show, title, label, value, error, processing, submitL
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{title}</h2>
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h2>
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 <InputError message={error} className="mt-2" />
@@ -88,7 +88,7 @@ function UploadBuktiModal({ show, form, documentCategories, onClose, onSubmit })
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
             <form onSubmit={onSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Upload Bukti</h2>
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Upload Bukti</h2>
                 <div className="mt-4 space-y-4">
                     <div>
                         <InputLabel label="Tanggal Realisasi" required />
@@ -98,7 +98,7 @@ function UploadBuktiModal({ show, form, documentCategories, onClose, onSubmit })
                     <div>
                         <InputLabel label="Jumlah Realisasi" required />
                         <Input className="mt-1" inputMode="numeric" value={formatRupiahInput(form.data.jumlah_realisasi)} onChange={(e) => form.setData('jumlah_realisasi', parseRupiah(e.target.value))} />
-                        <div className="mt-1 text-xs text-slate-500">{formatRupiah(form.data.jumlah_realisasi)}</div>
+                        <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{formatRupiah(form.data.jumlah_realisasi)}</div>
                         <InputError message={form.errors.jumlah_realisasi} className="mt-2" />
                     </div>
                     <div className="space-y-3">
@@ -239,9 +239,9 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                 )}
             />
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                    <h2 className="font-semibold text-slate-950 dark:text-white">Informasi Permintaan Dana</h2>
+                    <h2 className="font-semibold text-[hsl(var(--foreground))]">Informasi Permintaan Dana</h2>
                     <StatusBadge status={permintaanDana.status} label={permintaanDana.status_label} />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -264,20 +264,20 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                     {permintaanDana.voided_by && <Info label="Voided oleh" value={permintaanDana.voided_by?.name} />}
                 </div>
                 <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                    <div className="font-medium text-slate-950 dark:text-white">Keterangan</div>
+                    <div className="font-medium text-[hsl(var(--foreground))]">Keterangan</div>
                     <div className="mt-1 whitespace-pre-line">{permintaanDana.keterangan}</div>
                 </div>
                 {permintaanDana.catatan_rejection && <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">Catatan rejection: {permintaanDana.catatan_rejection}</div>}
                 {permintaanDana.alasan_void && <div className="mt-4 rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {permintaanDana.alasan_void}</div>}
             </section>
 
-            <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                <div className="border-b border-slate-200 p-4 dark:border-slate-800">
-                    <h2 className="font-semibold text-slate-950 dark:text-white">Dokumen Bukti</h2>
+            <section className="mt-6 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
+                <div className="border-b border-[hsl(var(--border))] p-6">
+                    <h2 className="font-semibold text-[hsl(var(--foreground))]">Dokumen Bukti</h2>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                        <thead className="bg-slate-50 dark:bg-slate-900">
+                    <table className="min-w-full table-fixed divide-y divide-[hsl(var(--border))] text-sm">
+                        <thead className="bg-[hsl(var(--muted))]/60">
                             <tr>
                                 <th className="px-4 py-3 text-left">Kategori</th>
                                 <th className="px-4 py-3 text-left">Nama File</th>
@@ -285,10 +285,10 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                                 <th className="px-4 py-3 text-right">Download</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                        <tbody className="divide-y divide-[hsl(var(--border))]">
                             {permintaanDana.documents.length === 0 && (
                                 <tr>
-                                    <td className="px-4 py-6 text-center text-slate-500" colSpan="4">Belum ada dokumen bukti.</td>
+                                    <td className="px-4 py-6 text-center text-[hsl(var(--muted-foreground))]" colSpan="4">Belum ada dokumen bukti.</td>
                                 </tr>
                             )}
                             {permintaanDana.documents.map((document) => (

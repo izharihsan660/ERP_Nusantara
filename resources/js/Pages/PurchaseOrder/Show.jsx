@@ -31,7 +31,7 @@ function StatusBadge({ status, label }) {
 function Info({ label, value }) {
     return (
         <div>
-            <div className="text-xs uppercase text-slate-500">{label}</div>
+            <div className="text-xs uppercase text-[hsl(var(--muted-foreground))]">{label}</div>
             <div className="mt-1 font-medium text-slate-900 dark:text-slate-100">{value ?? '-'}</div>
         </div>
     );
@@ -41,7 +41,7 @@ function ActionModal({ show, title, label, value, error, processing, variant = '
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{title}</h2>
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h2>
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
@@ -58,7 +58,7 @@ function ReferensiModal({ show, form, onClose, onSubmit }) {
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Edit Referensi</h2>
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Edit Referensi</h2>
                 <div className="mt-4 space-y-4">
                     <div>
                         <InputLabel label="No. PR Customer" />
@@ -189,9 +189,9 @@ export default function Show({ purchaseOrder, sites }) {
             )}
 
             <div className="space-y-6">
-                <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between gap-3">
-                        <h2 className="font-semibold text-slate-950 dark:text-white">Informasi Purchase Order</h2>
+                        <h2 className="font-semibold text-[hsl(var(--foreground))]">Informasi Purchase Order</h2>
                         <StatusBadge status={purchaseOrder.status} label={purchaseOrder.status_label} />
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -218,13 +218,13 @@ export default function Show({ purchaseOrder, sites }) {
                     {purchaseOrder.alasan_void && <div className="mt-4 rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {purchaseOrder.alasan_void}</div>}
                 </section>
 
-                <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div className="border-b border-slate-200 p-4 dark:border-slate-800">
-                        <h2 className="font-semibold text-slate-950 dark:text-white">Item</h2>
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
+                    <div className="border-b border-[hsl(var(--border))] p-6">
+                        <h2 className="font-semibold text-[hsl(var(--foreground))]">Item</h2>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                            <thead className="bg-slate-50 dark:bg-slate-900">
+                        <table className="min-w-full table-fixed divide-y divide-[hsl(var(--border))] text-sm">
+                            <thead className="bg-[hsl(var(--muted))]/60">
                                 <tr>
                                     <th className="px-4 py-3 text-left">No</th>
                                     <th className="px-4 py-3 text-left">Deskripsi</th>
@@ -234,7 +234,7 @@ export default function Show({ purchaseOrder, sites }) {
                                     <th className="px-4 py-3 text-right">Jumlah</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                            <tbody className="divide-y divide-[hsl(var(--border))]">
                                 {purchaseOrder.items.map((item, index) => (
                                     <tr key={item.id}>
                                         <td className="whitespace-nowrap px-4 py-3">{index + 1}</td>

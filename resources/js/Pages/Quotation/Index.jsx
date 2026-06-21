@@ -1,28 +1,14 @@
 import DataTable from '@/Components/Data/DataTable';
 import PageHeader from '@/Components/PageHeader';
+import StatusBadge from '@/Components/StatusBadge';
+import { IconButton } from '@/Components/UiPolish';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Eye, FilePlus2, Ban } from 'lucide-react';
-
-const statusStyles = {
-    DRAFT: 'bg-slate-100 text-slate-700 ring-slate-200',
-    PENDING_APPROVAL: 'bg-amber-50 text-amber-700 ring-amber-200',
-    APPROVED: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    REJECTED: 'bg-red-50 text-red-700 ring-red-200',
-    VOID: 'bg-zinc-800 text-white ring-zinc-800',
-};
-
-function StatusBadge({ status, label }) {
-    return (
-        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusStyles[status] ?? statusStyles.DRAFT}`}>
-            {label ?? status}
-        </span>
-    );
-}
+import { Copy, Download, Eye, FilePlus2 } from 'lucide-react';
 
 export default function Index({ quotations, filters, customers, statuses }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
@@ -32,19 +18,20 @@ export default function Index({ quotations, filters, customers, statuses }) {
         { key: 'tgl_quotation', label: 'Tanggal', sortable: true },
         { key: 'revisi', label: 'Revisi', sortable: true },
         { key: 'total', label: 'Total', render: (row) => formatRupiah(row.total) },
-        { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge status={row.status} label={row.status_label} /> },
+        { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge value={row.status}>{row.status_label}</StatusBadge> },
         {
             key: 'actions',
             label: 'Aksi',
             render: (row) => (
-                <div className="flex gap-2">
-                    <Button asChild size="icon" variant="outline" title="Lihat detail">
-                        <Link href={route('quotations.show', row.id)}><Eye className="h-4 w-4" /></Link>
-                    </Button>
-                    {permissions.includes('void_quotation') && row.status !== 'VOID' && (
-                        <Button asChild size="icon" variant="destructive" title="Void quotation">
-                            <Link href={route('quotations.show', row.id)}><Ban className="h-4 w-4" /></Link>
+                <div className="flex justify-end gap-2">
+                    <IconButton href={route('quotations.show', row.id)} title="Lihat detail" icon={Eye} />
+                    {permissions.includes('download_pdf_quotation') && row.status === 'APPROVED' && (
+                        <Button asChild size="icon" variant="outline" title="Download PDF" aria-label="Download PDF">
+                            <a href={route('quotations.download', row.id)}><Download className="h-4 w-4" /></a>
                         </Button>
+                    )}
+                    {permissions.includes('buat_quotation') && (
+                        <IconButton href={route('quotations.duplicate', row.id)} method="post" title="Duplikasi" icon={Copy} />
                     )}
                 </div>
             ),
@@ -82,6 +69,7 @@ export default function Index({ quotations, filters, customers, statuses }) {
                         <Input type="date" value={filters.date_to ?? ''} onChange={(e) => router.get(route('quotations.index'), { ...filters, date_to: e.target.value, page: 1 }, { preserveState: true, replace: true })} className="w-full sm:w-40" />
                     </>
                 )}
+                emptyText="Belum ada quotation"
             />
         </AppLayout>
     );

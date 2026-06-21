@@ -1,46 +1,34 @@
 import DataTable from '@/Components/Data/DataTable';
 import PageHeader from '@/Components/PageHeader';
+import StatusBadge from '@/Components/StatusBadge';
+import { IconButton } from '@/Components/UiPolish';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select } from '@/Components/ui/select';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Eye, FilePlus2 } from 'lucide-react';
-
-const statusStyles = {
-    DRAFT: 'bg-slate-100 text-slate-700 ring-slate-200',
-    PENDING_APPROVAL: 'bg-amber-50 text-amber-700 ring-amber-200',
-    APPROVED: 'bg-sky-50 text-sky-700 ring-sky-200',
-    REJECTED: 'bg-red-50 text-red-700 ring-red-200',
-    PAID: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    VOID: 'bg-zinc-800 text-white ring-zinc-800',
-};
-
-function StatusBadge({ status, label }) {
-    return (
-        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusStyles[status] ?? statusStyles.DRAFT}`}>
-            {label ?? status}
-        </span>
-    );
-}
+import { Download, Eye, FilePlus2 } from 'lucide-react';
 
 export default function Index({ permintaanDana, filters, statuses }) {
     const permissions = usePage().props.auth.user.permissions ?? [];
     const columns = [
         { key: 'no_pd', label: 'No. PD', sortable: true },
         { key: 'tujuan', label: 'Tujuan', sortable: true },
-        { key: 'nominal', label: 'Nominal', sortable: true, render: (row) => formatRupiah(row.nominal) },
-        { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge status={row.status} label={row.status_label} /> },
+        { key: 'nominal', label: 'Total', sortable: true, render: (row) => formatRupiah(row.nominal ?? row.total) },
+        { key: 'status', label: 'Status', sortable: true, render: (row) => <StatusBadge value={row.status}>{row.status_label}</StatusBadge> },
         { key: 'created_by', label: 'Dibuat oleh' },
-        { key: 'plan_pembayaran', label: 'Plan Pembayaran', sortable: true },
+        { key: 'plan_pembayaran', label: 'Tanggal', sortable: true },
         {
             key: 'actions',
             label: 'Aksi',
             render: (row) => (
-                <Button asChild size="icon" variant="outline" title="Lihat detail">
-                    <Link href={route('permintaan-dana.show', row.id)}><Eye className="h-4 w-4" /></Link>
-                </Button>
+                <div className="flex justify-end gap-2">
+                    <IconButton href={route('permintaan-dana.show', row.id)} title="Lihat detail" icon={Eye} />
+                    <Button asChild size="icon" variant="outline" title="Download PDF" aria-label="Download PDF">
+                        <a href={route('permintaan-dana.download', row.id)}><Download className="h-4 w-4" /></a>
+                    </Button>
+                </div>
             ),
         },
     ];
@@ -56,6 +44,7 @@ export default function Index({ permintaanDana, filters, statuses }) {
                         <Link href={route('permintaan-dana.create')}><FilePlus2 className="h-4 w-4" />Buat PD</Link>
                     </Button>
                 )}
+                emptyText="Belum ada permintaan dana"
             />
             <DataTable
                 data={permintaanDana}

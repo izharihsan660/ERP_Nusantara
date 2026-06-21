@@ -1,12 +1,13 @@
 import FormRow from '@/Components/Form/FormRow';
 import PageHeader from '@/Components/PageHeader';
+import { LoadingButtonContent } from '@/Components/UiPolish';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatRupiah, parseRupiah } from '@/utils/currency';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Save, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Create() {
@@ -80,11 +81,12 @@ export default function Create() {
             <PageHeader
                 title="Buat Permintaan Dana"
                 description="Buat dokumen permintaan pencairan dana baru"
-                backHref={route('permintaan-dana.index')}
+                actions={<Button type="button" variant="outline" onClick={() => router.visit(route('permintaan-dana.index'))}>Kembali</Button>}
             />
 
-            <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
+                    <h2 className="mb-4 text-base font-semibold text-[hsl(var(--foreground))]">Info PD</h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <FormRow label="Tujuan" required error={form.errors.tujuan}>
                             <Input
@@ -123,19 +125,19 @@ export default function Create() {
                             rows={3}
                         />
                     </FormRow>
+                </section>
 
-                    {/* Items Section */}
-                    <div>
-                        <div className="mb-3 flex items-center justify-between">
-                            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Item *</h3>
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">Item <span className="text-red-600">*</span></h3>
                             <Button type="button" size="sm" onClick={addItem}>
                                 <Plus className="h-4 w-4" />Tambah Item
                             </Button>
                         </div>
                         
-                        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
-                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                                <thead className="bg-slate-50 dark:bg-slate-800">
+                        <div className="overflow-x-auto rounded-lg border border-[hsl(var(--border))]">
+                            <table className="min-w-full divide-y divide-[hsl(var(--border))]">
+                                <thead className="bg-[hsl(var(--muted))]/60">
                                     <tr>
                                         <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 w-40">NO. PART</th>
                                         <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">DESCRIPTION *</th>
@@ -146,7 +148,7 @@ export default function Create() {
                                         <th className="px-3 py-2 w-12"></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
+                                <tbody className="divide-y divide-[hsl(var(--border))] bg-[hsl(var(--card))]">
                                     {items.map((item, index) => (
                                         <tr key={index}>
                                             <td className="px-3 py-2">
@@ -222,12 +224,12 @@ export default function Create() {
                                         </tr>
                                     ))}
                                 </tbody>
-                                <tfoot className="bg-slate-50 dark:bg-slate-800">
+                                <tfoot className="bg-[hsl(var(--muted))]/60">
                                     <tr>
-                                        <td colSpan="4" className="px-3 py-2 text-right text-sm font-semibold text-slate-900 dark:text-white">
+                                        <td colSpan="4" className="px-3 py-3 text-right text-sm font-semibold text-[hsl(var(--foreground))]">
                                             GRAND TOTAL
                                         </td>
-                                        <td className="px-3 py-2 text-right text-sm font-bold text-slate-900 dark:text-white">
+                                        <td className="px-3 py-3 text-right text-sm font-bold text-[hsl(var(--foreground))]">
                                             {formatRupiah(grandTotal)}
                                         </td>
                                         <td></td>
@@ -239,9 +241,10 @@ export default function Create() {
                         {form.errors.items && (
                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.items}</p>
                         )}
-                    </div>
+                </section>
 
-                    {/* Attachments */}
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
+                    <h2 className="mb-4 text-base font-semibold text-[hsl(var(--foreground))]">Attachment</h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <FormRow label="Foto Nota" conditionalNote="JPG/PNG/PDF, maks 5MB" error={form.errors['attachments.0']}>
                             <Input
@@ -258,17 +261,20 @@ export default function Create() {
                             />
                         </FormRow>
                     </div>
+                </section>
 
-                    <div className="flex flex-col justify-end gap-2 sm:flex-row">
+                    <div className="sticky bottom-4 z-10 flex flex-col justify-end gap-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]/95 p-3 shadow-lg backdrop-blur sm:flex-row">
                         <Button type="button" variant="outline" onClick={() => router.visit(route('permintaan-dana.index'))}>
                             Batal
                         </Button>
+                        <Button type="submit" variant="secondary" disabled={form.processing}>
+                            <Save className="h-4 w-4" />Simpan Draft
+                        </Button>
                         <Button type="submit" disabled={form.processing}>
-                            Simpan
+                            <Send className="h-4 w-4" /><LoadingButtonContent loading={form.processing}>Submit ke Manager</LoadingButtonContent>
                         </Button>
                     </div>
                 </form>
-            </div>
         </AppLayout>
     );
 }

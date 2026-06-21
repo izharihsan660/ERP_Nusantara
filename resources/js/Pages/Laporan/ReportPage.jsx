@@ -8,6 +8,16 @@ import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Download, Eye } from 'lucide-react';
 
+const reportTabs = [
+    { label: 'Rekapan PO', routeName: 'laporan.rekapan-po' },
+    { label: 'WIP', routeName: 'laporan.rekapan-wip' },
+    { label: 'SPB', routeName: 'laporan.rekapan-spb' },
+    { label: 'Invoice', routeName: 'laporan.rekapan-invoice' },
+    { label: 'PD', routeName: 'laporan.rekapan-pd' },
+    { label: 'Profit', routeName: 'laporan.profit' },
+    { label: 'Outstanding', routeName: 'laporan.outstanding' },
+];
+
 export function money(value) {
     return formatRupiah(value);
 }
@@ -77,32 +87,50 @@ export default function ReportPage({
                 )}
             />
 
+            <div className="mb-6 overflow-x-auto border-b border-[hsl(var(--border))]">
+                <div className="flex min-w-max gap-6">
+                    {reportTabs.map((tab) => {
+                        const isActive = tab.routeName === routeName;
+
+                        return (
+                            <Link
+                                key={tab.routeName}
+                                href={route(tab.routeName)}
+                                className={`border-b-2 px-1 pb-3 text-sm font-medium transition ${isActive ? 'border-[hsl(var(--primary))] text-[hsl(var(--foreground))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
+                            >
+                                {tab.label}
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
+
             <FilterSection routeName={routeName} filters={filters} fields={fields} />
             <SummaryCards items={summaryItems} />
             {chart}
 
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <div className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                        <thead className="bg-slate-50 dark:bg-slate-900">
+                    <table className="min-w-full table-fixed divide-y divide-[hsl(var(--border))] text-sm">
+                        <thead className="bg-[hsl(var(--muted))]/60">
                             <tr>
                                 {columns.map((column) => (
-                                    <th key={column.key} className="whitespace-nowrap px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-300">
+                                    <th key={column.key} className="whitespace-nowrap px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
                                         {column.label}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                        <tbody className="divide-y divide-[hsl(var(--border))]">
                             {rows.length === 0 && (
                                 <tr>
-                                    <td colSpan={columns.length} className="px-4 py-10 text-center text-slate-500">Data belum tersedia.</td>
+                                    <td colSpan={columns.length} className="px-4 py-12 text-center text-[hsl(var(--muted-foreground))]">Data belum tersedia.</td>
                                 </tr>
                             )}
                             {rows.map((row) => (
-                                <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/60">
+                                <tr key={row.id} className="hover:bg-[hsl(var(--muted))]/35">
                                     {columns.map((column) => (
-                                        <td key={column.key} className="whitespace-nowrap px-4 py-3 text-slate-700 dark:text-slate-200">
+                                        <td key={column.key} className="whitespace-nowrap px-4 py-3 text-[hsl(var(--foreground))]">
                                             {column.render ? column.render(row) : row[column.key]}
                                         </td>
                                     ))}
@@ -112,7 +140,7 @@ export default function ReportPage({
                     </table>
                 </div>
 
-                <div className="flex flex-col gap-3 border-t border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 border-t border-[hsl(var(--border))] p-4 text-sm text-[hsl(var(--muted-foreground))] sm:flex-row sm:items-center sm:justify-between">
                     <div>Menampilkan {data?.from ?? 0}-{data?.to ?? 0} dari {data?.total ?? 0}</div>
                     <div className="flex flex-wrap gap-1">
                         {(data?.links ?? []).map((link, index) => (

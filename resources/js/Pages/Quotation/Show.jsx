@@ -38,7 +38,7 @@ function StatusBadge({ status, label }) {
 function Info({ label, value }) {
     return (
         <div>
-            <div className="text-xs uppercase text-slate-500">{label}</div>
+            <div className="text-xs uppercase text-[hsl(var(--muted-foreground))]">{label}</div>
             <div className="mt-1 font-medium text-slate-900 dark:text-slate-100">{value ?? '-'}</div>
         </div>
     );
@@ -48,7 +48,7 @@ function ActionModal({ show, title, label, value, error, processing, onChange, o
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{title}</h2>
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h2>
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
@@ -87,7 +87,7 @@ function SalesOrderModal({ show, form, onClose, onSubmit }) {
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
             <form onSubmit={onSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input Sales Order</h2>
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Input Sales Order</h2>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                     <FormRow label="No. PO Customer" required error={form.errors.no_po_customer}>
                         <Input value={form.data.no_po_customer} onChange={(e) => form.setData('no_po_customer', e.target.value)} />
@@ -201,7 +201,7 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
         <Modal show={show} onClose={onClose} maxWidth="3xl">
             <div className="max-h-[90vh] overflow-y-auto">
                 <form onSubmit={handleSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input WIP</h2>
+                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Input WIP</h2>
                 
                 <div className="mt-5 grid gap-4">
                     <FormRow label="No. WIP" required error={form.errors.no_wip}>
@@ -279,8 +279,8 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
 
 function ProcessSection({ title, children }) {
     return (
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <h2 className="font-semibold text-slate-950 dark:text-white">{title}</h2>
+        <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
+            <h2 className="font-semibold text-[hsl(var(--foreground))]">{title}</h2>
             <div className="mt-4">{children}</div>
         </section>
     );
@@ -441,9 +441,9 @@ export default function Show({ quotation, sites }) {
             />
 
             <div className="space-y-6">
-                <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between gap-3">
-                        <h2 className="font-semibold text-slate-950 dark:text-white">Informasi Quotation</h2>
+                        <h2 className="font-semibold text-[hsl(var(--foreground))]">Informasi Quotation</h2>
                         <StatusBadge status={quotation.status} label={quotation.status_label} />
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -461,13 +461,13 @@ export default function Show({ quotation, sites }) {
                     {quotation.alasan_void && <div className="mt-4 rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {quotation.alasan_void}</div>}
                 </section>
 
-                <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div className="border-b border-slate-200 p-4 dark:border-slate-800">
-                        <h2 className="font-semibold text-slate-950 dark:text-white">Barang</h2>
+                <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
+                    <div className="border-b border-[hsl(var(--border))] p-6">
+                        <h2 className="font-semibold text-[hsl(var(--foreground))]">Barang</h2>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                            <thead className="bg-slate-50 dark:bg-slate-900">
+                        <table className="min-w-full table-fixed divide-y divide-[hsl(var(--border))] text-sm">
+                            <thead className="bg-[hsl(var(--muted))]/60">
                                 <tr>
                                     <th className="px-4 py-3 text-left">Part No</th>
                                     <th className="px-4 py-3 text-left">Nama</th>
@@ -479,7 +479,7 @@ export default function Show({ quotation, sites }) {
                                     <th className="px-4 py-3 text-right">Profit</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                            <tbody className="divide-y divide-[hsl(var(--border))]">
                                 {quotation.items.map((item) => (
                                     <tr key={item.id}>
                                         <td className="whitespace-nowrap px-4 py-3">{item.part_no}</td>
@@ -534,7 +534,7 @@ export default function Show({ quotation, sites }) {
                                             </>
                                         )}
                                         <div>
-                                            <div className="text-xs uppercase text-slate-500">Status</div>
+                                            <div className="text-xs uppercase text-[hsl(var(--muted-foreground))]">Status</div>
                                             <div className="mt-1"><StatusBadge status={quotation.sales_order.status} label={quotation.sales_order.status_label} /></div>
                                         </div>
                                     </div>
@@ -564,8 +564,8 @@ export default function Show({ quotation, sites }) {
                                 )}
                             </div>
                             <div className="overflow-x-auto">
-                                <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                                    <thead className="bg-slate-50 dark:bg-slate-900">
+                                <table className="min-w-full table-fixed divide-y divide-[hsl(var(--border))] text-sm">
+                                    <thead className="bg-[hsl(var(--muted))]/60">
                                         <tr>
                                             <th className="px-4 py-3 text-left">No. WIP</th>
                                             <th className="px-4 py-3 text-left">Tipe</th>
@@ -574,10 +574,10 @@ export default function Show({ quotation, sites }) {
                                             <th className="px-4 py-3 text-right">Aksi</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                                    <tbody className="divide-y divide-[hsl(var(--border))]">
                                         {quotation.sales_order.wip_orders.length === 0 && (
                                             <tr>
-                                                <td className="px-4 py-6 text-center text-slate-500" colSpan="5">Belum ada WIP.</td>
+                                                <td className="px-4 py-6 text-center text-[hsl(var(--muted-foreground))]" colSpan="5">Belum ada WIP.</td>
                                             </tr>
                                         )}
                                         {quotation.sales_order.wip_orders.map((wip) => (
