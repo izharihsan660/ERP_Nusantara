@@ -163,7 +163,8 @@ Route::get('/verify/{token}', [QuotationController::class, 'verify'])->name('ver
 require __DIR__.'/auth.php';
 
 Route::get('/verify/{qr_token}', [VerifyController::class, 'show'])->name('verify.show');
-Route::get('/approve/{type}/{id}', [ApprovalController::class, 'approve'])->name('approve.document');
+Route::get('/approval/approve/{type}/{id}', [ApprovalController::class, 'approve'])->name('approval.approve');
+Route::get('/approval/reject/{type}/{id}', [ApprovalController::class, 'reject'])->name('approval.reject');
 
 Route::middleware(['auth', 'permission:lihat_jabatan'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

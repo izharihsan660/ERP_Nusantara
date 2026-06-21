@@ -93,6 +93,9 @@ class PurchaseOrderService
         $this->recordActivity->handle('submitted_purchase_order', $purchaseOrder, "{$user->name} submit Purchase Order {$purchaseOrder->no_purchase_order}");
         $this->notificationHelper->getUsersByRole('Manager')->each->notify(new PoNajSubmittedNotification($purchaseOrder));
 
+        // Send approval email
+        NotificationService::sendApprovalEmail($purchaseOrder, 'purchase_order');
+
         return $purchaseOrder->refresh();
     }
 

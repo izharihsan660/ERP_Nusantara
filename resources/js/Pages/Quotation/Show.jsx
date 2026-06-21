@@ -11,7 +11,7 @@ import SpbSection from '@/Pages/Shared/SpbSection';
 import { formatRupiah } from '@/utils/currency';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Ban, Check, Copy, Download, Plus, Send, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const statusStyles = {
     DRAFT: 'bg-slate-100 text-slate-700 ring-slate-200',
@@ -123,7 +123,71 @@ function SalesOrderModal({ show, form, onClose, onSubmit }) {
     );
 }
 
-function WipOrderModal({ show, form, onClose, onSubmit }) {
+function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quotation }) {
+    const [selectedItems, setSelectedItems] = useState([]);
+
+    useEffect(() => {
+        if (show && source_items.length > 0) {
+            const initialItems = source_items
+                .filter(item => item.qty_remaining > 0)
+                .map(item => ({
+                    quotation_item_id: item.id,
+                    qty: item.qty_remaining,
+                    selected: true
+                }));
+            setSelectedItems(initialItems);
+        }
+    }, [show, source_items]);
+
+    const handleItemToggle = (itemId) => {
+        setSelectedItems(prev => 
+            prev.map(item => 
+                item.quotation_item_id === itemId 
+                    ? { ...item, selected: !item.selected }
+                    : item
+            )
+        );
+    };
+
+    const handleQtyChange = (itemId, newQty) => {
+        setSelectedItems(prev =>
+            prev.map(item =>
+                item.quotation_item_id === itemId
+                    ? { ...item, qty: Math.min(Math.max(0, parseInt(newQty) || 0), getMaxQty(itemId)) }
+                    : item
+            )
+        );
+    };
+
+    const getMaxQty = (itemId) => {
+        const sourceItem = source_items.find(i => i.id === itemId);
+        return sourceItem?.qty_remaining || 0;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const items = selectedItems
+            .filter(item => item.selected && item.qty > 0)
+            .map(({ quotation_item_id, qty }) => ({ quotation_item_id, qty }));
+        
+        if (items.length === 0) {
+            alert('Pilih minimal 1 item dengan qty > 0');
+            return;
+        }
+
+        router.post(route('quotations.wip.store', quotation.id), {
+            no_wip: form.data.no_wip,
+            tipe_order: form.data.tipe_order,
+            nama_ekspedisi: form.data.nama_ekspedisi,
+            items: items
+        }, {
+            onSuccess: () => {
+                onClose();
+                form.reset();
+            }
+        });
+    };
+
     const setTipeOrder = (value) => {
         form.setData({
             ...form.data,
@@ -133,9 +197,10 @@ function WipOrderModal({ show, form, onClose, onSubmit }) {
     };
 
     return (
-        <Modal show={show} onClose={onClose} maxWidth="lg">
-            <form onSubmit={onSubmit} className="p-6">
+        <Modal show={show} onClose={onClose} maxWidth="4xl">
+            <form onSubmit={handleSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Input WIP</h2>
+                
                 <div className="mt-5 grid gap-4">
                     <FormRow label="No. WIP" required error={form.errors.no_wip}>
                         <Input
@@ -156,6 +221,50 @@ function WipOrderModal({ show, form, onClose, onSubmit }) {
                         </FormRow>
                     )}
                 </div>
+
+                <div className="mt-6">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                        Pilih Item dari Quotation *
+                    </h3>
+                    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
+                            <thead className="bg-slate-50 dark:bg-slate-800">
+                                <tr>
+                                    <th className="px-3 py-2 text-center text-xs font-medium text-slate-700 dark:text-slate-300 w-12">✓</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Part No</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">Nama Barang</th>
+                                    <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-24">Dipesan</th>
+                                    <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-24">Di-WIP</th>
+                                    <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-24">Sisa</th>
+                                    <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-32">Qty WIP Ini</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
+                                {source_items.map((sourceItem) => {
+                                    const selected = selectedItems.find(i => i.quotation_item_id === sourceItem.id);
+                                    const isDisabled = sourceItem.qty_remaining <= 0;
+                                                                        return (
+                                        <tr key={sourceItem.id} className={isDisabled ? 'opacity-50 bg-slate-50 dark:bg-slate-800/50' : ''}>
+                                            <td className="px-3 py-2 text-center">
+                                                <input type="checkbox" checked={selected?.selected || false} onChange={() => handleItemToggle(sourceItem.id)} disabled={isDisabled} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed" />
+                                            </td>
+                                            <td className="px-3 py-2 text-slate-900 dark:text-white font-mono text-xs">{sourceItem.part_no}</td>
+                                            <td className="px-3 py-2 text-slate-900 dark:text-white">{sourceItem.nama_barang}</td>
+                                            <td className="px-3 py-2 text-right text-slate-900 dark:text-white">{sourceItem.qty}</td>
+                                            <td className="px-3 py-2 text-right text-slate-600 dark:text-slate-400">{sourceItem.qty_in_wip || 0}</td>
+                                            <td className="px-3 py-2 text-right font-semibold text-slate-900 dark:text-white">{sourceItem.qty_remaining}</td>
+                                            <td className="px-3 py-2">
+                                                <Input type="number" min="0" max={sourceItem.qty_remaining} value={selected?.qty || 0} onChange={(e) => handleQtyChange(sourceItem.id, e.target.value)} disabled={isDisabled || !selected?.selected} className="text-right text-sm" />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                    {form.errors.items && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.items}</p>}
+                </div>
+
                 <div className="mt-6 flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>Batal</Button>
                     <Button type="submit" disabled={form.processing}>Simpan</Button>
@@ -516,6 +625,8 @@ export default function Show({ quotation, sites }) {
                 form={wipOrderForm}
                 onClose={() => setModal(null)}
                 onSubmit={submitWipOrder}
+                source_items={quotation.source_items || []}
+                quotation={quotation}
             />
             <ActionModal
                 show={modal === 'void-sales-order'}

@@ -77,6 +77,9 @@ class QuotationService
         $this->recordActivity->handle('submitted_quotation', $quotation, "{$user->name} submit quotation {$quotation->no_quotation}");
         $this->notificationHelper->getUsersByRole('Manager')->each->notify(new QuotationSubmittedNotification($quotation));
 
+        // Send approval email
+        NotificationService::sendApprovalEmail($quotation, 'quotation');
+
         return $quotation->refresh();
     }
 

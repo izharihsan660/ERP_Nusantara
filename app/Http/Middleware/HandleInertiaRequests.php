@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\SidebarBadgeService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -62,6 +63,7 @@ class HandleInertiaRequests extends Middleware
                         'created_at' => $notification->created_at?->diffForHumans(),
                     ]),
             ] : ['unread_count' => 0, 'items' => []],
+            'sidebar_badges' => fn () => SidebarBadgeService::getBadges($user),
         ];
     }
 

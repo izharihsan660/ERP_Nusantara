@@ -125,6 +125,9 @@ class PermintaanDanaService
         $this->recordActivity->handle('submitted_pd', $permintaanDana, "{$user->name} submit Permintaan Dana {$permintaanDana->no_pd}");
         $this->notificationHelper->getUsersByRole('Manager')->each->notify(new PdSubmittedNotification($permintaanDana));
 
+        // Send approval email
+        NotificationService::sendApprovalEmail($permintaanDana, 'permintaan_dana');
+
         return $permintaanDana->refresh();
     }
 

@@ -1,88 +1,247 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/Form/InputLabel';
+import FormRow from '@/Components/Form/FormRow';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import AppLayout from '@/Layouts/AppLayout';
-import { formatRupiah, formatRupiahInput, parseRupiah } from '@/utils/currency';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Save, Send } from 'lucide-react';
+import { formatRupiah } from '@/utils/currency';
+import { Head, router, useForm } from '@inertiajs/react';
+import { Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
-function today() {
-    return new Date().toISOString().slice(0, 10);
-}
-
-export default function Create({ categories }) {
-    const { data, setData, post, transform, processing, errors } = useForm({
-        tgl_pd: today(),
-        kategori: '',
-        nominal: '',
+export default function Create() {
+    const [items, setItems] = useState([
+        { no_po: '', no_part: '', description: '', qty: '', harga: '', total: 0 }
+    ]);
+    
+    const form = useForm({
+        tujuan: '',
+        rekening_tujuan: '',
+        bank_tujuan: '',
+        plan_pembayaran: '',
         keterangan: '',
-        referensi_dokumen: '',
-        submit: false,
+        foto_nota: null,
+        foto_barang: null,
     });
 
-    const submit = (event, submitToManager = false) => {
-        event.preventDefault();
-        transform((payload) => ({
-            ...payload,
-            nominal: parseRupiah(payload.nominal),
-            submit: submitToManager,
-        }));
-        post(route('permintaan-dana.store'));
+    const addItem = () => {
+        setItems([...items, { no_po: '', no_part: '', description: '', qty: '', harga: '', total: 0 }]);
+    };
+
+    const removeItem = (index) => {
+        setItems(items.filter((_, i) => i !== index));
+    };
+
+    const updateItem = (index, field, value) => {
+        const newItems = [...items];
+        newItems[index][field] = value;
+        
+        if (field === 'qty' || field === 'harga') {
+            const qty = parseFloat(newItems[index].qty) || 0;
+            const harga = parseFloat(newItems[index].harga) || 0;
+            newItems[index].total = qty * harga;
+        }
+        
+        setItems(newItems);
+    };
+
+    const grandTotal = items.reduce((sum, item) => sum + item.total, 0);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        const data = {
+            ...form.data,
+            items: items.filter(item => item.description),
+        };
+        
+        router.post(route('permintaan-dana.store'), data, {
+            onSuccess: () => form.reset(),
+        });
     };
 
     return (
-        <AppLayout title="Buat Permintaan Dana">
+        <AppLayout>
             <Head title="Buat Permintaan Dana" />
+            
             <PageHeader
                 title="Buat Permintaan Dana"
-                description="Buat draft permintaan pencairan dana internal."
-                actions={<Button asChild variant="outline"><Link href={route('permintaan-dana.index')}>Kembali</Link></Button>}
+                description="Buat dokumen permintaan pencairan dana baru"
+                backHref={route('permintaan-dana.index')}
             />
 
-            <form onSubmit={(event) => submit(event, false)} className="space-y-6">
-                <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div className="grid gap-4 lg:grid-cols-2">
-                        <div>
-                            <InputLabel label="Tanggal PD" required />
-                            <Input className="mt-1" type="date" value={data.tgl_pd} onChange={(e) => setData('tgl_pd', e.target.value)} />
-                            <InputError message={errors.tgl_pd} className="mt-2" />
-                        </div>
-                        <div>
-                            <InputLabel label="Kategori" required />
-                            <Select className="mt-1" value={data.kategori} onChange={(e) => setData('kategori', e.target.value)}>
-                                <option value="">Pilih kategori...</option>
-                                {categories.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
-                            </Select>
-                            <InputError message={errors.kategori} className="mt-2" />
-                        </div>
-                        <div>
-                            <InputLabel label="Nominal" required />
-                            <Input className="mt-1" inputMode="numeric" value={formatRupiahInput(data.nominal)} onChange={(e) => setData('nominal', parseRupiah(e.target.value))} />
-                            <div className="mt-1 text-xs text-slate-500">{formatRupiah(data.nominal)}</div>
-                            <InputError message={errors.nominal} className="mt-2" />
-                        </div>
-                        <div>
-                            <InputLabel label="Referensi Dokumen" optional />
-                            <Input className="mt-1" value={data.referensi_dokumen} onChange={(e) => setData('referensi_dokumen', e.target.value)} placeholder="No. referensi terkait (opsional, misal: WIP 12210)" />
-                            <InputError message={errors.referensi_dokumen} className="mt-2" />
-                        </div>
-                        <div className="lg:col-span-2">
-                            <InputLabel label="Keterangan" required />
-                            <Textarea className="mt-1 min-h-32" value={data.keterangan} onChange={(e) => setData('keterangan', e.target.value)} />
-                            <InputError message={errors.keterangan} className="mt-2" />
-                        </div>
+            <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <FormRow label="Tujuan" required error={form.errors.tujuan}>
+                            <Input
+                                value={form.data.tujuan}
+                                onChange={(e) => form.setData('tujuan', e.target.value)}
+                                placeholder="Nama vendor/toko"
+                            />
+                        </FormRow>
+                        <FormRow label="Rekening Tujuan" required error={form.errors.rekening_tujuan}>
+                            <Input
+                                value={form.data.rekening_tujuan}
+                                onChange={(e) => form.setData('rekening_tujuan', e.target.value)}
+                                placeholder="Nomor rekening"
+                            />
+                        </FormRow>
+                        <FormRow label="Bank Tujuan" error={form.errors.bank_tujuan}>
+                            <Input
+                                value={form.data.bank_tujuan}
+                                onChange={(e) => form.setData('bank_tujuan', e.target.value)}
+                                placeholder="Nama bank (opsional)"
+                            />
+                        </FormRow>
+                        <FormRow label="Plan Pembayaran" required error={form.errors.plan_pembayaran}>
+                            <Input
+                                type="date"
+                                value={form.data.plan_pembayaran}
+                                onChange={(e) => form.setData('plan_pembayaran', e.target.value)}
+                            />
+                        </FormRow>
                     </div>
-                </section>
 
-                <div className="flex justify-end gap-2">
-                    <Button type="submit" variant="secondary" disabled={processing}><Save className="h-4 w-4" />Simpan Draft</Button>
-                    <Button type="button" disabled={processing} onClick={(event) => submit(event, true)}><Send className="h-4 w-4" />Submit ke Manager</Button>
-                </div>
-            </form>
+                    <FormRow label="Keterangan" error={form.errors.keterangan}>
+                        <Textarea
+                            value={form.data.keterangan}
+                            onChange={(e) => form.setData('keterangan', e.target.value)}
+                            rows={3}
+                        />
+                    </FormRow>
+
+                    {/* Items Section */}
+                    <div>
+                        <div className="mb-3 flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Item *</h3>
+                            <Button type="button" size="sm" onClick={addItem}>
+                                <Plus className="h-4 w-4" />Tambah Item
+                            </Button>
+                        </div>
+                        
+                        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                                <thead className="bg-slate-50 dark:bg-slate-800">
+                                    <tr>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 w-32">NO. PO</th>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300 w-40">NO. PART</th>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-300">DESCRIPTION *</th>
+                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-24">QTY *</th>
+                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-32">HARGA *</th>
+                                        <th className="px-3 py-2 text-right text-xs font-medium text-slate-700 dark:text-slate-300 w-32">TOTAL</th>
+                                        <th className="px-3 py-2 w-12"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
+                                    {items.map((item, index) => (
+                                        <tr key={index}>
+                                            <td className="px-3 py-2">
+                                                <Input
+                                                    value={item.no_po}
+                                                    onChange={(e) => updateItem(index, 'no_po', e.target.value)}
+                                                    className="text-sm"
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <Input
+                                                    value={item.no_part}
+                                                    onChange={(e) => updateItem(index, 'no_part', e.target.value)}
+                                                    className="text-sm"
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <Input
+                                                    value={item.description}
+                                                    onChange={(e) => updateItem(index, 'description', e.target.value)}
+                                                    required
+                                                    className="text-sm"
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    value={item.qty}
+                                                    onChange={(e) => updateItem(index, 'qty', e.target.value)}
+                                                    required
+                                                    className="text-right text-sm"
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    value={item.harga}
+                                                    onChange={(e) => updateItem(index, 'harga', e.target.value)}
+                                                    required
+                                                    className="text-right text-sm"
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2 text-right text-sm font-semibold text-slate-900 dark:text-white">
+                                                {formatRupiah(item.total)}
+                                            </td>
+                                            <td className="px-3 py-2 text-center">
+                                                {items.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => removeItem(index)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                                    </Button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot className="bg-slate-50 dark:bg-slate-800">
+                                    <tr>
+                                        <td colSpan="5" className="px-3 py-2 text-right text-sm font-semibold text-slate-900 dark:text-white">
+                                            GRAND TOTAL
+                                        </td>
+                                        <td className="px-3 py-2 text-right text-sm font-bold text-slate-900 dark:text-white">
+                                            {formatRupiah(grandTotal)}
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        {form.errors.items && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{form.errors.items}</p>
+                        )}
+                    </div>
+
+                    {/* Attachments */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <FormRow label="Foto Nota" conditionalNote="JPG/PNG/PDF, maks 10MB" error={form.errors.foto_nota}>
+                            <Input
+                                type="file"
+                                accept="image/jpeg,image/png,application/pdf"
+                                onChange={(e) => form.setData('foto_nota', e.target.files[0])}
+                            />
+                        </FormRow>
+                        <FormRow label="Foto Barang" conditionalNote="JPG/PNG/PDF, maks 10MB" error={form.errors.foto_barang}>
+                            <Input
+                                type="file"
+                                accept="image/jpeg,image/png,application/pdf"
+                                onChange={(e) => form.setData('foto_barang', e.target.files[0])}
+                            />
+                        </FormRow>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => router.visit(route('permintaan-dana.index'))}>
+                            Batal
+                        </Button>
+                        <Button type="submit" disabled={form.processing}>
+                            Simpan
+                        </Button>
+                    </div>
+                </form>
+            </div>
         </AppLayout>
     );
 }

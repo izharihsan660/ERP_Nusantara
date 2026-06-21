@@ -1,89 +1,164 @@
-<!doctype html>
-<html lang="id">
+<!DOCTYPE html>
+<html>
 <head>
     <meta charset="utf-8">
-    <title>{{ $permintaanDana->no_pd }}</title>
+    <title>Permintaan Dana - {{ $pd->no_pd }}</title>
     <style>
-        body { color: #0f172a; font-family: DejaVu Sans, sans-serif; font-size: 12px; line-height: 1.45; }
-        .header { border-bottom: 2px solid #0f172a; margin-bottom: 22px; padding-bottom: 12px; }
-        .company { font-size: 18px; font-weight: bold; letter-spacing: .4px; }
-        .muted { color: #475569; }
-        .title { font-size: 20px; font-weight: bold; margin: 18px 0 8px; text-align: center; }
-        .meta { margin-bottom: 18px; width: 100%; }
-        .meta td { padding: 5px 0; vertical-align: top; }
-        .box { border: 1px solid #cbd5e1; margin-top: 12px; padding: 12px; }
-        .amount { font-size: 18px; font-weight: bold; }
-        .signature { margin-top: 42px; width: 100%; }
-        .signature td { text-align: center; width: 50%; }
-        .signature .space { height: 62px; }
-        .footer { bottom: 20px; color: #475569; font-size: 10px; position: fixed; right: 0; width: 170px; }
-        .qr { margin-left: auto; width: 96px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; padding: 20mm; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 15mm; }
+        .header-left img { height: 50px; }
+        .header-right { text-align: right; font-size: 10pt; }
+        .header-right h2 { font-size: 14pt; margin-bottom: 3px; }
+        .date { margin-bottom: 10mm; text-align: left; }
+        .recipient { margin-bottom: 10mm; }
+        .title-section { margin-bottom: 8mm; }
+        .title-section h3 { font-size: 12pt; margin-bottom: 5px; }
+        .intro { margin-bottom: 8mm; }
+        .detail-row { margin-bottom: 5px; }
+        .detail-row strong { display: inline-block; width: 100px; }
+        table { width: 100%; border-collapse: collapse; margin: 10mm 0; font-size: 10pt; }
+        table th, table td { border: 1px solid #000; padding: 6px 8px; }
+        table th { background-color: #f3f4f6; font-weight: bold; text-align: left; }
+        table td.right { text-align: right; }
+        table tfoot td { font-weight: bold; background-color: #f9fafb; }
+        .footer-text { margin: 8mm 0; }
+        .signature-section { margin-top: 15mm; display: flex; justify-content: space-between; }
+        .signature-box { text-align: center; width: 45%; }
+        .signature-box .label { margin-bottom: 50px; }
+        .signature-box .name { border-top: 1px solid #000; padding-top: 5px; display: inline-block; min-width: 150px; }
+        .qr-code { position: absolute; bottom: 20mm; right: 20mm; }
+        .qr-code img { width: 80px; height: 80px; }
+        .attachment-page { page-break-before: always; }
+        .attachment-page h3 { margin-bottom: 10mm; }
+        .attachment-page img { max-width: 100%; height: auto; margin-bottom: 10mm; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="company">PT. Nusantara Abadi Jaya</div>
-        <div class="muted">Makassar - Dokumen Permintaan Dana</div>
-        <div class="muted">Jl. Nusantara Abadi Jaya, Makassar</div>
+        <div class="header-left">
+            @if(file_exists(public_path('images/logo-naj.png')))
+                <img src="{{ public_path('images/logo-naj.png') }}" alt="Logo NAJ">
+            @else
+                <h2>PT. Nusantara Abadi Jaya</h2>
+            @endif
+        </div>
+        <div class="header-right">
+            <h2>PT. NUSANTARA ABADI JAYA</h2>
+            <p>Jl. Urip Sumoharjo No. 123, Makassar</p>
+            <p>Telp: (0411) 123456</p>
+        </div>
     </div>
 
-    <div class="title">PERMINTAAN DANA</div>
+    <div class="date">
+        Makassar, {{ \Carbon\Carbon::parse($pd->created_at)->isoFormat('DD MMMM YYYY') }}
+    </div>
 
-    <table class="meta">
-        <tr>
-            <td width="140">No. PD</td>
-            <td width="10">:</td>
-            <td>{{ $permintaanDana->no_pd }}</td>
-            <td width="140">Tanggal</td>
-            <td width="10">:</td>
-            <td>{{ $permintaanDana->tgl_pd?->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td>Kategori</td>
-            <td>:</td>
-            <td>{{ $permintaanDana->kategori->label() }}</td>
-            <td>Referensi Dokumen</td>
-            <td>:</td>
-            <td>{{ $permintaanDana->referensi_dokumen ?: '-' }}</td>
-        </tr>
-        <tr>
-            <td>Diajukan oleh</td>
-            <td>:</td>
-            <td>{{ $permintaanDana->createdBy?->name ?: '-' }}</td>
-            <td>Disetujui oleh</td>
-            <td>:</td>
-            <td>{{ $permintaanDana->approvedBy?->name ?: 'Manager' }}</td>
-        </tr>
+    <div class="recipient">
+        <div>Kepada Yth,</div>
+        <div><strong>{{ $managerName ?? 'Ibu Ratih Tirana' }}</strong></div>
+        <div>Di- Tempat</div>
+    </div>
+
+    <div class="title-section">
+        <h3>Permohonan Dana</h3>
+        <div>No: <strong>{{ $pd->no_pd }}</strong></div>
+    </div>
+
+    <div class="intro">
+        Dengan ini kami mohon untuk dapat dibayarkan, pengeluaran berikut:
+    </div>
+
+    <div class="detail-row">
+        <strong>Tujuan:</strong> {{ $pd->tujuan }}
+    </div>
+
+    @if($pd->items->count() > 0)
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 15%;">NO. PO</th>
+                <th style="width: 15%;">NO. PART</th>
+                <th style="width: 35%;">DESCRIPTION</th>
+                <th style="width: 10%;" class="right">QTY</th>
+                <th style="width: 15%;" class="right">HARGA</th>
+                <th style="width: 15%;" class="right">TOTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($pd->items as $item)
+            <tr>
+                <td>{{ $item->no_po ?? '-' }}</td>
+                <td>{{ $item->no_part ?? '-' }}</td>
+                <td>{{ $item->description }}</td>
+                <td class="right">{{ $item->qty }}</td>
+                <td class="right">{{ number_format($item->harga, 0, ',', '.') }}</td>
+                <td class="right">{{ number_format($item->total, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" class="right">TOTAL</td>
+                <td class="right">Rp {{ number_format($pd->total, 0, ',', '.') }}</td>
+            </tr>
+        </tfoot>
     </table>
+    @endif
 
-    <div class="box">
-        <div class="muted">Nominal</div>
-        <div class="amount">Rp {{ number_format((float) $permintaanDana->nominal, 2, ',', '.') }}</div>
+    <div class="footer-text">
+        <p>Mohon dana dapat segera di proses.</p>
+        <p>Transfer ke rekening <strong>{{ $pd->rekening_tujuan }}</strong></p>
+        @if($pd->bank_tujuan)
+        <p>BANK <strong>{{ strtoupper($pd->bank_tujuan) }}</strong></p>
+        @endif
+        <p>Plan pembayaran <strong>{{ \Carbon\Carbon::parse($pd->plan_pembayaran)->isoFormat('DD MMMM YYYY') }}</strong></p>
+        <p>Terima Kasih.</p>
     </div>
 
-    <div class="box">
-        <strong>Keterangan</strong>
-        <div>{{ $permintaanDana->keterangan }}</div>
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="label">Dibuat Oleh,</div>
+            <div class="name">{{ $pd->createdBy->name ?? '' }}</div>
+        </div>
+        <div class="signature-box">
+            <div class="label">Mengetahui,</div>
+            <div class="name">{{ $pd->approvedBy->name ?? '' }}</div>
+        </div>
     </div>
 
-    <table class="signature">
-        <tr>
-            <td>Procurement,</td>
-            <td>Manager,</td>
-        </tr>
-        <tr>
-            <td class="space"></td>
-            <td class="space"></td>
-        </tr>
-        <tr>
-            <td>{{ $permintaanDana->createdBy?->name ?: 'Procurement' }}</td>
-            <td>{{ $permintaanDana->approvedBy?->name ?: 'Manager' }}</td>
-        </tr>
-    </table>
-
-    <div class="footer">
-        <img class="qr" src="{{ $qrCode }}" alt="QR Verifikasi">
-        <div>Scan untuk verifikasi dokumen.</div>
+    @if($pd->qr_token)
+    <div class="qr-code">
+        {!! QrCode::size(80)->generate(route('verify', ['token' => $pd->qr_token])) !!}
     </div>
+    @endif
+
+    @if($pd->foto_nota || $pd->foto_barang)
+    <div class="attachment-page">
+        <h3>Lampiran</h3>
+        
+        @if($pd->foto_nota && file_exists(storage_path('app/' . $pd->foto_nota)))
+            <div>
+                <h4>Foto Nota:</h4>
+                @if(Str::endsWith($pd->foto_nota, '.pdf'))
+                    <p>Lihat file PDF terlampir: {{ basename($pd->foto_nota) }}</p>
+                @else
+                    <img src="{{ storage_path('app/' . $pd->foto_nota) }}" alt="Foto Nota">
+                @endif
+            </div>
+        @endif
+
+        @if($pd->foto_barang && file_exists(storage_path('app/' . $pd->foto_barang)))
+            <div>
+                <h4>Foto Barang:</h4>
+                @if(Str::endsWith($pd->foto_barang, '.pdf'))
+                    <p>Lihat file PDF terlampir: {{ basename($pd->foto_barang) }}</p>
+                @else
+                    <img src="{{ storage_path('app/' . $pd->foto_barang) }}" alt="Foto Barang">
+                @endif
+            </div>
+        @endif
+    </div>
+    @endif
 </body>
 </html>
