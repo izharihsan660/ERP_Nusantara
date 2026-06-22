@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MasterData;
 
+use App\Actions\ActivityLog\RecordActivity;
 use App\Enums\DocumentType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DocumentTemplate\StoreDocumentTemplateRequest;
@@ -15,7 +16,10 @@ use Inertia\Response;
 
 class DocumentTemplateController extends Controller
 {
-    public function __construct(private readonly DocumentTemplateService $documentTemplateService) {}
+    public function __construct(
+        private readonly DocumentTemplateService $documentTemplateService,
+        private readonly RecordActivity $recordActivity,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -54,6 +58,26 @@ class DocumentTemplateController extends Controller
         $this->documentTemplateService->update($documentTemplate, $request->validated(), $request);
 
         return to_route('document-templates.index')->with('success', 'Template dokumen berhasil diperbarui.');
+    }
+
+    public function uploadDocx(Request $request, DocumentTemplate $documentTemplate): RedirectResponse
+    {
+        abort_unless($request->user()?->can('ubah_template'), 403);
+
+        $request->validate([
+            'docx' => ['required', 'file', 'mimes:docx', 'max:10240'],
+        ]);
+
+        $path = $request->file('docx')->storeAs(
+            'templates',
+            $documentTemplate->kode_template.'.docx',
+            'local',
+        );
+
+        $documentTemplate->update(['docx_path' => $path]);
+        $this->recordActivity->handle('uploaded_document_template', $documentTemplate, "Upload template .docx: {$documentTemplate->nama_template}", $request);
+
+        return back()->with('success', 'Template .docx berhasil diupload.');
     }
 
     public function destroy(Request $request, DocumentTemplate $documentTemplate): RedirectResponse

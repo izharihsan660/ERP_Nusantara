@@ -24,6 +24,7 @@ class Quotation extends Model
         'masa_berlaku',
         'catatan_rejection',
         'qr_token',
+        'generated_pdf_path',
         'approved_by',
         'approved_at',
         'voided_by',

@@ -95,7 +95,11 @@ class QuotationService
                 'approved_at' => now(),
             ]);
 
-            $this->quotationPDFService->generate($quotation->refresh());
+            $quotation = $quotation->refresh();
+            $quotation->update([
+                'generated_pdf_path' => $this->quotationPDFService->generate($quotation),
+            ]);
+
             $this->recordActivity->handle('approved_quotation', $quotation, "{$user->name} approve quotation {$quotation->no_quotation}");
 
             return $quotation->refresh();

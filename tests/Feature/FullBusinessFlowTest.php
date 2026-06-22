@@ -46,6 +46,20 @@ class FullBusinessFlowTest extends TestCase
 {
     use DatabaseTransactions;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->partialMock(QuotationPDFService::class, function ($mock): void {
+            $mock->shouldReceive('generate')->andReturnUsing(function (): string {
+                Storage::disk('local')->put('quotations/test.pdf', "%PDF-1.4\n% Test PDF\n");
+
+                return 'quotations/test.pdf';
+            })->byDefault();
+            $mock->shouldReceive('path')->andReturn('quotations/test.pdf')->byDefault();
+        });
+    }
+
     public function test_quotation_to_payment_flow_runs_end_to_end(): void
     {
         $user = $this->actingAsSuperadmin();

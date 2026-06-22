@@ -144,6 +144,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/document-templates', [DocumentTemplateController::class, 'store'])->middleware('permission:tambah_template')->name('document-templates.store');
     Route::get('/document-templates/{documentTemplate}/edit', [DocumentTemplateController::class, 'edit'])->middleware('permission:ubah_template')->name('document-templates.edit');
     Route::put('/document-templates/{documentTemplate}', [DocumentTemplateController::class, 'update'])->middleware('permission:ubah_template')->name('document-templates.update');
+    Route::post('/document-templates/{documentTemplate}/upload-docx', [DocumentTemplateController::class, 'uploadDocx'])->middleware('permission:ubah_template')->name('document-templates.upload-docx');
     Route::delete('/document-templates/{documentTemplate}', [DocumentTemplateController::class, 'destroy'])->middleware('permission:hapus_template')->name('document-templates.destroy');
 
     Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:lihat_jabatan')->name('roles.index');

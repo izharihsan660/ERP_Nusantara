@@ -14,6 +14,7 @@ class DocumentTemplate extends Model
         'kode_template',
         'tipe_dokumen',
         'blade_file',
+        'docx_path',
         'is_default',
         'keterangan',
     ];

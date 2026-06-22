@@ -19,7 +19,7 @@ export default function Form({ template, documentTypes }) {
         isEdit ? put(route('document-templates.update', template.id)) : post(route('document-templates.store'));
     };
     return (
-        <FormShell title={isEdit ? 'Edit Template Dokumen' : 'Tambah Template Dokumen'} description="Daftarkan nama template dan file blade yang akan dipakai." backRoute="document-templates.index" processing={processing} onSubmit={submit}>
+        <FormShell title={isEdit ? 'Edit Template Dokumen' : 'Tambah Template Dokumen'} description="Daftarkan template dokumen. File .docx diupload dari halaman daftar template." backRoute="document-templates.index" processing={processing} onSubmit={submit}>
             <FormField label="Kode Template" name="kode_template" value={data.kode_template} onChange={(e) => setData('kode_template', e.target.value)} error={errors.kode_template} />
             <FormField label="Nama Template" name="nama_template" value={data.nama_template} onChange={(e) => setData('nama_template', e.target.value)} error={errors.nama_template} />
             <FormField label="Tipe Dokumen" name="tipe_dokumen" type="select" value={data.tipe_dokumen} options={documentTypes} onChange={(e) => setData('tipe_dokumen', e.target.value)} error={errors.tipe_dokumen} />

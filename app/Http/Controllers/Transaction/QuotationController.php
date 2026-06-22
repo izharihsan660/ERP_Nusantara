@@ -23,7 +23,6 @@ use App\Models\SalesOrder;
 use App\Models\Spb;
 use App\Models\SpbItem;
 use App\Models\WipOrder;
-use App\Services\QuotationPDFService;
 use App\Services\QuotationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +35,6 @@ class QuotationController extends Controller
 {
     public function __construct(
         private readonly QuotationService $quotationService,
-        private readonly QuotationPDFService $quotationPDFService,
     ) {}
 
     public function index(Request $request): Response
@@ -241,17 +239,17 @@ class QuotationController extends Controller
 
     public function download(Quotation $quotation): BinaryFileResponse
     {
-        abort_unless($quotation->status === QuotationStatus::Approved, 403);
+        if ($quotation->status !== QuotationStatus::Approved || ! $quotation->generated_pdf_path) {
+            abort(404, 'PDF belum tersedia, approve dulu.');
+        }
 
-        $path = $this->quotationPDFService->path($quotation);
-
-        if (! Storage::disk('local')->exists($path)) {
-            $path = $this->quotationPDFService->generate($quotation);
+        if (! Storage::disk('local')->exists($quotation->generated_pdf_path)) {
+            abort(404, 'PDF belum tersedia, approve dulu.');
         }
 
         $fileName = str_replace('/', '-', $quotation->no_quotation).'.pdf';
 
-        return response()->file(Storage::disk('local')->path($path), [
+        return response()->file(Storage::disk('local')->path($quotation->generated_pdf_path), [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$fileName.'"',
         ]);
