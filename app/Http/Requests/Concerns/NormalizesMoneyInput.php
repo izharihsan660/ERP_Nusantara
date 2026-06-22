@@ -66,9 +66,12 @@ trait NormalizesMoneyInput
             return $value;
         }
 
-        $normalized = str_contains($normalized, ',')
+        $hasIndonesianDecimal = str_contains($normalized, ',');
+        $hasDatabaseDecimal = preg_match('/^-?\d+\.\d{1,2}$/', $normalized) === 1;
+
+        $normalized = $hasIndonesianDecimal
             ? str_replace(',', '.', str_replace('.', '', $normalized))
-            : str_replace('.', '', $normalized);
+            : ($hasDatabaseDecimal ? $normalized : str_replace('.', '', $normalized));
 
         return is_numeric($normalized) ? (float) $normalized : $value;
     }

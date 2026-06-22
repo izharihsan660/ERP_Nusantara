@@ -18,6 +18,12 @@ function today() {
 
 const emptyItem = { katalog_id: '', part_no: '', deskripsi: '', satuan: '', qty: 1, harga_satuan: 0, hpp_satuan: 0 };
 
+const normalizeItemMoney = (item) => ({
+    ...item,
+    harga_satuan: parseRupiah(item.harga_satuan),
+    hpp_satuan: parseRupiah(item.hpp_satuan),
+});
+
 export default function Create({ customers, templates }) {
     const { data, setData, post, transform, processing, errors } = useForm({
         customer_id: '',
@@ -66,8 +72,8 @@ export default function Create({ customers, templates }) {
 
     const totals = data.items.reduce((carry, item) => {
         const qty = Number(item.qty ?? 0);
-        const harga = Number(item.harga_satuan ?? 0);
-        const hpp = Number(item.hpp_satuan ?? 0);
+        const harga = parseRupiah(item.harga_satuan);
+        const hpp = parseRupiah(item.hpp_satuan);
 
         return {
             total: carry.total + qty * harga,
@@ -81,10 +87,7 @@ export default function Create({ customers, templates }) {
         transform((payload) => ({
             ...payload,
             submit: submitToManager,
-            items: payload.items.map((item) => ({
-                ...item,
-                harga_satuan: parseRupiah(item.harga_satuan),
-            })),
+            items: payload.items.map(normalizeItemMoney),
         }));
         post(route('quotations.store'));
     };
@@ -164,8 +167,8 @@ export default function Create({ customers, templates }) {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
                                 {data.items.map((item, index) => {
-                                    const total = Number(item.qty ?? 0) * Number(item.harga_satuan ?? 0);
-                                    const profit = total - Number(item.qty ?? 0) * Number(item.hpp_satuan ?? 0);
+                                    const total = Number(item.qty ?? 0) * parseRupiah(item.harga_satuan);
+                                    const profit = total - Number(item.qty ?? 0) * parseRupiah(item.hpp_satuan);
 
                                     return (
                                         <tr key={index}>

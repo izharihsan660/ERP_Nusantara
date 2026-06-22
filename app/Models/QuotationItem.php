@@ -17,6 +17,7 @@ class QuotationItem extends Model
         'harga_satuan',
         'hpp_satuan',
         'jumlah',
+        'status',
         'profit',
     ];
 

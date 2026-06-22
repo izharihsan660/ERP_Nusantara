@@ -19,6 +19,9 @@ class Quotation extends Model
         'revisi',
         'status',
         'catatan',
+        'perihal',
+        'metode_pembayaran',
+        'masa_berlaku',
         'catatan_rejection',
         'qr_token',
         'approved_by',
@@ -33,6 +36,7 @@ class Quotation extends Model
     {
         return [
             'tgl_quotation' => 'date',
+            'masa_berlaku' => 'date',
             'revisi' => 'integer',
             'status' => QuotationStatus::class,
             'approved_at' => 'datetime',

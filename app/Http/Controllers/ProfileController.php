@@ -8,8 +8,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class ProfileController extends Controller
 {
@@ -21,6 +24,9 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'signature_url' => $request->user()->signature_path
+                ? Storage::url($request->user()->signature_path)
+                : null,
         ]);
     }
 
@@ -38,6 +44,55 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('profile.edit');
+    }
+
+    /**
+     * Update the user's digital signature.
+     */
+    public function updateSignature(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'signature' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+        ]);
+
+        $user = $request->user();
+        $path = "signatures/{$user->id}.png";
+
+        if ($user->signature_path) {
+            Storage::delete($user->signature_path);
+        }
+
+        Storage::makeDirectory('signatures');
+
+        $manager = new ImageManager(new Driver);
+        $manager
+            ->decodePath($request->file('signature')->getPathname())
+            ->scaleDown(width: 400, height: 200)
+            ->save(Storage::path($path));
+
+        $user->forceFill([
+            'signature_path' => $path,
+        ])->save();
+
+        return Redirect::route('profile.edit')->with('status', 'signature-updated');
+    }
+
+    /**
+     * Delete the user's digital signature.
+     */
+    public function deleteSignature(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->signature_path) {
+            Storage::delete($user->signature_path);
+        }
+
+        $user->forceFill([
+            'signature_path' => null,
+        ])->save();
+
+        return Redirect::route('profile.edit')->with('status', 'signature-deleted');
     }
 
     /**

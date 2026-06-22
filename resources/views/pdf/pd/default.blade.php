@@ -6,7 +6,7 @@
 <!doctype html><html lang="id"><head><meta charset="utf-8"><style>
 @page{margin:1.5cm}body{font-family:Arial,sans-serif;font-size:11px;color:#111;line-height:1.35}table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;vertical-align:top}.header td{border-bottom:1px solid #ccc}.company{font-size:13px;font-weight:bold}.items th,.items td{border:1px solid #ccc}.items th{background:#f5f5f5;text-align:center;font-weight:bold}.right{text-align:right}.center{text-align:center}.sign td{border:1px solid #ccc;height:95px;text-align:center;vertical-align:bottom}.qr{position:fixed;right:0;bottom:0;text-align:center}.page-break{page-break-before:always}.attachment{max-width:100%;max-height:24cm}
 </style></head><body>
-<table class="header"><tr><td style="width:70px;font-weight:bold">NAJ</td><td><div class="company">PT. NUSANTARA ABADI JAYA</div><div>JL.Wiyata No.81 RT23, Kalimantan Timur</div></td></tr></table>
+<table class="header"><tr><td style="width:70px;font-weight:bold">NAJ</td><td><div class="company">PT. NUSANTARA ABADI JAYA</div><div>JL. Wiyata No. 81 RT 23, Kalimantan Timur</div></td></tr></table>
 <p>Makassar, {{ $tanggal->translatedFormat('d F Y') }}</p>
 <p>Kepada Yth,<br>Ibu Ratih Tirana<br>Di- Tempat</p>
 <p><strong>Permohonan Dana</strong><br>No: {{ $pd->no_pd }}</p>

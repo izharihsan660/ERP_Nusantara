@@ -24,9 +24,11 @@ export const parseRupiah = (rupiahString) => {
         return 0;
     }
 
-    const normalized = value.includes(',')
+    const hasIndonesianDecimal = value.includes(',');
+    const hasDatabaseDecimal = /^-?\d+\.\d{1,2}$/.test(value);
+    const normalized = hasIndonesianDecimal
         ? value.replace(/\./g, '').replace(',', '.')
-        : value.replace(/\./g, '');
+        : (hasDatabaseDecimal ? value : value.replace(/\./g, ''));
     const number = Number(normalized);
 
     return Number.isFinite(number) ? number : 0;

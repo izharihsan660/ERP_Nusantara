@@ -15,13 +15,35 @@ class QuotationPDFService
         $quotation->loadMissing(['customer', 'template', 'items', 'approvedBy']);
 
         $view = $this->resolveView($quotation);
-        $verifyUrl = route('verify.quotation', $quotation->qr_token);
-        $qrCode = base64_encode(QrCode::format('svg')->size(120)->margin(1)->generate($verifyUrl));
+        $verifyUrl = null;
+        $qrCode = null;
+
+        if ($quotation->status->value === 'APPROVED' && $quotation->qr_token) {
+            $verifyUrl = route('verify.quotation', $quotation->qr_token);
+            $qrCode = base64_encode(QrCode::format('svg')->size(120)->margin(1)->generate($verifyUrl));
+        }
+        $signaturePath = null;
+
+        if ($quotation->status->value === 'APPROVED' && $quotation->approvedBy?->signature_path) {
+            $absoluteSignaturePath = storage_path('app/private/'.$quotation->approvedBy->signature_path);
+
+            if (file_exists($absoluteSignaturePath)) {
+                $signaturePath = $absoluteSignaturePath;
+            }
+        }
+
+        $masaBerlaku = $quotation->masa_berlaku
+            ? $quotation->masa_berlaku->translatedFormat('d F Y')
+            : ($quotation->tgl_quotation?->copy()->addMonths(6)->translatedFormat('d F Y') ?? '-');
 
         $pdf = Pdf::loadView($view, [
             'quotation' => $quotation,
-            'qrCode' => "data:image/svg+xml;base64,{$qrCode}",
+            'qrCode' => $qrCode ? "data:image/svg+xml;base64,{$qrCode}" : null,
             'verifyUrl' => $verifyUrl,
+            'perihal' => $quotation->perihal,
+            'metode_pembayaran' => $quotation->metode_pembayaran,
+            'masa_berlaku' => $masaBerlaku,
+            'signaturePath' => $signaturePath,
         ])->setPaper('a4')->setOptions(['enable_compression' => true]);
 
         $path = 'quotations/'.$this->fileName($quotation);

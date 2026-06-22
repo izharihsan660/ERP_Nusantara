@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
 
@@ -18,7 +19,11 @@ class AppSetting extends Model
         }
 
         if ($key === 'mail_password' && filled($setting->value)) {
-            return Crypt::decryptString($setting->value);
+            try {
+                return Crypt::decryptString($setting->value);
+            } catch (DecryptException) {
+                return $setting->value;
+            }
         }
 
         return $setting->value ?? $default;

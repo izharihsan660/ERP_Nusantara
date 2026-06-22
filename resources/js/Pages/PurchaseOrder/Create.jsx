@@ -19,6 +19,11 @@ function today() {
 
 const emptyItem = { katalog_id: '', part_no: '', deskripsi: '', satuan: '', qty: 1, harga_satuan: 0 };
 
+const normalizeItemMoney = (item) => ({
+    ...item,
+    harga_satuan: parseRupiah(item.harga_satuan),
+});
+
 export default function Create({ customers, vendors }) {
     const [customerSearch, setCustomerSearch] = useState('');
     const [vendorSearch, setVendorSearch] = useState('');
@@ -59,17 +64,14 @@ export default function Create({ customers, vendors }) {
 
     const addItem = () => setData('items', [...data.items, { ...emptyItem }]);
     const removeItem = (index) => setData('items', data.items.filter((_, itemIndex) => itemIndex !== index));
-    const total = data.items.reduce((carry, item) => carry + Number(item.qty ?? 0) * Number(item.harga_satuan ?? 0), 0);
+    const total = data.items.reduce((carry, item) => carry + Number(item.qty ?? 0) * parseRupiah(item.harga_satuan), 0);
 
     const submit = (event, submitToManager = false) => {
         event.preventDefault();
         transform((payload) => ({
             ...payload,
             submit: submitToManager,
-            items: payload.items.map((item) => ({
-                ...item,
-                harga_satuan: parseRupiah(item.harga_satuan),
-            })),
+            items: payload.items.map(normalizeItemMoney),
         }));
         post(route('purchase-orders.store'));
     };
@@ -136,47 +138,49 @@ export default function Create({ customers, vendors }) {
                         </div>
                         <Button type="button" variant="secondary" onClick={addItem}><Plus className="h-4 w-4" />Tambah Item</Button>
                     </div>
-                    <div className="overflow-x-auto rounded-lg border border-[hsl(var(--border))]">
-                        <table className="min-w-[1040px] table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                    <div className="rounded-lg border border-[hsl(var(--border))]">
+                        <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm dark:divide-slate-800">
                             <thead className="bg-slate-50 dark:bg-slate-900">
                                 <tr>
-                                    <th className="w-56 px-3 py-2 text-left">No. Part</th>
-                                    <th className="w-72 px-3 py-2 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
-                                    <th className="w-24 px-3 py-2 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
-                                    <th className="w-28 px-3 py-2 text-left">Satuan</th>
-                                    <th className="w-40 px-3 py-2 text-left"><InputLabel label="Harga" required className="text-xs" /></th>
-                                    <th className="w-40 px-3 py-2 text-right">Jumlah</th>
-                                    <th className="w-20 px-3 py-2 text-center">Aksi</th>
+                                    <th className="px-3 py-3 text-left"><InputLabel label="Katalog" required className="text-xs" /></th>
+                                    <th className="px-3 py-3 text-left">Part No</th>
+                                    <th className="px-3 py-3 text-left"><InputLabel label="Deskripsi" required className="text-xs" /></th>
+                                    <th className="px-3 py-3 text-left"><InputLabel label="Qty" required className="text-xs" /></th>
+                                    <th className="px-3 py-3 text-left">Satuan</th>
+                                    <th className="px-3 py-3 text-left"><InputLabel label="Harga" required className="text-xs" /></th>
+                                    <th className="px-3 py-3 text-right">Jumlah</th>
+                                    <th className="px-3 py-3" />
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
                                 {data.items.map((item, index) => {
-                                    const jumlah = Number(item.qty ?? 0) * Number(item.harga_satuan ?? 0);
+                                    const jumlah = Number(item.qty ?? 0) * parseRupiah(item.harga_satuan);
 
                                     return (
                                         <tr key={index}>
-                                            <td className="px-3 py-2 align-top">
+                                            <td className="min-w-64 px-3 py-3">
                                                 <KatalogAutocomplete value={item} onSelect={(selected) => setKatalog(index, selected)} />
-                                                <Input value={item.part_no ?? ''} readOnly className="mt-2" />
+                                                <InputError message={errors[`items.${index}.katalog_id`]} className="mt-2" />
                                             </td>
-                                            <td className="px-3 py-2 align-top">
+                                            <td className="w-36 px-3 py-3"><Input value={item.part_no ?? ''} readOnly /></td>
+                                            <td className="min-w-56 px-3 py-3">
                                                 <Input value={item.deskripsi} readOnly />
                                                 <InputError message={errors[`items.${index}.deskripsi`]} className="mt-2" />
                                             </td>
-                                            <td className="px-3 py-2 align-top">
+                                            <td className="w-24 px-3 py-3">
                                                 <Input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', e.target.value)} />
                                                 <InputError message={errors[`items.${index}.qty`]} className="mt-2" />
                                             </td>
-                                            <td className="px-3 py-2 align-top">
+                                            <td className="w-28 px-3 py-3">
                                                 <Input value={item.satuan ?? ''} readOnly />
                                                 <InputError message={errors[`items.${index}.satuan`]} className="mt-2" />
                                             </td>
-                                            <td className="px-3 py-2 align-top">
+                                            <td className="w-40 px-3 py-3">
                                                 <Input inputMode="numeric" value={formatRupiahInput(item.harga_satuan)} onChange={(e) => updateItem(index, 'harga_satuan', parseRupiah(e.target.value))} />
                                                 <InputError message={errors[`items.${index}.harga_satuan`]} className="mt-2" />
                                             </td>
-                                            <td className="whitespace-nowrap px-3 py-2 text-right align-top">{formatRupiah(jumlah)}</td>
-                                            <td className="px-3 py-2 text-center align-top">
+                                            <td className="whitespace-nowrap px-3 py-3 text-right font-medium">{formatRupiah(jumlah)}</td>
+                                            <td className="w-16 px-3 py-3 text-center">
                                                 <Button type="button" size="icon" variant="ghost" onClick={() => removeItem(index)} disabled={data.items.length === 1}>
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -185,14 +189,18 @@ export default function Create({ customers, vendors }) {
                                     );
                                 })}
                             </tbody>
-                            <tfoot className="bg-[hsl(var(--muted))]/60 font-semibold">
-                                <tr>
-                                    <td className="px-3 py-3 text-right" colSpan="6">Total Keseluruhan</td>
-                                    <td className="px-3 py-3 text-right">{formatRupiah(total)}</td>
-                                    <td />
-                                </tr>
-                            </tfoot>
                         </table>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/40 p-4 md:col-span-2">
+                            <p className="text-sm text-[hsl(var(--muted-foreground))]">Total Keseluruhan</p>
+                            <p className="mt-2 text-base font-semibold text-[hsl(var(--foreground))]">{formatRupiah(total)}</p>
+                        </div>
+                        <div className="rounded-lg border border-emerald-700/50 bg-emerald-950/40 p-4">
+                            <p className="text-sm text-emerald-300">Jumlah Item</p>
+                            <p className="mt-2 text-base font-semibold text-emerald-200">{data.items.length} item</p>
+                        </div>
                     </div>
                 </section>
 

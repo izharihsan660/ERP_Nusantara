@@ -10,9 +10,11 @@
         body { font-family: Arial, sans-serif; font-size: 11px; color: #111; }
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 4px 8px; vertical-align: top; }
-        .header td { border: 1px solid #ccc; }
-        .company { font-size: 13px; font-weight: bold; }
-        .doc-title { font-size: 16px; font-weight: bold; text-align: center; }
+        .naj-header td { border: 1px solid #ccc; }
+        .naj-logo { width: 58px; font-weight: bold; font-size: 16px; }
+        .naj-company { font-size: 13px; font-weight: bold; }
+        .naj-title-cell { width: 250px; text-align: center; vertical-align: middle; }
+        .naj-title { font-size: 16px; font-weight: bold; }
         .ship td { border: 1px solid #ccc; height: 18px; }
         .items th, .items td { border: 1px solid #ccc; padding: 3px 5px; }
         .items th { background: #f5f5f5; font-weight: bold; text-align: center; font-size: 9px; }
@@ -22,22 +24,12 @@
     </style>
 </head>
 <body>
-    <table class="header">
+    @include('pdf.partials.company-header', ['title' => 'SURAT PENGIRIMAN BARANG', 'subtitle' => '(Delivery Notes)'])
+
+    <table class="ship" style="margin-top: 10px;">
         <tr>
-            <td style="width: 52%;">
-                <div class="company">PT NUSANTARA ABADI JAYA</div>
-                <div>JL.Wiyata No.81 RT23</div>
-                <div>Kalimantan Timur</div>
-            </td>
-            <td>
-                <div class="doc-title">SURAT PENGIRIMAN BARANG</div>
-                <div class="center small">(Delivery Notes)</div>
-                <table style="margin-top: 8px;">
-                    <tr><td style="border:0;width:70px;">Nomor</td><td style="border:0;">: {{ $spb->no_spb }}</td></tr>
-                    <tr><td style="border:0;">Tanggal</td><td style="border:0;">: {{ $tanggal?->translatedFormat('d F Y') ?? '-' }}</td></tr>
-                    <tr><td style="border:0;">Halaman</td><td style="border:0;">: 1 of 1</td></tr>
-                </table>
-            </td>
+            <td style="width: 70px;"><strong>Nomor</strong></td><td>: {{ $spb->no_spb }}</td>
+            <td style="width: 70px;"><strong>Tanggal</strong></td><td>: {{ $tanggal?->translatedFormat('d F Y') ?? '-' }}</td>
         </tr>
     </table>
 
