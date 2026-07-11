@@ -12,6 +12,7 @@ use App\Support\NotificationHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -87,7 +88,7 @@ class QuotationService
     {
         $this->ensureStatus($quotation, QuotationStatus::PendingApproval, 'Quotation hanya bisa diapprove dari status Pending Approval.');
 
-        return DB::transaction(function () use ($quotation, $user): Quotation {
+        $quotation = DB::transaction(function () use ($quotation, $user): Quotation {
             $quotation->update([
                 'status' => QuotationStatus::Approved,
                 'qr_token' => Str::random(64),
@@ -95,15 +96,23 @@ class QuotationService
                 'approved_at' => now(),
             ]);
 
-            $quotation = $quotation->refresh();
-            $quotation->update([
-                'generated_pdf_path' => $this->quotationPDFService->generate($quotation),
-            ]);
-
             $this->recordActivity->handle('approved_quotation', $quotation, "{$user->name} approve quotation {$quotation->no_quotation}");
 
             return $quotation->refresh();
         });
+
+        try {
+            $quotation->update([
+                'generated_pdf_path' => $this->quotationPDFService->generate($quotation),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Gagal generate PDF quotation {$quotation->no_quotation} setelah approval.", [
+                'quotation_id' => $quotation->id,
+                'exception' => $e,
+            ]);
+        }
+
+        return $quotation->refresh();
     }
 
     public function reject(Quotation $quotation, string $catatan, User $user): Quotation

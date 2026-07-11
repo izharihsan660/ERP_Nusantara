@@ -20,7 +20,6 @@ use App\Http\Controllers\Transaction\QuotationController;
 use App\Http\Controllers\Transaction\SalesOrderController;
 use App\Http\Controllers\Transaction\SpbController;
 use App\Http\Controllers\Transaction\WipOrderController;
-use App\Http\Controllers\VerifyController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -166,9 +165,10 @@ Route::get('/verify/{token}', [QuotationController::class, 'verify'])->name('ver
 
 require __DIR__.'/auth.php';
 
-Route::get('/verify/{qr_token}', [VerifyController::class, 'show'])->name('verify.show');
 Route::get('/approval/approve/{type}/{id}', [ApprovalController::class, 'approve'])->name('approval.approve');
 Route::get('/approval/reject/{type}/{id}', [ApprovalController::class, 'reject'])->name('approval.reject');
+Route::post('/approval/approve/{type}/{id}', [ApprovalController::class, 'executeApprove']);
+Route::post('/approval/reject/{type}/{id}', [ApprovalController::class, 'executeReject']);
 
 Route::middleware(['auth', 'permission:lihat_jabatan'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

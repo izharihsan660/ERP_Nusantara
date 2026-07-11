@@ -23,9 +23,11 @@ use App\Models\SalesOrder;
 use App\Models\Spb;
 use App\Models\SpbItem;
 use App\Models\WipOrder;
+use App\Services\QuotationPDFService;
 use App\Services\QuotationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -35,6 +37,7 @@ class QuotationController extends Controller
 {
     public function __construct(
         private readonly QuotationService $quotationService,
+        private readonly QuotationPDFService $quotationPDFService,
     ) {}
 
     public function index(Request $request): Response
@@ -239,17 +242,29 @@ class QuotationController extends Controller
 
     public function download(Quotation $quotation): BinaryFileResponse
     {
-        if ($quotation->status !== QuotationStatus::Approved || ! $quotation->generated_pdf_path) {
+        if ($quotation->status !== QuotationStatus::Approved) {
             abort(404, 'PDF belum tersedia, approve dulu.');
         }
 
-        if (! Storage::disk('local')->exists($quotation->generated_pdf_path)) {
-            abort(404, 'PDF belum tersedia, approve dulu.');
+        $path = $quotation->generated_pdf_path;
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
+            try {
+                $path = $this->quotationPDFService->generate($quotation);
+                $quotation->update(['generated_pdf_path' => $path]);
+            } catch (\Throwable $e) {
+                Log::error("Gagal generate ulang PDF quotation {$quotation->no_quotation} saat download.", [
+                    'quotation_id' => $quotation->id,
+                    'exception' => $e,
+                ]);
+
+                abort(503, 'PDF gagal di-generate, coba lagi.');
+            }
         }
 
         $fileName = str_replace('/', '-', $quotation->no_quotation).'.pdf';
 
-        return response()->file(Storage::disk('local')->path($quotation->generated_pdf_path), [
+        return response()->file(Storage::disk('local')->path($path), [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$fileName.'"',
         ]);

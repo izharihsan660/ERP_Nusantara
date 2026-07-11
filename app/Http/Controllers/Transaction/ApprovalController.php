@@ -17,59 +17,34 @@ use Inertia\Response;
 
 class ApprovalController extends Controller
 {
-    public function approve(Request $request, string $type, int $id): RedirectResponse|Response
+    public function approve(Request $request, string $type, int $id): Response
+    {
+        return $this->confirmation($request, $type, $id, 'approve');
+    }
+
+    public function reject(Request $request, string $type, int $id): Response
+    {
+        return $this->confirmation($request, $type, $id, 'reject');
+    }
+
+    public function executeApprove(Request $request, string $type, int $id): RedirectResponse|Response
     {
         if (! $request->hasValidSignature()) {
-            return Inertia::render('ApprovalConfirm', [
-                'success' => false,
-                'message' => 'Link approval sudah kedaluwarsa atau tidak valid.',
-            ]);
+            return $this->invalidLink('Link approval sudah kedaluwarsa atau tidak valid.');
         }
 
-        $model = match ($type) {
-            'quotation' => Quotation::query()->findOrFail($id),
-            'purchase_order' => PurchaseOrder::query()->findOrFail($id),
-            'permintaan_dana' => PermintaanDana::query()->findOrFail($id),
-            default => abort(404),
-        };
-
-        $service = match ($type) {
-            'quotation' => app(QuotationService::class),
-            'purchase_order' => app(PurchaseOrderService::class),
-            'permintaan_dana' => app(PermintaanDanaService::class),
-        };
-
-        // Use first Manager or Superadmin user as approver if not authenticated
-        $user = $request->user();
-        if (! $user) {
-            $user = User::role(['Manager', 'Superadmin'])->first();
-            if (! $user) {
-                return Inertia::render('ApprovalConfirm', [
-                    'success' => false,
-                    'message' => 'Tidak ada user dengan role Manager/Superadmin untuk melakukan approval.',
-                ]);
-            }
-        }
+        $model = $this->model($type, $id);
+        $service = $this->service($type);
+        $user = $this->approver($request, $type);
 
         try {
             $service->approve($model, $user);
 
-            $documentField = 'no_'.($type === 'purchase_order' ? 'po_naj' : ($type === 'permintaan_dana' ? 'pd' : 'quotation'));
-
             return Inertia::render('ApprovalConfirm', [
                 'success' => true,
-                'document' => [
-                    'tipe' => str($type)->replace('_', ' ')->title(),
-                    'nomor' => $model->{$documentField},
-                    'customer' => $model->customer?->nama_customer ?? $model->tujuan ?? 'N/A',
-                    'url' => match ($type) {
-                        'quotation' => route('quotations.show', $model),
-                        'purchase_order' => route('purchase-orders.show', $model),
-                        'permintaan_dana' => route('permintaan-dana.show', $model),
-                    },
-                ],
+                'document' => $this->documentSummary($type, $model),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return Inertia::render('ApprovalConfirm', [
                 'success' => false,
                 'message' => 'Gagal melakukan approval: '.$e->getMessage(),
@@ -77,64 +52,107 @@ class ApprovalController extends Controller
         }
     }
 
-    public function reject(Request $request, string $type, int $id): RedirectResponse|Response
+    public function executeReject(Request $request, string $type, int $id): RedirectResponse|Response
     {
         if (! $request->hasValidSignature()) {
-            return Inertia::render('ApprovalConfirm', [
-                'success' => false,
-                'message' => 'Link reject sudah kedaluwarsa atau tidak valid.',
-            ]);
+            return $this->invalidLink('Link reject sudah kedaluwarsa atau tidak valid.');
         }
 
-        $model = match ($type) {
-            'quotation' => Quotation::query()->findOrFail($id),
-            'purchase_order' => PurchaseOrder::query()->findOrFail($id),
-            'permintaan_dana' => PermintaanDana::query()->findOrFail($id),
-            default => abort(404),
-        };
-
-        $service = match ($type) {
-            'quotation' => app(QuotationService::class),
-            'purchase_order' => app(PurchaseOrderService::class),
-            'permintaan_dana' => app(PermintaanDanaService::class),
-        };
-
-        // Use first Manager or Superadmin user as approver if not authenticated
-        $user = $request->user();
-        if (! $user) {
-            $user = User::role(['Manager', 'Superadmin'])->first();
-            if (! $user) {
-                return Inertia::render('ApprovalConfirm', [
-                    'success' => false,
-                    'message' => 'Tidak ada user dengan role Manager/Superadmin untuk melakukan reject.',
-                ]);
-            }
-        }
+        $model = $this->model($type, $id);
+        $service = $this->service($type);
+        $user = $this->approver($request, $type);
 
         try {
-            $service->reject($model, $user, 'Rejected via email approval link');
-
-            $documentField = 'no_'.($type === 'purchase_order' ? 'po_naj' : ($type === 'permintaan_dana' ? 'pd' : 'quotation'));
+            $service->reject($model, 'Rejected via email approval link', $user);
 
             return Inertia::render('ApprovalConfirm', [
                 'success' => true,
                 'rejected' => true,
-                'document' => [
-                    'tipe' => str($type)->replace('_', ' ')->title(),
-                    'nomor' => $model->{$documentField},
-                    'customer' => $model->customer?->nama_customer ?? $model->tujuan ?? 'N/A',
-                    'url' => match ($type) {
-                        'quotation' => route('quotations.show', $model),
-                        'purchase_order' => route('purchase-orders.show', $model),
-                        'permintaan_dana' => route('permintaan-dana.show', $model),
-                    },
-                ],
+                'document' => $this->documentSummary($type, $model),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return Inertia::render('ApprovalConfirm', [
                 'success' => false,
                 'message' => 'Gagal melakukan reject: '.$e->getMessage(),
             ]);
         }
+    }
+
+    private function confirmation(Request $request, string $type, int $id, string $action): Response
+    {
+        if (! $request->hasValidSignature()) {
+            return $this->invalidLink('Link approval sudah kedaluwarsa atau tidak valid.');
+        }
+
+        $model = $this->model($type, $id);
+        $this->approver($request, $type);
+
+        return Inertia::render('ApprovalConfirm', [
+            'confirmation' => true,
+            'action' => $action,
+            'actionUrl' => $request->fullUrl(),
+            'document' => $this->documentSummary($type, $model),
+        ]);
+    }
+
+    private function model(string $type, int $id): Quotation|PurchaseOrder|PermintaanDana
+    {
+        return match ($type) {
+            'quotation' => Quotation::query()->with('customer')->findOrFail($id),
+            'purchase_order' => PurchaseOrder::query()->with('customer')->findOrFail($id),
+            'permintaan_dana' => PermintaanDana::query()->findOrFail($id),
+            default => abort(404),
+        };
+    }
+
+    private function service(string $type): QuotationService|PurchaseOrderService|PermintaanDanaService
+    {
+        return match ($type) {
+            'quotation' => app(QuotationService::class),
+            'purchase_order' => app(PurchaseOrderService::class),
+            'permintaan_dana' => app(PermintaanDanaService::class),
+            default => abort(404),
+        };
+    }
+
+    private function approver(Request $request, string $type): User
+    {
+        $user = User::query()->findOrFail($request->integer('approver'));
+        $permission = match ($type) {
+            'quotation' => 'approve_quotation',
+            'purchase_order' => 'approve_purchase_order',
+            'permintaan_dana' => 'approve_pd',
+            default => abort(404),
+        };
+
+        abort_unless($user->is_active && $user->can($permission), 403);
+
+        return $user;
+    }
+
+    private function documentSummary(string $type, Quotation|PurchaseOrder|PermintaanDana $model): array
+    {
+        return [
+            'tipe' => str($type)->replace('_', ' ')->title(),
+            'nomor' => match ($type) {
+                'quotation' => $model->no_quotation,
+                'purchase_order' => $model->no_purchase_order,
+                'permintaan_dana' => $model->no_pd,
+            },
+            'customer' => $model->customer?->nama_customer ?? $model->tujuan ?? 'N/A',
+            'url' => match ($type) {
+                'quotation' => route('quotations.show', $model),
+                'purchase_order' => route('purchase-orders.show', $model),
+                'permintaan_dana' => route('permintaan-dana.show', $model),
+            },
+        ];
+    }
+
+    private function invalidLink(string $message): Response
+    {
+        return Inertia::render('ApprovalConfirm', [
+            'success' => false,
+            'message' => $message,
+        ]);
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Enums\QuotationStatus;
 use App\Models\User;
+use App\Services\QuotationPDFService;
 use App\Services\QuotationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -57,6 +58,24 @@ class QuotationServiceTest extends TestCase
 
         $this->assertSame(QuotationStatus::Approved, $approved->status);
         $this->assertNotEmpty($approved->qr_token);
+    }
+
+    public function test_approve_remains_committed_when_pdf_generation_fails(): void
+    {
+        $quotation = $this->createQuotation($this->supportData('APPROVE-PDF-FAIL'));
+        app(QuotationService::class)->submit($quotation, $this->user);
+
+        $this->mock(QuotationPDFService::class)
+            ->shouldReceive('generate')
+            ->once()
+            ->andThrow(new \RuntimeException('PDF service unavailable'));
+
+        $approved = app(QuotationService::class)->approve($quotation->refresh(), $this->user);
+
+        $this->assertSame(QuotationStatus::Approved, $approved->status);
+        $this->assertSame($this->user->id, $approved->approved_by);
+        $this->assertNotEmpty($approved->qr_token);
+        $this->assertNull($approved->generated_pdf_path);
     }
 
     public function test_reject_stores_note(): void

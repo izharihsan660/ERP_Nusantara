@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
                 $mailPassword = AppSetting::value('mail_password', '');
                 $fromAddress = ($settings['mail_from_address'] ?? null) ?: ($settings['mail_username'] ?? config('mail.from.address'));
 
-                config([
+                $mailConfig = [
                     'mail.mailers.smtp.host' => $settings['mail_host'] ?? config('mail.mailers.smtp.host'),
                     'mail.mailers.smtp.port' => $settings['mail_port'] ?? config('mail.mailers.smtp.port'),
                     'mail.mailers.smtp.username' => $settings['mail_username'] ?? '',
@@ -52,7 +52,13 @@ class AppServiceProvider extends ServiceProvider
                     'mail.mailers.smtp.encryption' => $settings['mail_encryption'] ?? 'tls',
                     'mail.from.address' => $fromAddress,
                     'mail.from.name' => $settings['mail_from_name'] ?? 'PT. Nusantara Abadi Jaya',
-                ]);
+                ];
+
+                if (filled($settings['mail_host'] ?? null)) {
+                    $mailConfig['mail.default'] = 'smtp';
+                }
+
+                config($mailConfig);
             }
         } catch (\Exception $e) {
             // If database not available (e.g., during migration), use default config

@@ -31,19 +31,24 @@ class QuotationPDFService
         try {
             $processor = new TemplateProcessor($docxTempPath);
             $subtotal = (float) $quotation->items->sum('jumlah');
+            $ppn = round($subtotal * 0.11);
+            $grandTotal = $subtotal + $ppn;
+            $documentDate = ($quotation->approved_at ?? $quotation->tgl_quotation)?->copy()->locale('id');
+            $validUntil = ($quotation->masa_berlaku ?? $quotation->tgl_quotation?->copy()->addDays(14))?->locale('id');
 
             $processor->setValue('no_quotation', $this->escape($quotation->no_quotation));
+            $processor->setValue('tanggal', $this->escape($documentDate?->translatedFormat('d F Y') ?? '-'));
             $processor->setValue('tgl_quotation', $this->escape($quotation->tgl_quotation?->translatedFormat('d F Y') ?? '-'));
             $processor->setValue('customer_name', $this->escape($quotation->customer?->nama_customer ?? '-'));
             $processor->setValue('customer_alamat', $this->escape($quotation->customer?->alamat ?: '-'));
             $processor->setValue('customer_kota', $this->escape($quotation->customer?->kota ?: '-'));
             $processor->setValue('revisi', (string) ($quotation->revisi ?? 0));
-            $processor->setValue('masa_berlaku', $this->escape($this->masaBerlaku($quotation)));
+            $processor->setValue('masa_berlaku', $this->escape($validUntil?->translatedFormat('d F Y') ?? '-'));
             $processor->setValue('perihal', $this->escape($quotation->perihal ?? ''));
             $processor->setValue('metode_pembayaran', $this->escape($quotation->metode_pembayaran ?? '-'));
             $processor->setValue('subtotal', $this->formatRupiah($subtotal));
-            $processor->setValue('ppn', $this->formatRupiah($subtotal * 0.11));
-            $processor->setValue('grand_total', $this->formatRupiah($subtotal * 1.11));
+            $processor->setValue('ppn', $this->formatRupiah($ppn));
+            $processor->setValue('grand_total', $this->formatRupiah($grandTotal));
 
             $items = $quotation->items->values();
             if ($items->isNotEmpty()) {
@@ -61,10 +66,28 @@ class QuotationPDFService
                     $processor->setValue("item_total#{$row}", $this->formatRupiah((float) $item->jumlah));
                     $processor->setValue("item_status#{$row}", $this->escape($item->status ?? ''));
                 }
+            } else {
+                $processor->cloneRow('item_no', 1);
+                $processor->setValue('item_no#1', '0');
+                $processor->setValue('item_part_no#1', '-');
+                $processor->setValue('item_deskripsi#1', '-');
+                $processor->setValue('item_qty#1', '0');
+                $processor->setValue('item_satuan#1', '-');
+                $processor->setValue('item_harga#1', '0');
+                $processor->setValue('item_total#1', '0');
+                $processor->setValue('item_status#1', '-');
             }
 
-            if ($quotation->status === QuotationStatus::Approved && $quotation->approvedBy?->signature_path) {
-                $signaturePath = storage_path('app/private/'.$quotation->approvedBy->signature_path);
+            $signer = $quotation->approvedBy;
+
+            $processor->setValue('nama_manager', $this->escape($signer?->name ?? '-'));
+            $processor->setValue('email_manager', $this->escape($signer?->email ?? '-'));
+
+            $signaturePath = $signer?->signature_path
+                ? storage_path('app/private/'.$signer->signature_path)
+                : null;
+
+            if ($quotation->status === QuotationStatus::Approved && $signaturePath && file_exists($signaturePath)) {
                 $signatureTempPath = $this->processSignatureImage($signaturePath);
 
                 if ($signatureTempPath) {
@@ -232,15 +255,6 @@ class QuotationPDFService
         imagedestroy($image);
 
         return $saved;
-    }
-
-    private function masaBerlaku(Quotation $quotation): string
-    {
-        if ($quotation->masa_berlaku) {
-            return $quotation->masa_berlaku->translatedFormat('d F Y');
-        }
-
-        return $quotation->tgl_quotation?->copy()->addMonths(6)->translatedFormat('d F Y') ?? '-';
     }
 
     private function formatRupiah(float $amount): string

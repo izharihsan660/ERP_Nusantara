@@ -18,35 +18,44 @@
         .ship td { border: 1px solid #ccc; height: 18px; }
         .items th, .items td { border: 1px solid #ccc; padding: 3px 5px; }
         .items th { background: #f5f5f5; font-weight: bold; text-align: center; font-size: 9px; }
+        .items thead { display: table-header-group; }
+        .items tbody { display: table-row-group; }
+        .items tr { page-break-inside: avoid; }
+        .repeat-header th { background: #fff; border: none; padding: 0 0 10px; text-align: left; }
+        .repeat-header .ship { margin-top: 10px; }
+        .repeat-header .ship td { border: 1px solid #ccc; font-size: 11px; font-weight: normal; height: 18px; }
         .center { text-align: center; }
         .right { text-align: right; }
         .small { font-size: 10px; }
     </style>
 </head>
 <body>
-    @include('pdf.partials.company-header', ['title' => 'SURAT PENGIRIMAN BARANG', 'subtitle' => '(Delivery Notes)'])
-
-    <table class="ship" style="margin-top: 10px;">
-        <tr>
-            <td style="width: 70px;"><strong>Nomor</strong></td><td>: {{ $spb->no_spb }}</td>
-            <td style="width: 70px;"><strong>Tanggal</strong></td><td>: {{ $tanggal?->translatedFormat('d F Y') ?? '-' }}</td>
-        </tr>
-    </table>
-
-    <table class="ship" style="margin-top: 10px;">
-        <tr>
-            <td style="width: 48%;"></td>
-            <td colspan="3"><strong>Ship To :</strong><br>{{ $spb->customer?->nama_customer ?? '-' }}<br>{{ $spb->site?->nama_site ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td><strong>Nama Ekspedisi:</strong> {{ $spb->nama_ekspedisi ?? '-' }}</td>
-            <td style="width: 70px;"><strong>ETD</strong></td><td>: {{ $spb->etd?->translatedFormat('d F Y') ?? '-' }}</td>
-            <td><strong>ETA</strong> : {{ $spb->eta?->translatedFormat('d F Y') ?? '-' }}</td>
-        </tr>
-    </table>
-
-    <table class="items" style="margin-top: 10px;">
+    <table class="items">
         <thead>
+            <tr class="repeat-header">
+                <th colspan="12">
+                    @include('pdf.partials.company-header', ['title' => 'SURAT PENGIRIMAN BARANG', 'subtitle' => '(Delivery Notes)'])
+
+                    <table class="ship">
+                        <tr>
+                            <td style="width: 70px;"><strong>Nomor</strong></td><td>: {{ $spb->no_spb }}</td>
+                            <td style="width: 70px;"><strong>Tanggal</strong></td><td>: {{ $tanggal?->translatedFormat('d F Y') ?? '-' }}</td>
+                        </tr>
+                    </table>
+
+                    <table class="ship">
+                        <tr>
+                            <td style="width: 48%;"></td>
+                            <td colspan="3"><strong>Ship To :</strong><br>{{ $spb->customer?->nama_customer ?? '-' }}<br>{{ $spb->site?->nama_site ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nama Ekspedisi:</strong> {{ $spb->nama_ekspedisi ?? '-' }}</td>
+                            <td style="width: 70px;"><strong>ETD</strong></td><td>: {{ $spb->etd?->translatedFormat('d F Y') ?? '-' }}</td>
+                            <td><strong>ETA</strong> : {{ $spb->eta?->translatedFormat('d F Y') ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </th>
+            </tr>
             <tr>
                 <th>NO CASE</th><th>BERAT</th><th>VOLUME</th><th>NO PO</th><th>INVOICE</th><th>NO GR</th><th>ITEM</th><th>NO MATERIAL</th><th>PENJELASAN</th><th>JUMLAH</th><th>SKU</th><th>DIMENSI</th>
             </tr>

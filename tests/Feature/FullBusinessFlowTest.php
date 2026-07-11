@@ -239,6 +239,7 @@ class FullBusinessFlowTest extends TestCase
 
     public function test_permintaan_dana_approval_rejection_and_upload_flow_runs_end_to_end(): void
     {
+        $this->travelTo('2026-06-15');
         $this->actingAsSuperadmin();
 
         $this->get(route('permintaan-dana.create'))->assertOk();
