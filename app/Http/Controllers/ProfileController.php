@@ -13,6 +13,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProfileController extends Controller
 {
@@ -25,9 +26,18 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'signature_url' => $request->user()->signature_path
-                ? Storage::url($request->user()->signature_path)
+                ? route('profile.signature.show', ['t' => $request->user()->updated_at?->timestamp])
                 : null,
         ]);
+    }
+
+    public function signature(Request $request): BinaryFileResponse
+    {
+        $signaturePath = $request->user()->signature_path;
+
+        abort_if(blank($signaturePath) || ! Storage::disk('local')->exists($signaturePath), 404);
+
+        return response()->file(Storage::disk('local')->path($signaturePath));
     }
 
     /**

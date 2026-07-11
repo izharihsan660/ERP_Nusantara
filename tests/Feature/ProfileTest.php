@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -19,6 +20,27 @@ class ProfileTest extends TestCase
             ->get('/profile');
 
         $response->assertOk();
+    }
+
+    public function test_signature_file_is_returned_for_authenticated_user(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('signatures/test-signature.png', 'signature-content');
+        $user = User::factory()->create(['signature_path' => 'signatures/test-signature.png']);
+
+        $response = $this->actingAs($user)->get(route('profile.signature.show'));
+
+        $response->assertOk();
+        $this->assertSame('signature-content', $response->baseResponse->getFile()->getContent());
+    }
+
+    public function test_signature_file_returns_not_found_when_user_has_no_signature(): void
+    {
+        $user = User::factory()->create(['signature_path' => null]);
+
+        $this->actingAs($user)
+            ->get(route('profile.signature.show'))
+            ->assertNotFound();
     }
 
     public function test_profile_information_can_be_updated(): void

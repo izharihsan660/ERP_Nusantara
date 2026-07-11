@@ -22,7 +22,7 @@ class UpdateDocumentTemplateRequest extends FormRequest
 
         return [
             'nama_template' => ['required', 'string', 'max:255'],
-            'kode_template' => ['required', 'string', 'max:100', Rule::unique('document_templates', 'kode_template')->ignore($templateId)],
+            'kode_template' => ['required', 'string', 'alpha_dash', 'max:100', Rule::unique('document_templates', 'kode_template')->ignore($templateId)],
             'tipe_dokumen' => ['required', Rule::enum(DocumentType::class)],
             'blade_file' => ['required', 'string', 'max:255'],
             'is_default' => ['boolean'],

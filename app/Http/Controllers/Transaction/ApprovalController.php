@@ -12,6 +12,8 @@ use App\Services\PurchaseOrderService;
 use App\Services\QuotationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,9 +47,11 @@ class ApprovalController extends Controller
                 'document' => $this->documentSummary($type, $model),
             ]);
         } catch (\Throwable $e) {
+            Log::error($e, ['type' => $type, 'document_id' => $id, 'action' => 'approve']);
+
             return Inertia::render('ApprovalConfirm', [
                 'success' => false,
-                'message' => 'Gagal melakukan approval: '.$e->getMessage(),
+                'message' => $this->errorMessage($e),
             ]);
         }
     }
@@ -71,11 +75,23 @@ class ApprovalController extends Controller
                 'document' => $this->documentSummary($type, $model),
             ]);
         } catch (\Throwable $e) {
+            Log::error($e, ['type' => $type, 'document_id' => $id, 'action' => 'reject']);
+
             return Inertia::render('ApprovalConfirm', [
                 'success' => false,
-                'message' => 'Gagal melakukan reject: '.$e->getMessage(),
+                'message' => $this->errorMessage($e),
             ]);
         }
+    }
+
+    private function errorMessage(\Throwable $exception): string
+    {
+        if ($exception instanceof ValidationException) {
+            return collect($exception->errors())->flatten()->first()
+                ?? 'Dokumen tidak dapat diproses.';
+        }
+
+        return 'Terjadi kesalahan, hubungi administrator.';
     }
 
     private function confirmation(Request $request, string $type, int $id, string $action): Response

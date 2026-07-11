@@ -48,16 +48,16 @@ class NotificationService
             return false;
         }
 
-        // Generate signed URLs (valid 7 days)
+        // Generate signed URLs (valid 3 days)
         $approvalUrl = URL::temporarySignedRoute(
             'approval.approve',
-            now()->addDays(7),
+            now()->addDays(3),
             ['type' => $type, 'id' => $document->id, 'approver' => $approver->id],
         );
 
         $rejectUrl = URL::temporarySignedRoute(
             'approval.reject',
-            now()->addDays(7),
+            now()->addDays(3),
             ['type' => $type, 'id' => $document->id, 'approver' => $approver->id],
         );
 

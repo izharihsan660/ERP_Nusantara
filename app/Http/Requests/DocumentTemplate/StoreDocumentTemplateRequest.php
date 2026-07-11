@@ -20,7 +20,7 @@ class StoreDocumentTemplateRequest extends FormRequest
     {
         return [
             'nama_template' => ['required', 'string', 'max:255'],
-            'kode_template' => ['required', 'string', 'max:100', 'unique:document_templates,kode_template'],
+            'kode_template' => ['required', 'string', 'alpha_dash', 'max:100', 'unique:document_templates,kode_template'],
             'tipe_dokumen' => ['required', Rule::enum(DocumentType::class)],
             'blade_file' => ['required', 'string', 'max:255'],
             'is_default' => ['boolean'],

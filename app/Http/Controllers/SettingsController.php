@@ -6,6 +6,7 @@ use App\Http\Requests\Settings\TestEmailSettingsRequest;
 use App\Http\Requests\Settings\UpdateSettingsRequest;
 use App\Services\SettingsService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,8 +36,10 @@ class SettingsController extends Controller
             $this->settingsService->sendTestEmail($validated['email']);
 
             return back()->with('success', 'Email test berhasil dikirim ke '.$validated['email']);
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal mengirim email: '.$e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error($e, ['action' => 'test_email', 'user_id' => $request->user()?->id]);
+
+            return back()->with('error', 'Gagal mengirim email, periksa konfigurasi SMTP.');
         }
     }
 }

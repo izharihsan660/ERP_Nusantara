@@ -10,6 +10,7 @@ use App\Observers\SalesOrderObserver;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Password::defaults(fn () => Password::min(10)->letters()->numbers()->uncompromised());
+
         // Load mail config from database
         try {
             $settings = cache()->remember('app_settings_mail', 3600, function () {
