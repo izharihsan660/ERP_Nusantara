@@ -49,6 +49,14 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        'graph' => [
+            'transport' => 'graph',
+            'tenant_id' => env('MAIL_GRAPH_TENANT_ID'),
+            'client_id' => env('MAIL_GRAPH_CLIENT_ID'),
+            'client_secret' => env('MAIL_GRAPH_CLIENT_SECRET'),
+            'sender' => env('MAIL_GRAPH_SENDER', 'no-reply@nusantaraabadijaya.com'),
+        ],
+
         'ses' => [
             'transport' => 'ses',
         ],
