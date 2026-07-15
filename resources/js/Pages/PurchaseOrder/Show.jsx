@@ -1,5 +1,6 @@
 import Modal from '@/Components/Modal';
 import ConfirmDialog from '@/Components/ConfirmDialog';
+import FormErrorSummary from '@/Components/FormErrorSummary';
 import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
@@ -37,11 +38,12 @@ function Info({ label, value }) {
     );
 }
 
-function ActionModal({ show, title, label, value, error, processing, variant = 'destructive', onChange, onClose, onSubmit }) {
+function ActionModal({ show, title, label, value, error, errors, errorKey, processing, variant = 'destructive', onChange, onClose, onSubmit }) {
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h2>
+                <FormErrorSummary errors={errors} renderedKeys={[errorKey]} />
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
@@ -59,6 +61,7 @@ function ReferensiModal({ show, form, onClose, onSubmit }) {
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Edit Referensi</h2>
+                <FormErrorSummary errors={form.errors} renderedKeys={['no_pr_customer', 'no_po_customer']} />
                 <div className="mt-4 space-y-4">
                     <div>
                         <InputLabel label="No. PR Customer" />
@@ -182,11 +185,7 @@ export default function Show({ purchaseOrder, sites }) {
                     </>
                 )}
             />
-            {(submitForm.errors.status || submitForm.errors.items) && (
-                <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {submitForm.errors.status ?? submitForm.errors.items}
-                </div>
-            )}
+            <FormErrorSummary errors={submitForm.errors} className="mb-4 mt-0" />
 
             <div className="space-y-6">
                 <section className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm">
@@ -215,6 +214,7 @@ export default function Show({ purchaseOrder, sites }) {
                         <Info label="Voided oleh" value={purchaseOrder.voided_by?.name} />
                     </div>
                     {purchaseOrder.catatan && <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300">Catatan: {purchaseOrder.catatan}</div>}
+                    {purchaseOrder.catatan_rejection && <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">Catatan rejection: {purchaseOrder.catatan_rejection}</div>}
                     {purchaseOrder.alasan_void && <div className="mt-4 rounded-md bg-zinc-100 p-3 text-sm text-zinc-700">Alasan void: {purchaseOrder.alasan_void}</div>}
                 </section>
 
@@ -271,6 +271,8 @@ export default function Show({ purchaseOrder, sites }) {
                 label="Catatan reject"
                 value={rejectForm.data.catatan}
                 error={rejectForm.errors.catatan}
+                errors={rejectForm.errors}
+                errorKey="catatan"
                 processing={rejectForm.processing}
                 variant="destructive"
                 onChange={(value) => rejectForm.setData('catatan', value)}
@@ -283,6 +285,8 @@ export default function Show({ purchaseOrder, sites }) {
                 label="Alasan void"
                 value={voidForm.data.alasan_void}
                 error={voidForm.errors.alasan_void}
+                errors={voidForm.errors}
+                errorKey="alasan_void"
                 processing={voidForm.processing}
                 onChange={(value) => voidForm.setData('alasan_void', value)}
                 onClose={() => setModal(null)}

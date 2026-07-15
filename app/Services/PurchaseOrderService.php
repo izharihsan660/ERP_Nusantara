@@ -138,7 +138,7 @@ class PurchaseOrderService
 
         $purchaseOrder->update([
             'status' => PurchaseOrderStatus::Draft,
-            'catatan' => $catatan,
+            'catatan_rejection' => $catatan,
         ]);
         $this->recordActivity->handle('rejected_purchase_order', $purchaseOrder, "{$user->name} reject Purchase Order {$purchaseOrder->no_purchase_order}");
 
@@ -147,8 +147,12 @@ class PurchaseOrderService
 
     public function void(PurchaseOrder $purchaseOrder, string $alasan, User $user): PurchaseOrder
     {
-        if (! $purchaseOrder->isVoidable()) {
+        if ($purchaseOrder->status === PurchaseOrderStatus::Void) {
             throw ValidationException::withMessages(['status' => 'Purchase Order sudah berstatus Void.']);
+        }
+
+        if (! $purchaseOrder->isVoidable()) {
+            throw ValidationException::withMessages(['status' => 'PO tidak bisa di-void karena sudah memiliki SPB/Invoice aktif. Void dokumen hilir terlebih dahulu.']);
         }
 
         $purchaseOrder->update([

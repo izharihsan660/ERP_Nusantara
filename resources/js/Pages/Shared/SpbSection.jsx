@@ -1,5 +1,6 @@
 import Modal from '@/Components/Modal';
 import ConfirmDialog from '@/Components/ConfirmDialog';
+import FormErrorSummary from '@/Components/FormErrorSummary';
 import InputLabel from '@/Components/Form/InputLabel';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -274,6 +275,21 @@ export default function SpbSection({
             <Modal show={modal === 'create'} onClose={() => setModal(null)} maxWidth="2xl">
                 <form onSubmit={submitCreate} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Buat SPB</h2>
+                    <FormErrorSummary
+                        errors={form.errors}
+                        renderedKeys={[
+                            'source_id',
+                            'customer_id',
+                            'tgl_spb',
+                            'site_id',
+                            'nama_ekspedisi',
+                            'etd',
+                            'eta',
+                            'catatan',
+                            'items',
+                            'items.*.qty_kirim',
+                        ]}
+                    />
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
                         {sourceOptions.length > 1 && (
                             <FormRow label="Sumber SPB" required error={form.errors.source_id}>
@@ -398,6 +414,7 @@ export default function SpbSection({
             <Modal show={modal === 'void'} onClose={() => setModal(null)} maxWidth="md">
                 <form onSubmit={submitVoid} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Void SPB {selectedSpb?.no_spb ?? ''}</h2>
+                    <FormErrorSummary errors={voidForm.errors} renderedKeys={['alasan_void']} />
                     <FormRow label="Alasan void" required error={voidForm.errors.alasan_void}>
                         <Textarea value={voidForm.data.alasan_void} onChange={(e) => voidForm.setData('alasan_void', e.target.value)} />
                     </FormRow>

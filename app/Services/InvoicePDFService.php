@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TipeDokumen;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
 use App\Models\QuotationItem;
 use App\Models\Spb;
 use App\Models\SpbItem;
@@ -13,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class InvoicePDFService
 {
@@ -103,13 +105,25 @@ class InvoicePDFService
         }
 
         if ($source instanceof PurchaseOrder) {
-            $source->loadMissing('items');
+            $source->loadMissing('items.katalog');
+        }
+
+        $unmatchedItems = $spb->items->filter(fn (SpbItem $item): bool => $this->sourceItem($source, $item) === null);
+
+        if ($unmatchedItems->isNotEmpty()) {
+            $labels = $unmatchedItems->map(fn (SpbItem $item): string => trim(($item->part_no ? "{$item->part_no} - " : '').$item->deskripsi))->implode(', ');
+
+            throw new RuntimeException("Item SPB tidak dapat dicocokkan dengan dokumen sumber: {$labels}.");
         }
 
         return $spb->items->map(function (SpbItem $item) use ($source): array {
             $sourceItem = $this->sourceItem($source, $item);
-            $hargaSatuan = (float) ($sourceItem?->harga_satuan ?? 0);
-            $hppSatuan = $sourceItem instanceof QuotationItem ? (float) $sourceItem->hpp_satuan : 0.0;
+            $hargaSatuan = (float) $sourceItem->harga_satuan;
+            $hppSatuan = match (true) {
+                $sourceItem instanceof QuotationItem => (float) $sourceItem->hpp_satuan,
+                $sourceItem instanceof PurchaseOrderItem && $sourceItem->katalog_id => (float) ($sourceItem->katalog?->hpp ?? 0),
+                default => 0.0,
+            };
             $jumlah = (float) $item->qty * $hargaSatuan;
             $totalHpp = (float) $item->qty * $hppSatuan;
 
@@ -137,8 +151,8 @@ class InvoicePDFService
 
         if ($source instanceof PurchaseOrder) {
             return $source->items
-                ->first(fn ($item): bool => $item->deskripsi === $spbItem->deskripsi)
-                ?? $source->items->first();
+                ->first(fn (PurchaseOrderItem $item): bool => filled($spbItem->part_no) && $item->katalog?->part_no === $spbItem->part_no)
+                ?? $source->items->first(fn (PurchaseOrderItem $item): bool => $item->deskripsi === $spbItem->deskripsi);
         }
 
         return null;

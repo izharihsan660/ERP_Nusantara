@@ -1,5 +1,6 @@
 import Modal from '@/Components/Modal';
 import ConfirmDialog from '@/Components/ConfirmDialog';
+import FormErrorSummary from '@/Components/FormErrorSummary';
 import InputLabel from '@/Components/Form/InputLabel';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -93,7 +94,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
         setSelectedInvoice(invoice);
         paymentForm.setData({
             tgl_bayar: invoice.tgl_bayar ?? today(),
-            jumlah_bayar: invoice.jumlah_bayar ?? '',
+            jumlah_bayar: '',
             keterangan: '',
             documents: [],
         });
@@ -249,7 +250,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                                     </div>
                                     <div>
                                         <div className="text-xs uppercase text-slate-500">Total</div>
-                                        <div className="mt-1 font-medium">{formatRupiah(spb.invoice.total_nilai)}</div>
+                                        <div className="mt-1 font-medium">{formatRupiah(spb.invoice.grand_total)}</div>
                                     </div>
                                     <div>
                                         <div className="text-xs uppercase text-slate-500">Status Bayar</div>
@@ -267,7 +268,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
                                     </div>
                                     <div>
                                         <div className="text-xs uppercase text-slate-500">Sisa</div>
-                                        <div className="mt-1 font-medium">{formatRupiah(Number(spb.invoice.total_nilai ?? 0) - Number(spb.invoice.jumlah_bayar ?? 0))}</div>
+                                        <div className="mt-1 font-medium">{formatRupiah(Number(spb.invoice.grand_total ?? 0) - Number(spb.invoice.jumlah_bayar ?? 0))}</div>
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
@@ -330,6 +331,10 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
             <Modal show={modal === 'create'} onClose={() => setModal(null)} maxWidth="lg">
                 <form onSubmit={submitCreate} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Buat Invoice/Nota</h2>
+                    <FormErrorSummary
+                        errors={invoiceForm.errors}
+                        renderedKeys={['no_faktur_pajak', 'tgl_dokumen', 'metode_pembayaran', 'top_hari']}
+                    />
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
                         <FormRow label="No. Faktur Pajak" optional error={invoiceForm.errors.no_faktur_pajak}>
                             <Input value={invoiceForm.data.no_faktur_pajak} onChange={(e) => invoiceForm.setData('no_faktur_pajak', e.target.value)} />
@@ -360,12 +365,24 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
             <Modal show={modal === 'payment'} onClose={() => setModal(null)} maxWidth="lg">
                 <form onSubmit={submitPayment} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Update Pembayaran</h2>
+                    <FormErrorSummary
+                        errors={paymentForm.errors}
+                        renderedKeys={[
+                            'tgl_bayar',
+                            'jumlah_bayar',
+                            'keterangan',
+                            'documents',
+                            'documents.*.tipe_dokumen',
+                            'documents.*.file',
+                        ]}
+                    />
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
                         <FormRow label="Tanggal Bayar" required error={paymentForm.errors.tgl_bayar}>
                             <Input type="date" value={paymentForm.data.tgl_bayar} onChange={(e) => paymentForm.setData('tgl_bayar', e.target.value)} />
                         </FormRow>
-                        <FormRow label="Jumlah Bayar" required error={paymentForm.errors.jumlah_bayar}>
+                        <FormRow label="Jumlah Pembayaran Kali Ini" required error={paymentForm.errors.jumlah_bayar}>
                             <Input inputMode="numeric" value={formatRupiahInput(paymentForm.data.jumlah_bayar)} onChange={(e) => paymentForm.setData('jumlah_bayar', parseRupiah(e.target.value))} />
+                            {selectedInvoice && <p className="mt-1 text-xs text-slate-500">Sisa tagihan: {formatRupiah(Math.max(Number(selectedInvoice.grand_total ?? 0) - Number(selectedInvoice.jumlah_bayar ?? 0), 0))}</p>}
                         </FormRow>
                         <div className="md:col-span-2">
                             <FormRow label="Keterangan" optional error={paymentForm.errors.keterangan}>
@@ -437,6 +454,7 @@ export default function InvoiceSection({ spbList = [], defaultPayment = { metode
             <Modal show={modal === 'void'} onClose={() => setModal(null)} maxWidth="md">
                 <form onSubmit={submitVoid} className="p-6">
                     <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Void Invoice/Nota</h2>
+                    <FormErrorSummary errors={voidForm.errors} renderedKeys={['alasan_void']} />
                     <FormRow label="Alasan void" required error={voidForm.errors.alasan_void}>
                         <Textarea value={voidForm.data.alasan_void} onChange={(e) => voidForm.setData('alasan_void', e.target.value)} />
                     </FormRow>

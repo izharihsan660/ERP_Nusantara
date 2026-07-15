@@ -100,7 +100,7 @@ class PurchaseOrderController extends Controller
 
         $qtyTerkirimGrouped = Spb::getQtyTerkirimGrouped(PurchaseOrder::class, $purchaseOrder->id);
         $sourceItems = $purchaseOrder->items->map(function ($item) use ($qtyTerkirimGrouped) {
-            $qtyTerkirim = $qtyTerkirimGrouped[$item->katalog?->part_no ?? ''] ?? 0;
+            $qtyTerkirim = $qtyTerkirimGrouped[Spb::itemKey($item->katalog?->part_no, $item->deskripsi)] ?? 0;
             $qtySisa = max(0, $item->qty - $qtyTerkirim);
 
             return [
@@ -123,6 +123,7 @@ class PurchaseOrderController extends Controller
                 'status' => $purchaseOrder->status->value,
                 'status_label' => $purchaseOrder->status->label(),
                 'catatan' => $purchaseOrder->catatan,
+                'catatan_rejection' => $purchaseOrder->catatan_rejection,
                 'alasan_void' => $purchaseOrder->alasan_void,
                 'approved_at' => $purchaseOrder->approved_at?->format('Y-m-d H:i'),
                 'voided_at' => $purchaseOrder->voided_at?->format('Y-m-d H:i'),
@@ -301,6 +302,8 @@ class PurchaseOrderController extends Controller
             'tgl_dokumen' => $invoice->tgl_dokumen?->format('Y-m-d'),
             'no_faktur_pajak' => $invoice->no_faktur_pajak,
             'total_nilai' => $invoice->total_nilai,
+            'ppn' => $invoice->ppn,
+            'grand_total' => $invoice->grand_total,
             'total_hpp' => $invoice->total_hpp,
             'total_profit' => $invoice->total_profit,
             'metode_pembayaran' => $invoice->metode_pembayaran->value,

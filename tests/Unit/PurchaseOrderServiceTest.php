@@ -71,7 +71,8 @@ class PurchaseOrderServiceTest extends TestCase
         $rejected = app(PurchaseOrderService::class)->reject($purchaseOrder->refresh(), 'Perlu revisi.', $this->user);
 
         $this->assertSame(PurchaseOrderStatus::Draft, $rejected->status);
-        $this->assertSame('Perlu revisi.', $rejected->catatan);
+        $this->assertSame('Perlu revisi.', $rejected->catatan_rejection);
+        $this->assertSame('Catatan PO', $rejected->catatan);
     }
 
     public function test_void_sets_status_to_void(): void
@@ -81,5 +82,17 @@ class PurchaseOrderServiceTest extends TestCase
         $voided = app(PurchaseOrderService::class)->void($purchaseOrder, 'Batal.', $this->user);
 
         $this->assertSame(PurchaseOrderStatus::Void, $voided->status);
+    }
+
+    public function test_void_is_rejected_when_purchase_order_has_active_spb(): void
+    {
+        $data = $this->supportData('PO-VOID-SPB');
+        $purchaseOrder = $this->createApprovedPurchaseOrder($data);
+        $this->createSpbFromPurchaseOrder($purchaseOrder, $data);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('PO tidak bisa di-void karena sudah memiliki SPB/Invoice aktif.');
+
+        app(PurchaseOrderService::class)->void($purchaseOrder->refresh(), 'Batal.', $this->user);
     }
 }

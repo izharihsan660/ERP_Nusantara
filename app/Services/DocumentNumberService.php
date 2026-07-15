@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DocumentNumber;
 use Carbon\CarbonInterface;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class DocumentNumberService
@@ -11,21 +12,7 @@ class DocumentNumberService
     public function generateQuotationNumber(CarbonInterface $date): string
     {
         return DB::transaction(function () use ($date): string {
-            $number = DocumentNumber::query()
-                ->where('tipe_dokumen', 'QUOTATION')
-                ->where('tahun', $date->year)
-                ->where('bulan', $date->month)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $number) {
-                $number = DocumentNumber::create([
-                    'tipe_dokumen' => 'QUOTATION',
-                    'tahun' => $date->year,
-                    'bulan' => $date->month,
-                    'last_number' => 0,
-                ]);
-            }
+            $number = $this->lockedNumber('QUOTATION', $date);
 
             $number->increment('last_number');
             $sequence = str_pad((string) $number->last_number, 3, '0', STR_PAD_LEFT);
@@ -37,21 +24,7 @@ class DocumentNumberService
     public function generatePurchaseOrderNumber(CarbonInterface $date): string
     {
         return DB::transaction(function () use ($date): string {
-            $number = DocumentNumber::query()
-                ->where('tipe_dokumen', 'PURCHASE_ORDER')
-                ->where('tahun', $date->year)
-                ->where('bulan', $date->month)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $number) {
-                $number = DocumentNumber::create([
-                    'tipe_dokumen' => 'PURCHASE_ORDER',
-                    'tahun' => $date->year,
-                    'bulan' => $date->month,
-                    'last_number' => 0,
-                ]);
-            }
+            $number = $this->lockedNumber('PURCHASE_ORDER', $date);
 
             $number->increment('last_number');
             $sequence = str_pad((string) $number->last_number, 3, '0', STR_PAD_LEFT);
@@ -63,21 +36,7 @@ class DocumentNumberService
     public function generateSpbNumber(CarbonInterface $date): string
     {
         return DB::transaction(function () use ($date): string {
-            $number = DocumentNumber::query()
-                ->where('tipe_dokumen', 'SPB')
-                ->where('tahun', $date->year)
-                ->where('bulan', $date->month)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $number) {
-                $number = DocumentNumber::create([
-                    'tipe_dokumen' => 'SPB',
-                    'tahun' => $date->year,
-                    'bulan' => $date->month,
-                    'last_number' => 0,
-                ]);
-            }
+            $number = $this->lockedNumber('SPB', $date);
 
             $number->increment('last_number');
             $sequence = str_pad((string) $number->last_number, 3, '0', STR_PAD_LEFT);
@@ -89,21 +48,7 @@ class DocumentNumberService
     public function generateInvoiceNumber(CarbonInterface $date): string
     {
         return DB::transaction(function () use ($date): string {
-            $number = DocumentNumber::query()
-                ->where('tipe_dokumen', 'INVOICE')
-                ->where('tahun', $date->year)
-                ->where('bulan', $date->month)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $number) {
-                $number = DocumentNumber::create([
-                    'tipe_dokumen' => 'INVOICE',
-                    'tahun' => $date->year,
-                    'bulan' => $date->month,
-                    'last_number' => 0,
-                ]);
-            }
+            $number = $this->lockedNumber('INVOICE', $date);
 
             $number->increment('last_number');
             $sequence = str_pad((string) $number->last_number, 3, '0', STR_PAD_LEFT);
@@ -115,21 +60,7 @@ class DocumentNumberService
     public function generatePermintaanDanaNumber(CarbonInterface $date): string
     {
         return DB::transaction(function () use ($date): string {
-            $number = DocumentNumber::query()
-                ->where('tipe_dokumen', 'PD')
-                ->where('tahun', $date->year)
-                ->where('bulan', $date->month)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $number) {
-                $number = DocumentNumber::create([
-                    'tipe_dokumen' => 'PD',
-                    'tahun' => $date->year,
-                    'bulan' => $date->month,
-                    'last_number' => 0,
-                ]);
-            }
+            $number = $this->lockedNumber('PD', $date);
 
             $number->increment('last_number');
             $sequence = str_pad((string) $number->last_number, 3, '0', STR_PAD_LEFT);
@@ -154,5 +85,29 @@ class DocumentNumberService
             11 => 'XI',
             12 => 'XII',
         ][$month];
+    }
+
+    private function lockedNumber(string $type, CarbonInterface $date): DocumentNumber
+    {
+        $attributes = [
+            'tipe_dokumen' => $type,
+            'tahun' => $date->year,
+            'bulan' => $date->month,
+        ];
+
+        try {
+            DocumentNumber::query()->firstOrCreate($attributes, ['last_number' => 0]);
+        } catch (QueryException $exception) {
+            if (! $this->isDuplicateKey($exception)) {
+                throw $exception;
+            }
+        }
+
+        return DocumentNumber::query()->where($attributes)->lockForUpdate()->firstOrFail();
+    }
+
+    private function isDuplicateKey(QueryException $exception): bool
+    {
+        return in_array((string) ($exception->errorInfo[0] ?? ''), ['23000', '23505'], true);
     }
 }

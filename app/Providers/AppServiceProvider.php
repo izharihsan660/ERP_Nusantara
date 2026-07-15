@@ -57,7 +57,7 @@ class AppServiceProvider extends ServiceProvider
                     'mail.from.name' => $settings['mail_from_name'] ?? 'PT. Nusantara Abadi Jaya',
                 ];
 
-                if (filled($settings['mail_host'] ?? null)) {
+                if (filled($settings['mail_host'] ?? null) && in_array(config('mail.default'), ['smtp', 'log'], true)) {
                     $mailConfig['mail.default'] = 'smtp';
                 }
 

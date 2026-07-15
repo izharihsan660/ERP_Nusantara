@@ -1,5 +1,6 @@
 import Modal from '@/Components/Modal';
 import ConfirmDialog from '@/Components/ConfirmDialog';
+import FormErrorSummary from '@/Components/FormErrorSummary';
 import InputLabel from '@/Components/Form/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
@@ -44,11 +45,12 @@ function Info({ label, value }) {
     );
 }
 
-function ActionModal({ show, title, label, value, error, processing, onChange, onClose, onSubmit }) {
+function ActionModal({ show, title, label, value, error, errors, errorKey, processing, onChange, onClose, onSubmit }) {
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h2>
+                <FormErrorSummary errors={errors} renderedKeys={[errorKey]} />
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
@@ -184,7 +186,9 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
             return;
         }
 
-        router.post(route('quotations.wip.store', quotation.id), {
+        if (!quotation.sales_order) return;
+
+        router.post(route('sales-orders.wip-orders.store', quotation.sales_order.id), {
             no_wip: form.data.no_wip,
             tipe_order: form.data.tipe_order,
             nama_ekspedisi: form.data.nama_ekspedisi,
@@ -210,6 +214,10 @@ function WipOrderModal({ show, form, onClose, onSubmit, source_items = [], quota
             <div className="max-h-[90vh] overflow-y-auto">
                 <form onSubmit={handleSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Input WIP</h2>
+                <FormErrorSummary
+                    errors={form.errors}
+                    renderedKeys={['no_wip', 'tipe_order', 'nama_ekspedisi', 'items']}
+                />
                 
                 <div className="mt-5 grid gap-4">
                     <FormRow label="No. WIP" required error={form.errors.no_wip}>
@@ -638,6 +646,8 @@ export default function Show({ quotation, sites }) {
                 label="Catatan rejection"
                 value={rejectForm.data.catatan_rejection}
                 error={rejectForm.errors.catatan_rejection}
+                errors={rejectForm.errors}
+                errorKey="catatan_rejection"
                 processing={rejectForm.processing}
                 onChange={(value) => rejectForm.setData('catatan_rejection', value)}
                 onClose={() => setModal(null)}
@@ -649,6 +659,8 @@ export default function Show({ quotation, sites }) {
                 label="Alasan void"
                 value={voidForm.data.alasan_void}
                 error={voidForm.errors.alasan_void}
+                errors={voidForm.errors}
+                errorKey="alasan_void"
                 processing={voidForm.processing}
                 onChange={(value) => voidForm.setData('alasan_void', value)}
                 onClose={() => setModal(null)}
@@ -674,6 +686,8 @@ export default function Show({ quotation, sites }) {
                 label="Alasan void"
                 value={voidSalesOrderForm.data.alasan_void}
                 error={voidSalesOrderForm.errors.alasan_void}
+                errors={voidSalesOrderForm.errors}
+                errorKey="alasan_void"
                 processing={voidSalesOrderForm.processing}
                 onChange={(value) => voidSalesOrderForm.setData('alasan_void', value)}
                 onClose={() => setModal(null)}
@@ -685,6 +699,8 @@ export default function Show({ quotation, sites }) {
                 label="Alasan void"
                 value={voidWipOrderForm.data.alasan_void}
                 error={voidWipOrderForm.errors.alasan_void}
+                errors={voidWipOrderForm.errors}
+                errorKey="alasan_void"
                 processing={voidWipOrderForm.processing}
                 onChange={(value) => voidWipOrderForm.setData('alasan_void', value)}
                 onClose={() => {

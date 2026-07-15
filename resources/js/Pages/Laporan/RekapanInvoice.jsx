@@ -20,6 +20,7 @@ export default function RekapanInvoice({ data, filters, routeName, exportType, s
             summaryItems={[
                 { label: 'Total Tagihan', value: summary.total_tagihan, type: 'money' },
                 { label: 'Total Lunas', value: summary.total_lunas, type: 'money' },
+                { label: 'Total Diterima', value: summary.total_diterima, type: 'money' },
                 { label: 'Total Outstanding', value: summary.total_outstanding, type: 'money' },
             ]}
             columns={[

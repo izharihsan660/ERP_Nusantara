@@ -619,20 +619,23 @@ class LaporanController extends Controller
             'customer' => $invoice->customer?->nama_customer ?? '-',
             'no_faktur_pajak' => $invoice->no_faktur_pajak ?? '-',
             'total_nilai' => (float) $invoice->total_nilai,
+            'grand_total' => (float) $invoice->grand_total,
             'metode_bayar' => $invoice->metode_pembayaran->label(),
             'jatuh_tempo' => $invoice->tgl_jatuh_tempo?->format('Y-m-d'),
             'status_pembayaran' => $invoice->status_pembayaran->value,
             'status_pembayaran_label' => $invoice->status_pembayaran->label(),
             'tanggal_bayar' => $invoice->tgl_bayar?->format('Y-m-d'),
-            'sisa' => max((float) $invoice->total_nilai - (float) $invoice->jumlah_bayar, 0),
+            'jumlah_bayar' => (float) $invoice->jumlah_bayar,
+            'sisa' => max((float) $invoice->grand_total - (float) $invoice->jumlah_bayar, 0),
         ];
     }
 
     private function rekapanInvoiceSummary(Collection $rows): array
     {
         return [
-            'total_tagihan' => (float) $rows->sum('total_nilai'),
-            'total_lunas' => (float) $rows->where('status_pembayaran', StatusPembayaran::Lunas->value)->sum('total_nilai'),
+            'total_tagihan' => (float) $rows->sum('grand_total'),
+            'total_lunas' => (float) $rows->where('status_pembayaran', StatusPembayaran::Lunas->value)->sum('grand_total'),
+            'total_diterima' => (float) $rows->sum('jumlah_bayar'),
             'total_outstanding' => (float) $rows->where('status_pembayaran', '!=', StatusPembayaran::Lunas->value)->sum('sisa'),
         ];
     }
@@ -719,7 +722,7 @@ class LaporanController extends Controller
             'customer' => $invoice->customer?->nama_customer ?? '-',
             'total_nilai' => (float) $invoice->total_nilai,
             'sudah_dibayar' => (float) $invoice->jumlah_bayar,
-            'sisa' => max((float) $invoice->total_nilai - (float) $invoice->jumlah_bayar, 0),
+            'sisa' => max((float) $invoice->grand_total - (float) $invoice->jumlah_bayar, 0),
             'metode_bayar' => $invoice->metode_pembayaran->label(),
             'jatuh_tempo' => $dueDate?->format('Y-m-d'),
             'hari_tersisa' => $hariTersisa,

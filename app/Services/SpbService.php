@@ -38,6 +38,7 @@ class SpbService
         $this->validateSource($spbAble);
 
         return DB::transaction(function () use ($data, $spbAble, $user): Spb {
+            $spbAble = $spbAble::query()->whereKey($spbAble->getKey())->lockForUpdate()->firstOrFail();
             $customer = $this->resolveCustomer($data, $spbAble);
             $template = $this->resolveTemplate($customer);
             $reference = $this->resolveReference($spbAble);
@@ -264,23 +265,24 @@ class SpbService
 
         foreach ($items as $index => $item) {
             $partNo = $item['part_no'] ?? '';
+            $itemKey = Spb::itemKey($partNo, $item['deskripsi'] ?? '');
             $qtyKirim = (int) ($item['qty_kirim'] ?? $item['qty'] ?? 0);
 
             if ($qtyKirim <= 0) {
                 continue;
             }
 
-            if (! isset($sourceItems[$partNo])) {
+            if (! isset($sourceItems[$itemKey])) {
                 throw ValidationException::withMessages(["items.{$index}.part_no" => 'Item tidak ditemukan di sumber dokumen.']);
             }
 
-            if ($qtyKirim > $sourceItems[$partNo]['qty_sisa']) {
-                throw ValidationException::withMessages(["items.{$index}.qty_kirim" => "Qty kirim tidak boleh melebihi qty sisa ({$sourceItems[$partNo]['qty_sisa']})."]);
+            if ($qtyKirim > $sourceItems[$itemKey]['qty_sisa']) {
+                throw ValidationException::withMessages(["items.{$index}.qty_kirim" => "Qty kirim tidak boleh melebihi qty sisa ({$sourceItems[$itemKey]['qty_sisa']})."]);
             }
 
             $itemsToCreate[] = [
                 'part_no' => $partNo,
-                'deskripsi' => $sourceItems[$partNo]['deskripsi'],
+                'deskripsi' => $sourceItems[$itemKey]['deskripsi'],
                 'qty_kirim' => $qtyKirim,
                 'berat' => $item['berat'] ?? 0,
                 'volume' => $item['volume'] ?? 0,
@@ -307,9 +309,9 @@ class SpbService
 
             return $spbAble->items
                 ->mapWithKeys(fn ($item): array => [
-                    $item->part_no => [
+                    Spb::itemKey($item->part_no, $item->deskripsi) => [
                         'deskripsi' => $item->deskripsi,
-                        'qty_sisa' => max(0, $item->qty - ($qtyTerkirim[$item->part_no] ?? 0)),
+                        'qty_sisa' => max(0, $item->qty - ($qtyTerkirim[Spb::itemKey($item->part_no, $item->deskripsi)] ?? 0)),
                     ],
                 ])->toArray();
         }
@@ -320,12 +322,13 @@ class SpbService
 
             return $spbAble->items
                 ->mapWithKeys(function ($item) use ($qtyTerkirim): array {
-                    $partNo = $item->katalog?->part_no ?? '';
+                    $partNo = $item->katalog?->part_no;
+                    $itemKey = Spb::itemKey($partNo, $item->deskripsi);
 
                     return [
-                        $partNo => [
+                        $itemKey => [
                             'deskripsi' => $item->deskripsi,
-                            'qty_sisa' => max(0, $item->qty - ($qtyTerkirim[$partNo] ?? 0)),
+                            'qty_sisa' => max(0, $item->qty - ($qtyTerkirim[$itemKey] ?? 0)),
                         ],
                     ];
                 })->toArray();

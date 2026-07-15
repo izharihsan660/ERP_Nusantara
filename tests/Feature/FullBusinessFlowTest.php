@@ -169,7 +169,7 @@ class FullBusinessFlowTest extends TestCase
 
         $this->post(route('invoices.pembayaran', $invoice), [
             'tgl_bayar' => '2026-06-21',
-            'jumlah_bayar' => 300000,
+            'jumlah_bayar' => (float) $invoice->grand_total - (float) $invoice->jumlah_bayar,
         ])->assertRedirect();
         $this->assertSame(StatusPembayaran::Lunas, $invoice->refresh()->status_pembayaran);
     }

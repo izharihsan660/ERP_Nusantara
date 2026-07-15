@@ -79,7 +79,7 @@ class InvoiceServiceTest extends TestCase
 
         $paid = app(InvoiceService::class)->updatePembayaran($partial, [
             'tgl_bayar' => '2026-06-21',
-            'jumlah_bayar' => $partial->total_nilai,
+            'jumlah_bayar' => (float) $partial->grand_total - (float) $partial->jumlah_bayar,
         ], $this->user);
         $this->assertSame(StatusPembayaran::Lunas, $paid->status_pembayaran);
     }
@@ -90,7 +90,7 @@ class InvoiceServiceTest extends TestCase
 
         $paid = app(InvoiceService::class)->updatePembayaran($invoice, [
             'tgl_bayar' => '2026-06-21',
-            'jumlah_bayar' => $invoice->total_nilai,
+            'jumlah_bayar' => $invoice->grand_total,
             'documents' => [
                 [
                     'tipe_dokumen' => InvoicePaymentDocumentType::BuktiTransfer->value,

@@ -151,15 +151,19 @@ class Spb extends Model
      */
     public static function getQtyTerkirimGrouped(string $spbAbleType, int $spbAbleId): array
     {
-        $items = SpbItem::whereHas('spb', function ($query) use ($spbAbleType, $spbAbleId) {
+        return SpbItem::whereHas('spb', function ($query) use ($spbAbleType, $spbAbleId) {
             $query->where('spb_able_type', $spbAbleType)
                 ->where('spb_able_id', $spbAbleId)
                 ->where('status', '!=', SpbStatus::Void->value);
         })
-            ->selectRaw('part_no, SUM(qty) as total_qty')
-            ->groupBy('part_no')
-            ->get();
+            ->get(['part_no', 'deskripsi', 'qty'])
+            ->groupBy(fn (SpbItem $item): string => static::itemKey($item->part_no, $item->deskripsi))
+            ->map(fn ($items): int => (int) $items->sum('qty'))
+            ->all();
+    }
 
-        return $items->pluck('total_qty', 'part_no')->toArray();
+    public static function itemKey(?string $partNo, string $description): string
+    {
+        return filled($partNo) ? $partNo : 'desc:'.$description;
     }
 }

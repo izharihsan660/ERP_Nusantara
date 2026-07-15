@@ -2,6 +2,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/Form/InputLabel';
 import Modal from '@/Components/Modal';
 import ConfirmDialog from '@/Components/ConfirmDialog';
+import FormErrorSummary from '@/Components/FormErrorSummary';
 import PageHeader from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -43,11 +44,12 @@ function Info({ label, value }) {
     );
 }
 
-function TextActionModal({ show, title, label, value, error, processing, submitLabel, variant = 'destructive', onChange, onClose, onSubmit }) {
+function TextActionModal({ show, title, label, value, error, errors, errorKey, processing, submitLabel, variant = 'destructive', onChange, onClose, onSubmit }) {
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h2>
+                <FormErrorSummary errors={errors} renderedKeys={[errorKey]} />
                 <InputLabel label={label} required className="mt-4" />
                 <Textarea className="mt-2" value={value} onChange={(e) => onChange(e.target.value)} />
                 <InputError message={error} className="mt-2" />
@@ -89,6 +91,16 @@ function UploadBuktiModal({ show, form, documentCategories, onClose, onSubmit })
         <Modal show={show} onClose={onClose} maxWidth="lg">
             <form onSubmit={onSubmit} className="p-6">
                 <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Upload Bukti</h2>
+                <FormErrorSummary
+                    errors={form.errors}
+                    renderedKeys={[
+                        'tgl_realisasi',
+                        'jumlah_realisasi',
+                        'documents',
+                        'documents.*.kategori',
+                        'documents.*.file',
+                    ]}
+                />
                 <div className="mt-4 space-y-4">
                     <div>
                         <InputLabel label="Tanggal Realisasi" required />
@@ -314,6 +326,8 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                 label="Catatan rejection"
                 value={rejectForm.data.catatan_rejection}
                 error={rejectForm.errors.catatan_rejection}
+                errors={rejectForm.errors}
+                errorKey="catatan_rejection"
                 processing={rejectForm.processing}
                 submitLabel="Reject"
                 onChange={(value) => rejectForm.setData('catatan_rejection', value)}
@@ -333,6 +347,8 @@ export default function Show({ permintaanDana, documentCategories = [] }) {
                 label="Alasan void"
                 value={voidForm.data.alasan_void}
                 error={voidForm.errors.alasan_void}
+                errors={voidForm.errors}
+                errorKey="alasan_void"
                 processing={voidForm.processing}
                 submitLabel="Void"
                 onChange={(value) => voidForm.setData('alasan_void', value)}

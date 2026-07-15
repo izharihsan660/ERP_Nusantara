@@ -1,7 +1,7 @@
 @php
-    $subtotal = collect($items)->sum(fn ($item) => (float) $item['jumlah']);
-    $ppn = $subtotal * 0.11;
-    $total = $subtotal + $ppn;
+    $subtotal = $invoice->total_nilai;
+    $ppn = $invoice->ppn;
+    $total = $invoice->grand_total;
     $metode = $invoice->metode_pembayaran;
     $metodeLabel = is_object($metode) && method_exists($metode, 'label') ? $metode->label() : ($metode?->value ?? $metode ?? '-');
 @endphp

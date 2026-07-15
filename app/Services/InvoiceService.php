@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Jurosh\PDFMerge\PDFMerger;
+use RuntimeException;
 
 class InvoiceService
 {
@@ -31,21 +32,26 @@ class InvoiceService
 
     public function create(array $data, Spb $spb, User $user): Invoice
     {
-        $spb->loadMissing(['customer', 'invoice', 'items', 'spbAble']);
-
-        if (! in_array($spb->status, [SpbStatus::Shipped, SpbStatus::Draft], true)) {
-            throw ValidationException::withMessages(['spb_id' => 'Invoice/Nota hanya bisa dibuat dari SPB Draft atau Shipped.']);
-        }
-
-        if ($spb->invoice()->where('status', '!=', InvoiceStatus::Void->value)->exists()) {
-            throw ValidationException::withMessages(['spb_id' => 'SPB ini sudah memiliki Invoice/Nota aktif.']);
-        }
-
         return DB::transaction(function () use ($data, $spb, $user): Invoice {
+            $spb = Spb::query()->whereKey($spb->id)->lockForUpdate()->firstOrFail();
+            $spb->loadMissing(['customer', 'invoice', 'items', 'spbAble']);
+
+            if (! in_array($spb->status, [SpbStatus::Shipped, SpbStatus::Draft], true)) {
+                throw ValidationException::withMessages(['spb_id' => 'Invoice/Nota hanya bisa dibuat dari SPB Draft atau Shipped.']);
+            }
+
+            if ($spb->invoice()->where('status', '!=', InvoiceStatus::Void->value)->exists()) {
+                throw ValidationException::withMessages(['spb_id' => 'SPB ini sudah memiliki Invoice/Nota aktif.']);
+            }
+
             $date = Carbon::parse($data['tgl_dokumen']);
             $metodePembayaran = MetodePembayaran::from($data['metode_pembayaran']);
             $topHari = $metodePembayaran === MetodePembayaran::TOP ? (int) $data['top_hari'] : null;
-            $totals = $this->calculateTotals($spb);
+            try {
+                $totals = $this->calculateTotals($spb);
+            } catch (RuntimeException $exception) {
+                throw ValidationException::withMessages(['items' => $exception->getMessage()]);
+            }
 
             $invoice = Invoice::create([
                 'no_dokumen' => $this->documentNumberService->generateInvoiceNumber($date),
@@ -55,6 +61,8 @@ class InvoiceService
                 'customer_id' => $spb->customer_id,
                 'no_faktur_pajak' => $data['no_faktur_pajak'] ?? null,
                 'total_nilai' => $totals['total_nilai'],
+                'ppn' => $totals['ppn'],
+                'grand_total' => $totals['grand_total'],
                 'total_hpp' => $totals['total_hpp'],
                 'total_profit' => $totals['total_profit'],
                 'metode_pembayaran' => $metodePembayaran,
@@ -80,13 +88,25 @@ class InvoiceService
         }
 
         return DB::transaction(function () use ($invoice, $data, $user): Invoice {
-            $jumlahBayar = (float) $data['jumlah_bayar'];
+            $pembayaranKaliIni = (float) $data['jumlah_bayar'];
+
+            if ($pembayaranKaliIni <= 0) {
+                throw ValidationException::withMessages(['jumlah_bayar' => 'Jumlah pembayaran harus lebih dari 0.']);
+            }
+
+            $jumlahBayar = (float) $invoice->jumlah_bayar + $pembayaranKaliIni;
+            $grandTotal = (float) $invoice->grand_total;
+
+            if ($jumlahBayar > $grandTotal) {
+                $sisaTagihan = max($grandTotal - (float) $invoice->jumlah_bayar, 0);
+                throw ValidationException::withMessages(['jumlah_bayar' => 'Pembayaran melebihi sisa tagihan. Maksimal pembayaran kali ini Rp '.number_format($sisaTagihan, 0, ',', '.').'.']);
+            }
 
             $invoice->update([
                 'tgl_bayar' => $data['tgl_bayar'],
                 'jumlah_bayar' => $jumlahBayar,
                 'status_pembayaran' => match (true) {
-                    $jumlahBayar >= (float) $invoice->total_nilai => StatusPembayaran::Lunas,
+                    $jumlahBayar >= $grandTotal => StatusPembayaran::Lunas,
                     $jumlahBayar > 0 => StatusPembayaran::Sebagian,
                     default => StatusPembayaran::Belum,
                 },
@@ -172,11 +192,11 @@ class InvoiceService
     }
 
     /**
-     * @return array{total_nilai: float, total_hpp: float, total_profit: float}
+     * @return array{total_nilai: float, ppn: float, grand_total: float, total_hpp: float, total_profit: float}
      */
     private function calculateTotals(Spb $spb): array
     {
-        return $this->invoicePDFService->itemsForSpb($spb)
+        $totals = $this->invoicePDFService->itemsForSpb($spb)
             ->reduce(function (array $carry, array $item): array {
                 $carry['total_nilai'] += $item['jumlah'];
                 $carry['total_hpp'] += $item['total_hpp'];
@@ -184,6 +204,11 @@ class InvoiceService
 
                 return $carry;
             }, ['total_nilai' => 0.0, 'total_hpp' => 0.0, 'total_profit' => 0.0]);
+
+        $totals['ppn'] = round($totals['total_nilai'] * 0.11);
+        $totals['grand_total'] = $totals['total_nilai'] + $totals['ppn'];
+
+        return $totals;
     }
 
     private function prepareMergeFile(UploadedFile $file, string $prefix): string

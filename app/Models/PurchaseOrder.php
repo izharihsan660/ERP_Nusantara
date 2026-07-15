@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PurchaseOrderStatus;
+use App\Enums\SpbStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,7 @@ class PurchaseOrder extends Model
         'status',
         'qr_token',
         'catatan',
+        'catatan_rejection',
         'approved_by',
         'approved_at',
         'voided_by',
@@ -96,7 +98,11 @@ class PurchaseOrder extends Model
 
     public function isVoidable(): bool
     {
-        return $this->status !== PurchaseOrderStatus::Void;
+        if ($this->status === PurchaseOrderStatus::Void) {
+            return false;
+        }
+
+        return ! $this->spb()->where('status', '!=', SpbStatus::Void->value)->exists();
     }
 
     public function getTotalAttribute(): float

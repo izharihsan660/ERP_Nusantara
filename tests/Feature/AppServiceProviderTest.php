@@ -38,4 +38,21 @@ class AppServiceProviderTest extends TestCase
 
         $this->assertSame($environmentMailer, config('mail.default'));
     }
+
+    public function test_graph_mailer_is_not_overridden_by_database_smtp_settings(): void
+    {
+        AppSetting::query()->create([
+            'key' => 'mail_host',
+            'value' => 'smtp.example.test',
+            'label' => 'SMTP Host',
+            'group' => 'email',
+        ]);
+
+        config(['mail.default' => 'graph']);
+        Cache::forget('app_settings_mail');
+
+        (new AppServiceProvider($this->app))->boot();
+
+        $this->assertSame('graph', config('mail.default'));
+    }
 }

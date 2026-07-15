@@ -475,6 +475,8 @@ class QuotationController extends Controller
             'tgl_dokumen' => $invoice->tgl_dokumen?->format('Y-m-d'),
             'no_faktur_pajak' => $invoice->no_faktur_pajak,
             'total_nilai' => $invoice->total_nilai,
+            'ppn' => $invoice->ppn,
+            'grand_total' => $invoice->grand_total,
             'total_hpp' => $invoice->total_hpp,
             'total_profit' => $invoice->total_profit,
             'metode_pembayaran' => $invoice->metode_pembayaran->value,
